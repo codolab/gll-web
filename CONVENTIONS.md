@@ -80,11 +80,14 @@ not answering, start your own: `npx vite --port <your port> --strictPort`.
 node scripts/shot.mjs <slug> [http://localhost:<port>/]
 ```
 
-writes `qa/one/<slug>.side.png` (Figma | build | diff) and prints a mismatch
-percentage. Look at the side-by-side, then crop disputed regions from both
-images at 300-400% before deciding anything. Some renders are trimmed and do
-not equal the node box (the script says so); for those, register by eye or by
-cropping a matching window, and report the offset you found.
+runs the full parity harness on one section (`scripts/harness.mjs`, shared
+with `npm run qa`) and writes `qa/one/<slug>.side.png` (Figma | build | diff).
+Look at the side-by-side, then crop disputed regions from both images at
+300-400% before deciding anything. Trimmed renders (talent, meet) are
+registered by the harness, which solves and prints the reference origin.
+Chromium snaps box edges to whole CSS px even at 2x; the ink gate subtracts
+that expected snap, so only the residual counts.
+When `design/figma/<slug>.composed.png` exists the harness uses it instead of `<slug>.png`: an isolated render blends non-normal layers (logos' HARD_LIGHT) against nothing, so that section's reference is re-composited onto its white backdrop.
 
 ## Rules
 

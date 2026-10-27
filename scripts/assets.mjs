@@ -74,9 +74,14 @@ if (mode === 'fill') {
     } else {
       throw new Error(`${id}: scaleMode ${fill.scaleMode} - handle it by hand (FIT = object-contain on the source)`)
     }
-    const geom = `${Math.round(crop.w)}x${Math.round(crop.h)}+${Math.round(crop.l)}+${Math.round(crop.t)}`
-    const size = `${Math.round(box.width * 2)}x${Math.round(box.height * 2)}!`
-    execFileSync('magick', [src + '[0]', '-crop', geom, '+repage', '-resize', size, '-quality', '88', `${dir}/${name}.webp`])
+    // Sub-pixel crop: rounding the crop to whole source pixels drifted the footer
+    // photo up to 0.63 CSS px, so map the exact crop rect onto the output instead.
+    const ow = Math.round(box.width * 2), oh = Math.round(box.height * 2)
+    const { l, t, w, h } = crop
+    const geom = `${w.toFixed(3)}x${h.toFixed(3)}+${l.toFixed(3)}+${t.toFixed(3)}`
+    execFileSync('magick', [src + '[0]', '-filter', 'Lanczos', '-virtual-pixel', 'edge', '-define', `distort:viewport=${ow}x${oh}+0+0`,
+      '-distort', 'Affine', `${l},${t} 0,0  ${l + w},${t} ${ow},0  ${l},${t + h} 0,${oh}`,
+      '+repage', '-quality', '88', `${dir}/${name}.webp`])
     const warn = fill.filters ? `  WARNING: fill has filters ${JSON.stringify(fill.filters)} - not applied` : ''
     console.log(`/assets/${slug}/${name}.webp  (crop ${geom} of ${sw}x${sh})${warn}`)
   }

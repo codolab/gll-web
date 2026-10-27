@@ -7,6 +7,10 @@
     "dev": "vite --port 4196",
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 4197 --strictPort",
+    "qa": "node scripts/capture.mjs && node scripts/diff.mjs",
+    "qa:dev": "URL=http://localhost:4196/ npm run qa",
+    "qa:one": "node scripts/check-one.mjs",
+    "qa:validate": "node scripts/validate-harness.mjs",
     "capture": "node scripts/capture.mjs",
     "diff": "node scripts/diff.mjs"
   },
