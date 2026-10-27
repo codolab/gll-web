@@ -1,0 +1,100 @@
+# Build conventions: gll-web
+
+A literal, pixel-accurate transcription of Figma frame `94:84` ("GLL (1)") in
+file `Mhl8szCFRd3mDfVsTCGdnG`. The design is the specification. Do not improve
+it, re-space it, or "fix" its inconsistencies.
+
+## Stack
+
+Vite + React 18 + TypeScript (strict) + Tailwind v4 (`@tailwindcss/vite`).
+No other runtime dependencies. Do not add npm packages. Font: Inter,
+self-hosted variable (`--font-sans`), which is the design's own face, so text
+can and should match the render closely.
+
+## Layout model
+
+`src/App.tsx` renders a fixed 1440 x 7895 canvas and absolutely positions each
+section at its Figma `absoluteBoundingBox` (registry: `design/sections.json`).
+
+**Your component renders only the inside of your section.** The wrapper div,
+its `left/top/width/height` and `data-section` are provided by App. Your root
+is `<div className="relative size-full" data-node-id="<section node>">` and
+must not position itself. Content may overflow the wrapper; the canvas clips
+at 0..1440 exactly as the Figma frame does.
+
+## Sources (no Figma MCP: the quota is ~20 calls a month)
+
+- `design/nodes/<slug>.json`: the section's full REST subtree. Every
+  `absoluteBoundingBox` is already re-based to canvas pixels. Place a child at
+  `box.x - section.x`, `box.y - section.y`. Never use raw `x`/`y` or
+  `relativeTransform` for placement: those are pre-transform.
+- `design/figma/<slug>.png`: the 2x Figma render of your section, the baseline.
+- `design/figma/full-1x.png`: the composed page at 1x, for context.
+
+Read from the node JSON, not off the picture: `style.fontSize`, `fontWeight`,
+`lineHeightPx`, `letterSpacing`, `textAlignHorizontal`, `textCase`,
+`characterStyleOverrides` + `styleOverrideTable` (mixed weights in one line),
+`fills` (SOLID with `opacity`, GRADIENT_* with `gradientHandlePositions`),
+`strokes` + `strokeWeight` + `strokeAlign`, `cornerRadius` /
+`rectangleCornerRadii`, `effects` (DROP_SHADOW, BACKGROUND_BLUR), node
+`opacity`, `blendMode`, `clipsContent`, `visible: false` (skip it).
+
+Absolute placement from the boxes is always correct. Flex/auto-layout is fine
+where it reproduces the same boxes exactly; verify, don't assume.
+
+## Assets
+
+Use `scripts/assets.mjs`; it writes to `public/assets/<slug>/` and prints the
+URL to reference.
+
+```
+node scripts/assets.mjs render <slug> 94:112=partner-triniti 94:113=partner-lf    # PNG->WebP, 2x
+node scripts/assets.mjs render <slug> 94:130=logo --format=svg                    # vectors, icons
+node scripts/assets.mjs fill   <slug> 94:287=conversations                        # photo fill of a frame with children
+```
+
+- `render` has Figma paint the node itself: image filters, crop, blend, masks,
+  corner radius all baked in. Use it for childless image nodes, vectors,
+  icons, logos, and any image that carries `filters` or a non-normal
+  `blendMode`. Batch all of your ids into one call per format.
+- `fill` bakes a frame's image fill from the source file at the exact box
+  aspect (Figma "Crop"/STRETCH via `imageTransform`, FILL as a centred cover).
+  It does not apply image filters and says so; for those, render a child or
+  the node and accept what it bakes, and say which you chose.
+- Never hand-write an `<svg>` path, never hotlink a Figma URL, never drop an
+  icon. A text node stays live text, never an image of text.
+
+## Interaction
+
+Links are `<a href="#">`, buttons are `<button type="button">`, the
+newsletter field is a real `<input type="email">`. Hover/focus states are
+welcome but must not change the default render. No animation that changes the
+first frame (the ribbons and logo strip may become marquees later; not now).
+
+## Checking your work
+
+A dev server runs on http://localhost:4196 (HMR picks up your file). If it is
+not answering, start your own: `npx vite --port <your port> --strictPort`.
+
+```
+node scripts/shot.mjs <slug> [http://localhost:<port>/]
+```
+
+writes `qa/one/<slug>.side.png` (Figma | build | diff) and prints a mismatch
+percentage. Look at the side-by-side, then crop disputed regions from both
+images at 300-400% before deciding anything. Some renders are trimmed and do
+not equal the node box (the script says so); for those, register by eye or by
+cropping a matching window, and report the offset you found.
+
+## Rules
+
+- Strict TypeScript: `npx tsc -b` must pass.
+- Touch only `src/sections/<YourComponent>.tsx` and `public/assets/<your-slug>/`.
+  Never edit App.tsx, canvas.ts, index.css, scripts, or another section.
+- Copy is reproduced character for character from `characters`, including
+  curly quotes, dashes and non-breaking spaces the design uses.
+- Keep `data-node-id="<figma id>"` on every element that maps to a node; the
+  geometry gate measures every one of them against its Figma box.
+- Comments: about one line per ten of code, only where the why is not obvious.
+  Never use the em-dash character in comments or anything you write (design
+  copy is exempt: reproduce what is there).

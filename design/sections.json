@@ -1,0 +1,197 @@
+{
+  "file": "Mhl8szCFRd3mDfVsTCGdnG",
+  "frame": "94:84",
+  "canvas": {
+    "w": 1440,
+    "h": 7895
+  },
+  "sections": [
+    {
+      "slug": "hero",
+      "node": "94:85",
+      "name": "Frame 2147260592",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 959,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 959
+      }
+    },
+    {
+      "slug": "gradient",
+      "node": "94:110",
+      "name": "Gradient",
+      "x": -416,
+      "y": 0,
+      "w": 2272,
+      "h": 202.04071044921875,
+      "overlay": true,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 202.04071044921875
+      }
+    },
+    {
+      "slug": "logos",
+      "node": "94:111",
+      "name": "Frame 2147260600",
+      "x": 24,
+      "y": 1000,
+      "w": 1468.19091796875,
+      "h": 103.92623901367188,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 24,
+        "y": 1000,
+        "w": 1416,
+        "h": 103.92626953125
+      }
+    },
+    {
+      "slug": "nav",
+      "node": "94:120",
+      "name": "Group 1321315345",
+      "x": 24,
+      "y": 0,
+      "w": 1392,
+      "h": 95.0779800415039,
+      "overlay": true,
+      "backdrop": "#0b1722",
+      "render": {
+        "x": 24,
+        "y": 0,
+        "w": 1392,
+        "h": 95.0779800415039
+      }
+    },
+    {
+      "slug": "ribbons",
+      "node": "94:139",
+      "name": "Frame 2147260597",
+      "x": -19,
+      "y": 2242.92578125,
+      "w": 2209,
+      "h": 240,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 2242.92578125,
+        "w": 1440,
+        "h": 240
+      }
+    },
+    {
+      "slug": "programs",
+      "node": "94:156",
+      "name": "Programs — Get involved",
+      "x": 0,
+      "y": 2618.92578125,
+      "w": 1440,
+      "h": 1461,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 2618.92578125,
+        "w": 1440,
+        "h": 1461
+      }
+    },
+    {
+      "slug": "impact",
+      "node": "94:180",
+      "name": "Our global community — By the numbers",
+      "x": -2,
+      "y": 4080,
+      "w": 1442,
+      "h": 661.5625,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 4080,
+        "w": 1440,
+        "h": 661.5625
+      }
+    },
+    {
+      "slug": "meet",
+      "node": "94:199",
+      "name": "Group 1321315358",
+      "x": 20,
+      "y": 4877.5625,
+      "w": 1396.171630859375,
+      "h": 744.1598510742188,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 20,
+        "y": 4877.5625,
+        "w": 1396.171630859375,
+        "h": 744.1598510742188
+      }
+    },
+    {
+      "slug": "talent",
+      "node": "94:935",
+      "name": "Group 1321315361",
+      "x": 348,
+      "y": 1239.92578125,
+      "w": 992,
+      "h": 867,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 348,
+        "y": 1239.92578125,
+        "w": 992,
+        "h": 867
+      }
+    },
+    {
+      "slug": "community",
+      "node": "94:276",
+      "name": "Our global community — By the numbers",
+      "x": 0,
+      "y": 5757.72265625,
+      "w": 1440,
+      "h": 1066,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 5757.72265625,
+        "w": 1440,
+        "h": 1066
+      }
+    },
+    {
+      "slug": "footer",
+      "node": "94:307",
+      "name": "Footer — Photo newsletter and navigation",
+      "x": 0,
+      "y": 6823.72265625,
+      "w": 1440,
+      "h": 1071,
+      "overlay": false,
+      "backdrop": "#ffffff",
+      "render": {
+        "x": 0,
+        "y": 6823.72265625,
+        "w": 1440,
+        "h": 1071
+      }
+    }
+  ]
+}

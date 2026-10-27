@@ -1,0 +1,1561 @@
+{
+ "id": "94:85",
+ "name": "Frame 2147260592",
+ "type": "FRAME",
+ "scrollBehavior": "SCROLLS",
+ "children": [
+  {
+   "id": "94:86",
+   "name": "Rectangle 15",
+   "type": "RECTANGLE",
+   "scrollBehavior": "SCROLLS",
+   "blendMode": "PASS_THROUGH",
+   "fills": [
+    {
+     "blendMode": "NORMAL",
+     "type": "SOLID",
+     "color": {
+      "r": 0.04313725605607033,
+      "g": 0.09019608050584793,
+      "b": 0.13333334028720856,
+      "a": 1
+     }
+    }
+   ],
+   "strokes": [],
+   "strokeWeight": 1,
+   "strokeAlign": "INSIDE",
+   "absoluteBoundingBox": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 959
+   },
+   "absoluteRenderBounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 959
+   },
+   "constraints": {
+    "vertical": "SCALE",
+    "horizontal": "SCALE"
+   },
+   "effects": [],
+   "interactions": [],
+   "complexStrokeProperties": {
+    "strokeType": "BASIC"
+   }
+  },
+  {
+   "id": "94:87",
+   "name": "Group 1321315343",
+   "type": "GROUP",
+   "scrollBehavior": "SCROLLS",
+   "children": [
+    {
+     "id": "94:88",
+     "name": "Figure → Picture → main-hero-l-1-1272x1272-c-center-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 0.2078431397676468,
+        "b": 0.40392157435417175,
+        "a": 1
+       }
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 0.2078431397676468,
+        "b": 0.40392157435417175,
+        "a": 1
+       }
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 1,
+      "g": 0.2078431397676468,
+      "b": 0.40392157435417175,
+      "a": 1
+     },
+     "absoluteBoundingBox": {
+      "x": -115,
+      "y": -26,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 0,
+      "y": 0,
+      "width": 184.7864990234375,
+      "height": 273.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:89",
+     "name": "Figure → Picture → Cannes-Captures-podcast-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "d4d2e9b9699070f951ef9a9de92d9a11babd4f52"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "d4d2e9b9699070f951ef9a9de92d9a11babd4f52"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 227.61328125,
+      "y": -26,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 227.61328125,
+      "y": 0,
+      "width": 299.78662109375,
+      "height": 273.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:90",
+     "name": "Figure → Picture → 8th-birthday-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "49ccf9226325dfae4cf0f90b19b9fbcb96526f15"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "49ccf9226325dfae4cf0f90b19b9fbcb96526f15"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 570.22265625,
+      "y": -26,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 570.22265625,
+      "y": 0,
+      "width": 299.78662109375,
+      "height": 273.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:91",
+     "name": "Figure → Picture → YOLK-VOLLEY-360-cropped-square.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "bc2f2c038cb4c7031aa596db12014adb926d2a19"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "bc2f2c038cb4c7031aa596db12014adb926d2a19"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 912.828125,
+      "y": -26,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 912.828125,
+      "y": 0,
+      "width": 299.78662109375,
+      "height": 273.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:92",
+     "name": "Figure → Picture → Best-Leader-Winner-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "b6d1054ea2626b50dde36796fc5c6ccf93386658",
+       "imageTransform": [
+        [
+         0.6669921875,
+         0,
+         0.4241780638694763
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "b6d1054ea2626b50dde36796fc5c6ccf93386658",
+       "imageTransform": [
+        [
+         0.6669921875,
+         0,
+         0.4241780638694763
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 1255.43359375,
+      "y": -26,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 1255.43359375,
+      "y": 0,
+      "width": 184.56640625,
+      "height": 273.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:93",
+     "name": "Figure → Picture → Jaqs-Volleyball-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "1a69b6378b958249bd0f9b2feb291db40bdee743"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "1a69b6378b958249bd0f9b2feb291db40bdee743"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": -115,
+      "y": 316.609375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 0,
+      "y": 316.609375,
+      "width": 184.7864990234375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:94",
+     "name": "Figure → Picture → 1778077500638-820x820.jpg",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "16a2025f4863f3287f2de0bf16d81d8fc831e2a1"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "16a2025f4863f3287f2de0bf16d81d8fc831e2a1"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 227.61328125,
+      "y": 316.609375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 227.61328125,
+      "y": 316.609375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:95",
+     "name": "Figure → Picture → YOLK-VOLLEY-308-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "634cc41100c36c765fb92e96cd318b07175cdb09"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "634cc41100c36c765fb92e96cd318b07175cdb09"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 570.22265625,
+      "y": 316.609375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 570.22265625,
+      "y": 316.609375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:96",
+     "name": "Figure → Picture → Cannes-captures-pod-2-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "c5698f7f9a5743b5b6d4ed6b6875ae15e3a6ad5d"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "c5698f7f9a5743b5b6d4ed6b6875ae15e3a6ad5d"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 912.828125,
+      "y": 316.609375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 912.828125,
+      "y": 316.609375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:97",
+     "name": "Figure → Picture → YOLK-VOLLEY-312-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "opacity": 0.800000011920929,
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 0.6666666865348816,
+        "b": 0,
+        "a": 1
+       }
+      }
+     ],
+     "fills": [
+      {
+       "opacity": 0.800000011920929,
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 0.6666666865348816,
+        "b": 0,
+        "a": 1
+       }
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 1,
+      "g": 0.6666666865348816,
+      "b": 0,
+      "a": 0.800000011920929
+     },
+     "absoluteBoundingBox": {
+      "x": 1255.43359375,
+      "y": 316.609375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 1255.43359375,
+      "y": 316.609375,
+      "width": 184.56640625,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:98",
+     "name": "Figure → Picture → NYC-Event-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "b2032d4cbbec2b839fe773b0f3aaacd6d0cb364b"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "b2032d4cbbec2b839fe773b0f3aaacd6d0cb364b"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": -115,
+      "y": 659.2109375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 0,
+      "y": 659.2109375,
+      "width": 184.7864990234375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:99",
+     "name": "Figure → Picture → WhatsApp-Image-2025-08-04-at-11.57.35-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 0.4000000059604645,
+        "g": 0.7215686440467834,
+        "b": 0,
+        "a": 1
+       }
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 0.4000000059604645,
+        "g": 0.7215686440467834,
+        "b": 0,
+        "a": 1
+       }
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0.4000000059604645,
+      "g": 0.7215686440467834,
+      "b": 0,
+      "a": 1
+     },
+     "absoluteBoundingBox": {
+      "x": 227.61328125,
+      "y": 659.2109375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 227.61328125,
+      "y": 659.2109375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:100",
+     "name": "Figure → Picture → First-jumpers-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "775748b2d56445b1262fcde64e69d6c7b7e38449"
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "FILL",
+       "imageRef": "775748b2d56445b1262fcde64e69d6c7b7e38449"
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 570.22265625,
+      "y": 659.2109375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 570.22265625,
+      "y": 659.2109375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:101",
+     "name": "Figure → Picture → YOLK-VOLLEY-274-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "eda24df1b3153d8cccc1138d8bc9f6cfb108dfdc",
+       "imageTransform": [
+        [
+         0.6669921875,
+         0,
+         0.16650390625
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "eda24df1b3153d8cccc1138d8bc9f6cfb108dfdc",
+       "imageTransform": [
+        [
+         0.6669921875,
+         0,
+         0.16650390625
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 912.828125,
+      "y": 659.2109375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 912.828125,
+      "y": 659.2109375,
+      "width": 299.78662109375,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:102",
+     "name": "Figure → Picture → YOLK-VOLLEY-60-square-820x820.webp",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": true,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "f0e03eafbe91acff46878a554e37f1161779a625",
+       "imageTransform": [
+        [
+         0.66650390625,
+         0,
+         0.3345033526420593
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "IMAGE",
+       "scaleMode": "STRETCH",
+       "imageRef": "f0e03eafbe91acff46878a554e37f1161779a625",
+       "imageTransform": [
+        [
+         0.66650390625,
+         0,
+         0.3345033526420593
+        ],
+        [
+         0,
+         1,
+         0
+        ]
+       ]
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 22.306095123291016,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7435365319252014,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "absoluteBoundingBox": {
+      "x": 1255.43359375,
+      "y": 659.2109375,
+      "width": 299.7864990234375,
+      "height": 299.7864990234375
+     },
+     "absoluteRenderBounds": {
+      "x": 1255.43359375,
+      "y": 659.2109375,
+      "width": 184.56640625,
+      "height": 299.7864990234375
+     },
+     "constraints": {
+      "vertical": "SCALE",
+      "horizontal": "SCALE"
+     },
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    }
+   ],
+   "blendMode": "PASS_THROUGH",
+   "clipsContent": false,
+   "background": [],
+   "fills": [],
+   "strokes": [],
+   "cornerRadius": 22.306095123291016,
+   "cornerSmoothing": 0,
+   "strokeWeight": 1,
+   "strokeAlign": "INSIDE",
+   "backgroundColor": {
+    "r": 0,
+    "g": 0,
+    "b": 0,
+    "a": 0
+   },
+   "absoluteBoundingBox": {
+    "x": -115,
+    "y": -26,
+    "width": 1670.2200927734375,
+    "height": 984.9974365234375
+   },
+   "absoluteRenderBounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 958.9974365234375
+   },
+   "constraints": {
+    "vertical": "SCALE",
+    "horizontal": "SCALE"
+   },
+   "effects": [],
+   "interactions": [],
+   "complexStrokeProperties": {
+    "strokeType": "BASIC"
+   }
+  },
+  {
+   "id": "94:103",
+   "name": "Rectangle 14",
+   "type": "RECTANGLE",
+   "scrollBehavior": "SCROLLS",
+   "blendMode": "PASS_THROUGH",
+   "fills": [
+    {
+     "opacity": 0.7099999785423279,
+     "blendMode": "NORMAL",
+     "type": "SOLID",
+     "color": {
+      "r": 0.0313725508749485,
+      "g": 0.08627451211214066,
+      "b": 0.13725490868091583,
+      "a": 1
+     }
+    }
+   ],
+   "strokes": [],
+   "strokeWeight": 1,
+   "strokeAlign": "INSIDE",
+   "absoluteBoundingBox": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 959
+   },
+   "absoluteRenderBounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 959
+   },
+   "constraints": {
+    "vertical": "SCALE",
+    "horizontal": "SCALE"
+   },
+   "effects": [],
+   "interactions": [],
+   "complexStrokeProperties": {
+    "strokeType": "BASIC"
+   }
+  },
+  {
+   "id": "94:104",
+   "name": "Frame 2608181",
+   "type": "FRAME",
+   "scrollBehavior": "SCROLLS",
+   "children": [
+    {
+     "id": "94:105",
+     "name": "Frame 2608182",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [
+      {
+       "id": "94:106",
+       "name": "Empowering leaders shaping tomorrow",
+       "type": "TEXT",
+       "scrollBehavior": "SCROLLS",
+       "blendMode": "PASS_THROUGH",
+       "fills": [
+        {
+         "blendMode": "NORMAL",
+         "type": "SOLID",
+         "color": {
+          "r": 1,
+          "g": 1,
+          "b": 1,
+          "a": 1
+         }
+        }
+       ],
+       "strokes": [],
+       "strokeWeight": 1.0274914503097534,
+       "strokeAlign": "OUTSIDE",
+       "absoluteBoundingBox": {
+        "x": 214,
+        "y": 317,
+        "width": 1012.0790405273438,
+        "height": 194
+       },
+       "absoluteRenderBounds": {
+        "x": 328.9705810546875,
+        "y": 329.90625,
+        "width": 789.0447998046875,
+        "height": 183.09375
+       },
+       "constraints": {
+        "vertical": "TOP",
+        "horizontal": "LEFT"
+       },
+       "layoutAlign": "STRETCH",
+       "layoutGrow": 0,
+       "layoutSizingHorizontal": "FILL",
+       "layoutSizingVertical": "HUG",
+       "characters": "Empowering leaders shaping tomorrow",
+       "characterStyleOverrides": [],
+       "styleOverrideTable": {},
+       "lineTypes": [
+        "NONE"
+       ],
+       "lineIndentations": [
+        0
+       ],
+       "style": {
+        "fontFamily": "Inter",
+        "fontPostScriptName": "Inter-SemiBold",
+        "fontStyle": "Semi Bold",
+        "fontWeight": 600,
+        "textAutoResize": "HEIGHT",
+        "fontSize": 88,
+        "textAlignHorizontal": "CENTER",
+        "textAlignVertical": "CENTER",
+        "letterSpacing": -4.109965801239014,
+        "lineHeightPx": 96.58419799804688,
+        "lineHeightPercent": 90.68938446044922,
+        "lineHeightPercentFontSize": 109.75476837158203,
+        "lineHeightUnit": "PIXELS"
+       },
+       "layoutVersion": 5,
+       "effects": [],
+       "interactions": [],
+       "complexStrokeProperties": {
+        "strokeType": "BASIC"
+       }
+      },
+      {
+       "id": "94:107",
+       "name": "Network of 10.000+ global Lithuanian professionals from 60+ countries and 28 clubs contributing to the prosperity of Lithuania.",
+       "type": "TEXT",
+       "scrollBehavior": "SCROLLS",
+       "blendMode": "PASS_THROUGH",
+       "fills": [
+        {
+         "blendMode": "NORMAL",
+         "type": "SOLID",
+         "color": {
+          "r": 1,
+          "g": 1,
+          "b": 1,
+          "a": 1
+         }
+        }
+       ],
+       "strokes": [],
+       "strokeWeight": 0.875,
+       "strokeAlign": "OUTSIDE",
+       "absoluteBoundingBox": {
+        "x": 406.03955078125,
+        "y": 535,
+        "width": 628,
+        "height": 108
+       },
+       "absoluteRenderBounds": {
+        "x": 427.110107421875,
+        "y": 543.727294921875,
+        "width": 585.253662109375,
+        "height": 95.18182373046875
+       },
+       "constraints": {
+        "vertical": "TOP",
+        "horizontal": "LEFT"
+       },
+       "layoutAlign": "INHERIT",
+       "layoutGrow": 0,
+       "layoutSizingHorizontal": "FIXED",
+       "layoutSizingVertical": "HUG",
+       "characters": "Network of 10.000+ global Lithuanian professionals from 60+ countries and 28 clubs contributing to the prosperity of Lithuania.",
+       "characterStyleOverrides": [],
+       "styleOverrideTable": {},
+       "lineTypes": [
+        "NONE"
+       ],
+       "lineIndentations": [
+        0
+       ],
+       "style": {
+        "fontFamily": "Inter",
+        "fontPostScriptName": null,
+        "fontStyle": "Regular",
+        "fontWeight": 400,
+        "textAutoResize": "HEIGHT",
+        "fontSize": 24,
+        "textAlignHorizontal": "CENTER",
+        "textAlignVertical": "CENTER",
+        "letterSpacing": 0,
+        "lineHeightPx": 36,
+        "lineHeightPercent": 123.94366455078125,
+        "lineHeightPercentFontSize": 150,
+        "lineHeightUnit": "PIXELS"
+       },
+       "layoutVersion": 5,
+       "effects": [],
+       "interactions": [],
+       "complexStrokeProperties": {
+        "strokeType": "BASIC"
+       }
+      }
+     ],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": false,
+     "background": [],
+     "fills": [],
+     "strokes": [],
+     "strokeWeight": 1,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 0
+     },
+     "layoutMode": "VERTICAL",
+     "counterAxisSizingMode": "FIXED",
+     "counterAxisAlignItems": "CENTER",
+     "strokesIncludedInLayout": true,
+     "itemSpacing": 24,
+     "layoutWrap": "NO_WRAP",
+     "absoluteBoundingBox": {
+      "x": 214,
+      "y": 317,
+      "width": 1012.0790405273438,
+      "height": 326
+     },
+     "absoluteRenderBounds": {
+      "x": 214,
+      "y": 317,
+      "width": 1012.0791015625,
+      "height": 326
+     },
+     "constraints": {
+      "vertical": "TOP",
+      "horizontal": "LEFT"
+     },
+     "layoutAlign": "STRETCH",
+     "layoutGrow": 0,
+     "layoutSizingHorizontal": "FILL",
+     "layoutSizingVertical": "HUG",
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    },
+    {
+     "id": "94:108",
+     "name": "Link",
+     "type": "FRAME",
+     "scrollBehavior": "SCROLLS",
+     "children": [
+      {
+       "id": "94:109",
+       "name": "BECOME A MEMBER",
+       "type": "TEXT",
+       "scrollBehavior": "SCROLLS",
+       "blendMode": "PASS_THROUGH",
+       "fills": [
+        {
+         "blendMode": "NORMAL",
+         "type": "SOLID",
+         "color": {
+          "r": 0.04313725605607033,
+          "g": 0.09019608050584793,
+          "b": 0.13333334028720856,
+          "a": 1
+         }
+        }
+       ],
+       "strokes": [],
+       "strokeWeight": 0.7706185579299927,
+       "strokeAlign": "OUTSIDE",
+       "absoluteBoundingBox": {
+        "x": 641.03955078125,
+        "y": 712.1718139648438,
+        "width": 158,
+        "height": 24
+       },
+       "absoluteRenderBounds": {
+        "x": 642.382568359375,
+        "y": 718.3763427734375,
+        "width": 156.09521484375,
+        "height": 11.95458984375
+       },
+       "constraints": {
+        "vertical": "TOP",
+        "horizontal": "LEFT"
+       },
+       "layoutAlign": "INHERIT",
+       "layoutGrow": 0,
+       "layoutSizingHorizontal": "HUG",
+       "layoutSizingVertical": "HUG",
+       "characters": "BECOME A MEMBER",
+       "characterStyleOverrides": [],
+       "styleOverrideTable": {},
+       "lineTypes": [
+        "NONE"
+       ],
+       "lineIndentations": [
+        0
+       ],
+       "style": {
+        "fontFamily": "Inter",
+        "fontPostScriptName": null,
+        "fontStyle": "Semi Bold",
+        "fontWeight": 600,
+        "textCase": "UPPER",
+        "textAutoResize": "WIDTH_AND_HEIGHT",
+        "fontSize": 16,
+        "textAlignHorizontal": "CENTER",
+        "textAlignVertical": "CENTER",
+        "letterSpacing": 0,
+        "lineHeightPx": 24,
+        "lineHeightPercent": 123.94366455078125,
+        "lineHeightPercentFontSize": 150,
+        "lineHeightUnit": "PIXELS"
+       },
+       "layoutVersion": 5,
+       "effects": [],
+       "interactions": [],
+       "complexStrokeProperties": {
+        "strokeType": "BASIC"
+       }
+      }
+     ],
+     "blendMode": "PASS_THROUGH",
+     "clipsContent": false,
+     "background": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+       }
+      }
+     ],
+     "fills": [
+      {
+       "blendMode": "NORMAL",
+       "type": "SOLID",
+       "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+       }
+      }
+     ],
+     "strokes": [],
+     "cornerRadius": 138.7113494873047,
+     "cornerSmoothing": 0,
+     "strokeWeight": 0.7706185579299927,
+     "strokeAlign": "INSIDE",
+     "backgroundColor": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+     },
+     "layoutMode": "HORIZONTAL",
+     "counterAxisSizingMode": "FIXED",
+     "counterAxisAlignItems": "CENTER",
+     "primaryAxisAlignItems": "CENTER",
+     "paddingLeft": 32,
+     "paddingRight": 32,
+     "paddingTop": 8,
+     "paddingBottom": 8,
+     "strokesIncludedInLayout": true,
+     "itemSpacing": 10.274914741516113,
+     "layoutWrap": "NO_WRAP",
+     "absoluteBoundingBox": {
+      "x": 609.03955078125,
+      "y": 699.5120239257812,
+      "width": 222,
+      "height": 49.31958770751953
+     },
+     "absoluteRenderBounds": {
+      "x": 609.03955078125,
+      "y": 699.5120239257812,
+      "width": 222,
+      "height": 49.31958770751953
+     },
+     "constraints": {
+      "vertical": "TOP",
+      "horizontal": "LEFT"
+     },
+     "layoutAlign": "INHERIT",
+     "layoutGrow": 0,
+     "layoutSizingHorizontal": "HUG",
+     "layoutSizingVertical": "FIXED",
+     "effects": [],
+     "interactions": [],
+     "complexStrokeProperties": {
+      "strokeType": "BASIC"
+     }
+    }
+   ],
+   "blendMode": "PASS_THROUGH",
+   "clipsContent": false,
+   "background": [],
+   "fills": [],
+   "strokes": [],
+   "strokeWeight": 1.0274914503097534,
+   "strokeAlign": "INSIDE",
+   "backgroundColor": {
+    "r": 0,
+    "g": 0,
+    "b": 0,
+    "a": 0
+   },
+   "layoutMode": "VERTICAL",
+   "counterAxisSizingMode": "FIXED",
+   "primaryAxisSizingMode": "FIXED",
+   "counterAxisAlignItems": "CENTER",
+   "strokesIncludedInLayout": true,
+   "itemSpacing": 56.51203155517578,
+   "layoutWrap": "NO_WRAP",
+   "absoluteBoundingBox": {
+    "x": 214,
+    "y": 317,
+    "width": 1012.0790405273438,
+    "height": 431.83160400390625
+   },
+   "absoluteRenderBounds": {
+    "x": 214,
+    "y": 317,
+    "width": 1012.0791015625,
+    "height": 431.83160400390625
+   },
+   "constraints": {
+    "vertical": "SCALE",
+    "horizontal": "SCALE"
+   },
+   "layoutSizingHorizontal": "FIXED",
+   "layoutSizingVertical": "FIXED",
+   "effects": [],
+   "interactions": [],
+   "complexStrokeProperties": {
+    "strokeType": "BASIC"
+   }
+  }
+ ],
+ "blendMode": "PASS_THROUGH",
+ "clipsContent": true,
+ "background": [],
+ "fills": [],
+ "strokes": [],
+ "rectangleCornerRadii": [
+  0,
+  0,
+  50,
+  50
+ ],
+ "cornerSmoothing": 0,
+ "strokeWeight": 1,
+ "strokeAlign": "INSIDE",
+ "backgroundColor": {
+  "r": 0,
+  "g": 0,
+  "b": 0,
+  "a": 0
+ },
+ "layoutGrids": [
+  {
+   "pattern": "GRID",
+   "sectionSize": 10,
+   "visible": true,
+   "color": {
+    "r": 1,
+    "g": 0,
+    "b": 0,
+    "a": 0.10000000149011612
+   },
+   "alignment": "MIN",
+   "gutterSize": 0,
+   "offset": 0,
+   "count": -1
+  }
+ ],
+ "absoluteBoundingBox": {
+  "x": 0,
+  "y": 0,
+  "width": 1440,
+  "height": 959
+ },
+ "absoluteRenderBounds": {
+  "x": 0,
+  "y": 0,
+  "width": 1440,
+  "height": 959
+ },
+ "constraints": {
+  "vertical": "TOP",
+  "horizontal": "LEFT"
+ },
+ "exportSettings": [
+  {
+   "suffix": "",
+   "format": "PNG",
+   "constraint": {
+    "type": "SCALE",
+    "value": 1
+   }
+  }
+ ],
+ "effects": [],
+ "interactions": [],
+ "complexStrokeProperties": {
+  "strokeType": "BASIC"
+ }
+}
