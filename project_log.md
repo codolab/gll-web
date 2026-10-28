@@ -57,3 +57,9 @@ section is gated against `design/figma/logos.composed.png`.
   (rest frames unchanged); `npm run qa:motion` 71/71. The first animated frame
   of a marquee differs from rest by 0.02% of pixels, all 1px fringes, from
   layer promotion; the checks hold it to a fringe-only rule.
+- Second review (Copilot was out of credits) found five more: the hidden pause
+  button's shadow reached into the viewport on every page, ribbons had no hover
+  pause, a meet photo stayed zoomed after a mouse click, a hover moved the talent
+  tab stop, and the Support us nudge fired over non-clickable card area. All
+  fixed in ba7937c with checks; a page-level check now proves the pause button
+  paints nothing at rest. `npm run qa:motion` 103/103.
