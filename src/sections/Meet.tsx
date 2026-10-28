@@ -73,10 +73,10 @@ const subpx = (x: number) => {
   return { left, transform: x === left ? undefined : `translateX(${+(x - left).toFixed(3)}px)` }
 }
 
-// M-10: the photo zooms inside its box while the card is hovered or holds focus.
-const ZOOM = 'motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:group-hover:scale-[1.06] motion-safe:group-focus-within:scale-[1.06]'
+// M-10: the photo zooms inside its box while the card is hovered or holds keyboard focus.
+const ZOOM = 'motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:group-hover:scale-[1.06] motion-safe:group-has-focus-visible:scale-[1.06]'
 // Visibility flips to visible at once and back only when the 0.5s zoom-out has finished.
-const DURING_ZOOM = 'invisible motion-safe:transition-[visibility] motion-safe:duration-500 motion-safe:group-hover:visible motion-safe:group-focus-within:visible'
+const DURING_ZOOM = 'invisible motion-safe:transition-[visibility] motion-safe:duration-500 motion-safe:group-hover:visible motion-safe:group-has-focus-visible:visible'
 const CLONE = { 'aria-hidden': 'true', inert: '' } as Record<string, string>
 
 // Phones show the canvas at ~0.27 (G-01), so people pinch-zoom; zoomed, a drag pans the page, not the cards.

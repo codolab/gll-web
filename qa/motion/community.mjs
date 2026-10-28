@@ -1,10 +1,9 @@
-// M-13: hovering "Partner with us" (94:282) or the "Support us" card (94:300) nudges its arrow 6px right.
+// M-13: hovering "Partner with us" (94:282) or the "Support us" link (94:303) nudges its arrow 6px right.
 // M-14 ("the logo spins") is not built: frame 94:84 has no logo in this section (gaps.md G-07).
 const BLOCKS = [
   { name: 'Partner with us', hover: '94:282', arrow: '94:285', link: '94:282' },
-  { name: 'Support us', hover: '94:300', arrow: '94:305', link: '94:303' },
+  { name: 'Support us', hover: '94:303', arrow: '94:305', link: '94:303' },
 ]
-const HEADING = '94:279'
 const sel = (id) => `[data-node-id="${id}"]`
 const fmt = (n) => (Math.round(n * 100) / 100).toFixed(2)
 
@@ -14,9 +13,10 @@ const probe = (page, id) => page.$eval(sel(id), (el) => {
   return { ...el.getBoundingClientRect().toJSON(), k, translate: cs.translate, transform: cs.transform }
 })
 const atRest = (p) => p.translate === 'none' && p.transform === 'none'
+// Park the pointer in the section's empty right margin, level with the middle of the viewport.
 const away = async (page) => {
-  const h = await probe(page, HEADING)
-  await page.mouse.move(h.left + 10, h.top + 10)
+  const r = await page.$eval('[data-section="community"]', (el) => el.getBoundingClientRect().toJSON())
+  await page.mouse.move(r.right - 10, 450)
 }
 /** Focus the link by keyboard: focus whatever precedes it in tab order, then press Tab. */
 const tabTo = async (page, id) => {
@@ -34,6 +34,8 @@ export default async function (page, t) {
   t.check('M-13', rest0.every(atRest), `rest: ${BLOCKS.map((b, i) => `${b.arrow} translate ${rest0[i].translate}/transform ${rest0[i].transform}`).join(', ')}`)
 
   for (const b of BLOCKS) {
+    // The previous block's keyboard step scrolls the page; bring this block back into view.
+    await page.$eval(sel(b.hover), (el) => el.scrollIntoView({ block: 'center' }))
     await away(page)
     await t.sleep(400)
     const before = await probe(page, b.arrow)
@@ -88,9 +90,12 @@ export async function reduced(page, t) {
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   const seen = []
   for (const b of BLOCKS) {
+    await page.$eval(sel(b.hover), (el) => el.scrollIntoView({ block: 'center' }))
     await away(page)
     const before = await probe(page, b.arrow)
     const h = await probe(page, b.hover)
+    // Prove the hover lands, so "the arrow did not move" is not a missed hover.
+    const landed = await page.evaluate(([x, y, id]) => !!document.elementFromPoint(x, y)?.closest(`[data-node-id="${id}"]`), [h.left + h.width * 0.4, h.top + h.height * 0.35, b.hover])
     await page.mouse.move(h.left + h.width * 0.4, h.top + h.height * 0.35)
     await t.sleep(400)
     const hovered = await probe(page, b.arrow)
@@ -98,7 +103,7 @@ export async function reduced(page, t) {
     await t.sleep(400)
     const focused = await probe(page, b.arrow)
     await page.$eval(sel(b.link), (el) => el.blur())
-    seen.push({ b, ok: hovered.left === before.left && atRest(hovered) && visible && focused.left === before.left && atRest(focused), hovered, focused, before })
+    seen.push({ b, ok: landed && hovered.left === before.left && atRest(hovered) && visible && focused.left === before.left && atRest(focused), hovered, focused, before })
   }
   t.check('M-13', seen.every((s) => s.ok),
     `reduced motion: ${seen.map((s) => `${s.b.arrow} hover ${fmt(s.hovered.left - s.before.left)}px (${s.hovered.translate}), keyboard focus ${fmt(s.focused.left - s.before.left)}px`).join('; ')}`)

@@ -60,6 +60,8 @@ export default function Talent() {
   const reduced = useReducedMotion()
   const [active, setActive] = useState(0)
   const [settled, setSettled] = useState(0)
+  // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
+  const [focused, setFocused] = useState<number | null>(null)
   const under = reduced ? active : settled
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
   // No transitionend fires under reduced motion, so settle with the selection.
@@ -77,9 +79,13 @@ export default function Talent() {
     'aria-selected': active === i,
     'aria-controls': `${uid}panel`,
     'aria-label': `${i + 1}: ${STATES[i].line}`,
-    tabIndex: active === i ? 0 : -1,
+    tabIndex: (focused ?? active) === i ? 0 : -1,
     onPointerEnter: () => select(i),
-    onFocus: () => select(i),
+    onFocus: () => {
+      setFocused(i)
+      select(i)
+    },
+    onBlur: () => setFocused(null),
     onClick: () => select(i),
   })
   const onKeyDown = (e: KeyboardEvent) => {

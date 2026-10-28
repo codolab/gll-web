@@ -210,6 +210,19 @@ export default async function (page, t) {
   t.check('M-04', out.focus === 0 && backIn.focus === 1 && is(backIn, 0),
     `tab stop: Tab leaves the group (focus on tab ${out.focus || 'none'}), Shift+Tab returns to the selected tab ${backIn.focus}`)
 
+  // A hover while a tab holds keyboard focus must not move the tab stop: Tab still leaves the group.
+  // Focus moves scroll the page: centre the composition (focus stays put) and measure again.
+  await page.$eval('[data-node-id="94:264"]', (el) => el.scrollIntoView({ block: 'center' }))
+  const now = await points(page)
+  await page.mouse.move(now[2].x, now[2].y)
+  await t.sleep(SETTLE_MS)
+  const hoveredWhileFocused = await snap(page)
+  await page.keyboard.press('Tab')
+  const out2 = await snap(page)
+  t.check('M-04', hoveredWhileFocused.selected === 3 && hoveredWhileFocused.focus === 1 && out2.focus === 0,
+    `hover 3 while tab 1 has focus: selected ${hoveredWhileFocused.selected}, focus stays on ${hoveredWhileFocused.focus}; Tab then lands ${out2.focus ? `on tab ${out2.focus}` : 'outside the group'}`)
+  await page.mouse.move(1, 1)
+
   const rings = keyed.map(([, s]) => s.ring)
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   pts.splice(0, 4, ...(await points(page)))

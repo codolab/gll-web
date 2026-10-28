@@ -290,6 +290,12 @@ async function motionChecks(page, t) {
   t.check('M-12', atSlots(afterDrag, '94:230') && !animating && clicks.length === 1 && clicks[0].id === CTA['94:212'] && !clicks[0].prevented,
     `mouse drag 140px left: first card stays ${afterDrag[0].id}, no slide; mouse click on CTA ${CTA['94:212']} delivered ${JSON.stringify(clicks)}`)
 
+  // M-G4: zoom follows keyboard focus only, so the clicked card unzooms once the pointer leaves.
+  await away(page)
+  const unzoomed = await until(page, '94:212 zoom-out after a mouse click', (s) => getComputedStyle(document.querySelector(s)).scale === 'none', imgSel('94:212')).then(() => true, () => false)
+  const stillFocused = await page.$eval(sel(CTA['94:212']), (el) => document.activeElement === el && !el.matches(':focus-visible'))
+  t.check('M-10', unzoomed && stillFocused, `mouse click then leave: 94:212 photo scale ${(await style(page, imgSel('94:212'))).scale}, link still focused (not focus-visible) ${stillFocused}`)
+
   await touchChecks(t, false)
 }
 

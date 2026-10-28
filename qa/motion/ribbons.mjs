@@ -1,6 +1,7 @@
-// ribbons: M-07, the two type rows scroll in opposite directions at 40 px/s, seamless loops.
+// ribbons: M-07, the two type rows scroll in opposite directions at 40 px/s, seamless loops,
+// and both rows pause while the section is hovered (like the logos, M-03).
 // The page's pause button (M-G5) is checked for these rows too, in logos.mjs.
-import { sample, speed, secs, seek, coverage, clipOf, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
+import { sample, speed, secs, settle, seek, coverage, clipOf, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
 
 const GAP = 32 // phrase-to-dot spacing in both rows: the widest empty run a row may show
 const ROWS = [
@@ -19,6 +20,21 @@ export default async function (page, t) {
     const period = await page.$eval(r.track, (el) => Math.abs(parseFloat(getComputedStyle(el).getPropertyValue('--marquee-shift'))))
     t.check('M-07', Math.abs(v - r.speed) < 2, `${r.node} ${r.name}: ${a[i].x.toFixed(2)} -> ${b[i].x.toFixed(2)}px over ${secs(a[i], b[i])}s = ${v.toFixed(2)} px/s (want ${r.speed}); period ${period}px = ${(period / 40).toFixed(2)}s`)
   }
+
+  // Hover pause: point at the gap between the rows, then leave. The play state lands a recalc later.
+  const sec = await clipOf(page, t.section)
+  await page.mouse.move(sec.x + sec.width / 2, sec.y + 120)
+  const held = await Promise.all(ROWS.map((r) => settle(page, r.track, 'paused').then(() => true, () => false)))
+  const h0 = await Promise.all(ROWS.map((r) => sample(page, r.track)))
+  await t.sleep(500)
+  const h1 = await Promise.all(ROWS.map((r) => sample(page, r.track)))
+  await page.mouse.move(sec.x + sec.width / 2, sec.y - 150)
+  const freed = await Promise.all(ROWS.map((r) => settle(page, r.track, 'running').then(() => true, () => false)))
+  const f0 = await Promise.all(ROWS.map((r) => sample(page, r.track)))
+  await t.sleep(500)
+  const f1 = await Promise.all(ROWS.map((r) => sample(page, r.track)))
+  t.check('M-07', held.every(Boolean) && freed.every(Boolean) && ROWS.every((r, i) => h1[i].x === h0[i].x && Math.abs(speed(f0[i], f1[i]) - r.speed) < 2),
+    `hover pause: ${ROWS.map((r, i) => `${r.node} held ${(h1[i].x - h0[i].x).toFixed(3)}px over ${secs(h0[i], h1[i])}s, after leaving ${speed(f0[i], f1[i]).toFixed(2)} px/s`).join('; ')}`)
 
   for (const r of ROWS) {
     const cov = await coverage(page, r.track, r.sel, r.speed)

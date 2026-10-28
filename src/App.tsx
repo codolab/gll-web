@@ -66,7 +66,7 @@ export default function App() {
           type="button"
           aria-pressed={paused}
           onClick={() => setPaused((p) => !p)}
-          className="fixed left-4 top-4 z-50 -translate-y-[calc(100%+24px)] rounded-full bg-white px-5 py-3 text-[16px] font-semibold text-ink shadow-lg focus:translate-y-0"
+          className="fixed left-4 top-4 z-50 -translate-y-[calc(100%+64px)] rounded-full bg-white px-5 py-3 text-[16px] font-semibold text-ink focus:translate-y-0 focus:shadow-lg"
         >
           Pause moving content
         </button>

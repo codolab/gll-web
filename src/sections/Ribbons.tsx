@@ -55,7 +55,7 @@ function Marquee({ items, period: raw, dir }: { items: Item[]; period: number; d
   const base = dir > 0 ? period : 0
   const style = { left: -base, '--marquee-shift': `${dir * period}px`, '--marquee-duration': `${period / SPEED}s` } as CSSProperties
   return (
-    <div className="marquee absolute inset-y-0 w-full" style={style}>
+    <div className="marquee absolute inset-y-0 w-full group-hover:[animation-play-state:paused]" style={style}>
       {items.map((it, i) => renderItem(at(it, base), `o${i}`))}
       {items.filter((it) => it.x < period).map((it, i) => renderItem(at(clone(it), base - dir * period), `c${i}`))}
     </div>
@@ -80,7 +80,7 @@ const GROW: Item[] = [
 
 export default function Ribbons() {
   return (
-    <div className="relative size-full" data-node-id="94:139">
+    <div className="group relative size-full" data-node-id="94:139">
       <div data-node-id="94:140" className="absolute left-0 top-0 h-[112px] overflow-hidden" style={{ width: 1529.298 }}>
         <Marquee items={CONNECT} period={2 * 780.649} dir={-1} />
       </div>

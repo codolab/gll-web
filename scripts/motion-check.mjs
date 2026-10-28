@@ -2,19 +2,21 @@
 // harness only proves the rest frame (it captures under reduced motion); this
 // proves the motion exists and does what the spec says.
 //
-//   URL=http://localhost:4196/ node scripts/motion-check.mjs [slug ...]
+//   npm run build && node scripts/motion-check.mjs [slug ...]   (URL=... to override)
 //
 // Each qa/motion/<slug>.mjs default-exports `async (page, t) => {}` and may
 // export `reduced`, run the same way under prefers-reduced-motion: reduce.
 // Files starting with `_` are shared helpers, not checks.
 // t.check(id, pass, detail) records one spec item (id = M-xx from the spec).
-// Both get the full page (not ?isolate) at 1440x900, 1x, section scrolled
-// into view. Exit code 1 if any check fails or a module throws.
+// Both get the full page (not ?isolate) at 1440x900, 1x, at the top; each
+// module scrolls its section into view. Exit code 1 if any check fails or a
+// module throws. The default URL is the production preview: the dev server
+// hot-reloads mid-run whenever a file is saved.
 import { readdirSync, writeFileSync, mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { at, launch } from './harness.mjs'
 
-const URL = process.env.URL ?? 'http://localhost:4196/'
+const URL = process.env.URL ?? 'http://localhost:4197/'
 const only = process.argv.slice(2)
 const files = readdirSync(at('qa/motion')).filter((f) => f.endsWith('.mjs') && !f.startsWith('_'))
   .filter((f) => !only.length || only.includes(f.replace(/\.mjs$/, '')))

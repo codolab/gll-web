@@ -79,7 +79,8 @@ function usePan(hero: RefObject<HTMLDivElement | null>, grid: RefObject<HTMLDivE
       window.removeEventListener('pointerout', out)
       window.removeEventListener('scroll', aim)
     }
-    const io = new IntersectionObserver(([e]) => {
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1]
       if (!e.isIntersecting) {
         detach()
         px = py = NaN

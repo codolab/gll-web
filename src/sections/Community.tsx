@@ -124,7 +124,7 @@ export default function Community() {
 
       <div
         data-node-id="94:300"
-        className="group absolute overflow-hidden bg-white"
+        className="absolute overflow-hidden bg-white"
         style={{ ...box(1056, 706, 320, 272), borderRadius: '24px 136px 24px 24px' }}
       >
         <Text id="94:301" at={[28, 28, 250, 14]} size={12} weight={600} lh={14}>
@@ -133,11 +133,11 @@ export default function Community() {
         <Text id="94:302" as="h3" at={[28, 92, 264, 70]} size={30} weight={600} lh={35}>
           {'Support our\ncommunity'}
         </Text>
-        <a href="#" data-node-id="94:303" className="absolute block text-ink" style={box(28, 212, 264, 32)}>
+        <a href="#" data-node-id="94:303" className="group absolute block text-ink" style={box(28, 212, 264, 32)}>
           <Text id="94:304" as="span" at={[0, 6.5, 160, 19]} size={16} weight={600} lh={19}>
             Support us
           </Text>
-          <img data-node-id="94:305" src={`${A}/arrow-support.svg`} alt="" className={`absolute ${NUDGE} motion-safe:group-has-focus-visible:translate-x-[6px]`} style={box(232, 0, 32, 32)} />
+          <img data-node-id="94:305" src={`${A}/arrow-support.svg`} alt="" className={`absolute ${NUDGE} motion-safe:group-focus-visible:translate-x-[6px]`} style={box(232, 0, 32, 32)} />
         </a>
       </div>
     </div>
