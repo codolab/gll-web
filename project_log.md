@@ -63,3 +63,6 @@ section is gated against `design/figma/logos.composed.png`.
   tab stop, and the Support us nudge fired over non-clickable card area. All
   fixed in ba7937c with checks; a page-level check now proves the pause button
   paints nothing at rest. `npm run qa:motion` 103/103.
+- Open questions answered: G-08 timings accepted and G-09 pause coverage
+  accepted as is (no visible control, no tap-to-stop). G-06 talent photos and
+  lines and G-07 Join us spin are with the designer.
