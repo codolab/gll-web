@@ -34,6 +34,11 @@
 html, body { margin: 0; background: #fff; }
 body { font-family: var(--font-sans); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
 
+/* Keyboard focus scrolls a control clear of the sticky nav (M-16, WCAG 2.4.11).
+   On the controls, not as page scroll-padding, which would shrink every
+   scrollIntoView target area. */
+:where(a[href], button, input, select, textarea, [tabindex]) { scroll-margin-top: var(--nav-h, 0px); }
+
 /* Chromium drops contextual alternates whenever letter-spacing is non-zero;
    Figma keeps them, and in Inter they set "+" and ":" at figure height. */
 body { font-feature-settings: "liga" 1, "calt" 1; }

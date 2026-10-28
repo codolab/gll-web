@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:4197/",
- "at": "2026-10-28T22:53:44.467Z",
+ "at": "2026-10-28T23:20:26.647Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -928,10 +928,10 @@
    },
    "raster": {
     "window": "2784x190",
-    "ae": 1.01,
+    "ae": 1.009,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 2355,
+    "diffPx": 2350,
     "thickPx": 0,
     "thick": 0,
     "edgeOnly": 100,

@@ -1,6 +1,6 @@
 # GLL parity report
 
-Build: http://localhost:4197/ · captured 2026-10-28T22:53:44.466Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Build: http://localhost:4197/ · captured 2026-10-28T23:20:26.647Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
 Verdicts: 9 PASS, 2 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |
@@ -8,7 +8,7 @@ Verdicts: 9 PASS, 2 FAIL, 0 STUB, 0 ERROR.
 | hero | built | 0,0 | 25/25 | 0.02 | 0/0 of 3 | 1.316 | 0 | 100 (0) | 0,0 / -0.01,0 | y719.5+239.5 | 0.06,0.07 | -0.12,-0.2 | 0.18,0.27 | PASS |
 | gradient | built | nominal? | 1/1 | 0.01 | 0/0 of 0 | 0 | 0 | 100 (0) | 0,0 / 0,0 | y0+180.5 | n/a,0.01 | 0,0 | n/a,0.01 | PASS |
 | logos | built | 0,0 | 9/9 | 0.02 | 0/0 of 0 | 4.063 | 0 | 95.8 (679) | 0,0 / -0.04,0.11 | y1013.5+77 | -0.15,-0.01 | -0.01,0.12 | -0.14,-0.13 | FAIL (ae, edgeOnly) |
-| nav | built | 0,0 | 11/11 | 0.02 | 0/0 of 6 | 1.01 | 0 | 100 (0) | 0,0 / 0,0.01 | y10.5+74 | -0.01,0 | 0,0.01 | -0.01,-0.01 | PASS |
+| nav | built | 0,0 | 11/11 | 0.02 | 0/0 of 6 | 1.009 | 0 | 100 (0) | 0,0 / 0,0.01 | y10.5+74 | -0.01,0 | 0,0.01 | -0.01,-0.01 | PASS |
 | ribbons | built | 0,0 | 16/16 | 0.01 | 0/0 of 5 | 1.338 | 0 | 100 (0) | 0,0 / 0,0 | y2266+84 | 0.03,0 | 0,0 | 0.03,0 | PASS |
 | programs | built | 0,0 | 24/24 | 0 | 0/0 of 12 | 0.531 | 0 | 100 (0) | 0,0 / 0,0 | y2619+208.5 | -0.05,0.01 | 0,0 | -0.05,0.01 | PASS |
 | impact | built | 0,0 | 19/19 | 0.02 | 0/0 of 8 | 0.876 | 0 | 100 (0) | 0,0 / 0,0.23 | y4521+220.5 | 0.03,0.23 | 0,0.23 | 0.03,0 | PASS |

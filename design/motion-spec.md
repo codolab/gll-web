@@ -36,6 +36,7 @@ are our choice until the designer says otherwise (see `gaps.md`).
 | M-13 | community, "Join us" (94:282 + 94:285, 94:303 + 94:305) | Hovering "Partner with us" or "Support us" nudges its arrow to the right. | **[PROPOSED DEFAULT]** 6px, 0.25s ease-out | static |
 | M-14 | community, "Join us" | "The logo spins." | **not built**: frame 94:84 has no logo in this section (the nearest element is the navy circle with "Go further, together.", 94:288/94:298). Open question for the designer, G-07. | n/a |
 | M-15 | footer (94:307) | Newsletter invitation on a darkened photo with a clear subscribe form. No motion. | | present; no backend (G-03) |
+| M-16 | nav (94:120) | Sticky header: the nav stays at the top of the viewport while the page scrolls. Not in the designer's notes; Marius asked for it on 2026-10-28. | **[PROPOSED DEFAULT]** At the top of the page the nav is the Figma frame on a clear layer. Once the hero's rounded bottom reaches the nav, an ink (#0b1722) bar with a soft shadow fades in behind it over 0.3s (instant under reduced motion). Full size, no shrink or hide. Keyboard focus scrolls a control clear of the bar (WCAG 2.4.11). | static |
 
 ## Source (designer, 2026-10-28)
 
