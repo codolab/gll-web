@@ -74,3 +74,11 @@ section is gated against `design/figma/logos.composed.png`.
   Now ±24px at 0.6s: an edge-to-edge sweep peaks at 76.7 px/s, and
   qa/motion/hero.mjs fails anything above 85 px/s. Rest frame unchanged
   (hero 25/25, ae 1.316).
+- Then Marius asked for passive movement instead: the three photo rows now
+  loop on their own, rows 1 and 3 rightward and row 2 leftward, at 20 px/s
+  (checked under 25). The mouse pan is gone. Period 1713px, whole px, with
+  each track at a whole-px origin: the seam is exact or 1px fringes and the
+  photos are not resampled at t=0. The scrim over the moving rows blends with
+  1-level rounding on 57% of pixels, so compare() gained a `floor`; the page
+  check still catches the old pause-button shadow at floor 1 (769 core px).
+  Rest frame unchanged (hero 25/25, ae 1.316); qa:motion 104/104.

@@ -1,186 +1,126 @@
-// M-01: the photo grid 94:87 drifts gently with the mouse x over the hero, eased, and rests untransformed.
-// Waits poll for the expected state with a generous cap, so CPU load only slows a run, never fails it.
+// hero: M-01, the three photo rows slide as seamless loops at 20 px/s, rows 1 and 3
+// rightward and row 2 leftward. They keep moving under the pointer (it usually rests
+// on the hero); the page's pause button (M-G5) and reduced motion stop them.
+import { sample, speed, secs, settle, seek, coverage, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
+
 const GRID = '[data-node-id="94:87"]'
 const HERO = '[data-node-id="94:85"]'
-const PAN = { left: 24, right: 24 }
-const TAU = 0.6
-// An edge-to-edge sweep must stay slow: the first cut peaked above 1000 px/s and made viewers motion sick.
-const MAX_SPEED = 85 // px/s; the easing alone caps it at (2 * 24) / 0.6 = 80
-const near = (a, b, tol = 0.5) => Math.abs(a - b) <= tol
-const fmt = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toFixed(d)
+const GAP = 342.61328125 - 299.7864990234375 // column gap: the widest empty run a row may show
+// The first hero motion (a mouse pan above 1000 px/s) made viewers motion sick: a moving area this large stays slow.
+const MAX_SPEED = 25
+const PITCH = 1370.43359375 / 4 // mean column pitch
+const ROWS = [
+  { n: 1, speed: 20, tiles: '94:88..94:92', first: '94:88' },
+  { n: 2, speed: -20, tiles: '94:93..94:97', first: '94:93' },
+  { n: 3, speed: 20, tiles: '94:98..94:102', first: '94:98' },
+].map((r) => ({ ...r, track: `${GRID} > .marquee:nth-child(${r.n})` }))
+const TRACKS = `${GRID} > .marquee`
 
-/** Canvas px over the hero -> viewport px, from the hero's rect (the canvas is scaled below 1440). */
-const toViewport = async (page, cx, cy) => {
-  const r = await page.$eval(HERO, (el) => el.getBoundingClientRect().toJSON())
-  const k = r.width / 1440
-  return [r.left + cx * k, r.top + cy * k]
-}
-const moveTo = async (page, cx, cy) => page.mouse.move(...(await toViewport(page, cx, cy)))
-const transformOf = (page) => page.$eval(GRID, (el) => getComputedStyle(el).transform)
+const all = (page) => Promise.all(ROWS.map((r) => sample(page, r.track)))
+const ok = (p) => p.then(() => true, () => false)
 
-/** Poll translateX until it reaches `want` (the loop snaps exactly onto its target), capped at 6s. */
-const until = async (t, want) => {
-  let x = NaN
-  for (let i = 0; i < 120; i++) {
-    x = await t.translateX(GRID)
-    if (Math.abs(x - want) < 0.001) return x
-    await t.sleep(50)
-  }
-  return x
-}
-
-/**
- * Record every translateX the pan loop writes, with its frame time, seeded with the
- * position at the next mouse move (read before the hero's own listener runs) so the
- * first step is measured too.
- */
-const record = (page) => page.evaluate((sel) => {
-  const el = document.querySelector(sel)
-  const s = (window.__pan = [])
-  const x = () => new DOMMatrixReadOnly(el.style.transform || 'none').m41
-  window.addEventListener('pointermove', (e) => s.push([e.timeStamp, x()]), { capture: true, once: true })
-  window.__panMo = new MutationObserver(() => s.push([document.timeline.currentTime, x()]))
-  window.__panMo.observe(el, { attributes: true, attributeFilter: ['style'] })
-}, GRID)
-const recorded = (page) => page.evaluate(() => { window.__panMo.disconnect(); return window.__pan })
-
-/** Resolves once the hero's visibility is `want` (cap 6s). The hero's own observer, created earlier, is notified first. */
-const visible = (page, want) => page.$eval(HERO, (el, want) => new Promise((res) => {
-  const io = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting === want) { io.disconnect(); res() }
-  })
-  io.observe(el)
-  setTimeout(() => { io.disconnect(); res() }, 6000)
-}), want)
-
-/** Count getBoundingClientRect calls on the hero while `moves` mouse moves sweep the viewport. */
-const rectCallsDuring = async (page, moves) => {
-  await page.evaluate((sel) => {
-    const hero = document.querySelector(sel)
-    const orig = (window.__rectOrig ??= Element.prototype.getBoundingClientRect)
-    window.__rects = 0
-    Element.prototype.getBoundingClientRect = function () {
-      if (this === hero) window.__rects++
-      return orig.call(this)
-    }
-  }, HERO)
-  for (const [x, y] of moves) await page.mouse.move(x, y, { steps: 5 })
-  return page.evaluate(() => {
-    Element.prototype.getBoundingClientRect = window.__rectOrig
-    return window.__rects
-  })
-}
+/** Viewport clip of one row (its first tile's band) inside the hero and the canvas (row 1 starts above the hero's top edge). */
+const rowClip = (page, id) => page.$eval(`[data-node-id="${id}"]`, (el, hero) => {
+  const r = el.getBoundingClientRect(), h = document.querySelector(hero).getBoundingClientRect()
+  const c = document.querySelector('[data-canvas="root"]').getBoundingClientRect()
+  const x = Math.floor(c.left), y = Math.floor(Math.max(r.top, h.top))
+  return { x, y, width: Math.ceil(c.right) - x, height: Math.ceil(Math.min(r.bottom, h.bottom)) - y }
+}, HERO)
 
 export default async function (page, t) {
   await page.evaluate(() => window.scrollTo(0, 0))
-  await visible(page, true)
-  t.check('M-01', (await transformOf(page)) === 'none', `rest: 94:87 transform ${await transformOf(page)} before any input`)
 
-  // Touch and pen must not pan.
-  const [tx0, ty0] = await toViewport(page, 0, 600)
-  await page.evaluate(([x, y]) => window.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'touch', clientX: x, clientY: y })), [tx0, ty0])
-  await t.sleep(400)
-  t.check('M-01', (await transformOf(page)) === 'none', `touch pointermove at canvas x 0: transform ${await transformOf(page)} (mouse only)`)
-
-  // 1439.5 is the last pixel a real mouse reaches in a 1440 viewport (1440 is never delivered).
-  for (const [cx, want] of [[0, PAN.left], [720, 0], [1439.5, -PAN.right * (719.5 / 720)]]) {
-    await moveTo(page, cx, 600)
-    const got = await until(t, want)
-    t.check('M-01', near(got, want), `mouse at canvas x ${cx}, y 600: translateX ${fmt(got)} (want ${fmt(want)})`)
+  const a = await all(page)
+  await t.sleep(1000)
+  const b = await all(page)
+  for (const [i, r] of ROWS.entries()) {
+    const v = speed(a[i], b[i])
+    t.check('M-01', Math.abs(v - r.speed) < 2 && Math.abs(v) <= MAX_SPEED,
+      `row ${r.n} (${r.tiles}): ${a[i].x.toFixed(2)} -> ${b[i].x.toFixed(2)}px over ${secs(a[i], b[i])}s = ${v.toFixed(2)} px/s (want ${r.speed}, cap ${MAX_SPEED})`)
   }
-  const [ex, ey] = await toViewport(page, 1440, 600)
-  await page.evaluate(([x, y]) => window.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'mouse', clientX: x, clientY: y })), [ex, ey])
-  const edge = await until(t, -PAN.right)
-  t.check('M-01', near(edge, -PAN.right, 0.06), `mouse pointermove at canvas x 1440 (dispatched): translateX ${fmt(edge)} (want ${fmt(-PAN.right)})`)
 
-  // Over the nav (painted above the hero's top) the pan must still follow.
-  await moveTo(page, 720, 100)
-  await until(t, 0)
-  const [nx, ny] = await toViewport(page, 0, 100)
-  const top = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('[data-section]')?.dataset.section, [nx, ny])
-  await page.mouse.move(nx, ny)
-  const navGot = await until(t, PAN.left)
-  t.check('M-01', near(navGot, PAN.left), `mouse at canvas x 0, y 100 (hit-test lands on "${top}"): translateX ${fmt(navGot)} (want ${fmt(PAN.left)})`)
+  // The rows keep moving with the mouse resting on the headline.
+  const hero = await page.$eval(HERO, (el) => el.getBoundingClientRect().toJSON())
+  await page.mouse.move(hero.left + hero.width / 2, hero.top + 450)
+  await t.sleep(300)
+  const m0 = await all(page)
+  await t.sleep(500)
+  const m1 = await all(page)
+  t.check('M-01', ROWS.every((r, i) => Math.abs(speed(m0[i], m1[i]) - r.speed) < 2),
+    `mouse resting on the hero: ${ROWS.map((r, i) => `row ${r.n} ${speed(m0[i], m1[i]).toFixed(2)} px/s`).join(', ')}`)
 
-  // Easing: record every value the loop writes with its frame time. Each frame closes the
-  // gap by exp(-dt / tau), so consecutive frames give tau exactly whatever the frame pacing.
-  await moveTo(page, 720, 600)
-  await until(t, 0)
-  await record(page)
-  await moveTo(page, 0, 600)
-  await until(t, PAN.left)
-  const s = await recorded(page)
-  const taus = []
-  for (let i = 1; i < s.length; i++) {
-    const [r0, r1, dt] = [PAN.left - s[i - 1][1], PAN.left - s[i][1], s[i][0] - s[i - 1][0]]
-    if (dt > 0 && r1 > 0 && r0 > r1) taus.push(-dt / 1000 / Math.log(r1 / r0))
+  // M-G5: the page's pause button stops all three rows and starts them again.
+  const toggle = () => page.$eval('main > button[aria-pressed]', (el) => el.click())
+  await toggle()
+  const held = await ok(settle(page, TRACKS, 'paused'))
+  const h0 = await all(page)
+  await t.sleep(500)
+  const h1 = await all(page)
+  await toggle()
+  const freed = await ok(settle(page, TRACKS, 'running'))
+  const f0 = await all(page)
+  await t.sleep(500)
+  const f1 = await all(page)
+  t.check('M-G5', held && freed && ROWS.every((r, i) => h1[i].x === h0[i].x && Math.abs(speed(f0[i], f1[i]) - r.speed) < 2),
+    `pause button: ${ROWS.map((r, i) => `row ${r.n} held ${(h1[i].x - h0[i].x).toFixed(3)}px over ${secs(h0[i], h1[i])}s, resumed ${speed(f0[i], f1[i]).toFixed(2)} px/s`).join('; ')}`)
+
+  for (const r of ROWS) {
+    const cov = await coverage(page, r.track, HERO, r.speed)
+    t.check('M-01', cov.run <= GAP + 0.5 && Math.abs(cov.live - cov.run) < 0.05,
+      `row ${r.n} coverage over one period, exact at ${cov.n} edge-crossing shifts: widest empty run ${cov.run.toFixed(2)}px at shift ${cov.d.toFixed(2)} (column gap ${GAP.toFixed(2)}); re-measured live there: ${cov.live.toFixed(2)}px`)
   }
-  taus.sort((a, b) => a - b)
-  const tau = taus[taus.length >> 1]
-  t.check('M-01', taus.length >= 5 && near(tau, TAU, 0.06),
-    `eased: first frame at ${s.length > 1 ? fmt(s[1][1]) : 'none'} of ${PAN.left}px, settled in ${s.length - 1} frames, time constant ${fmt(tau, 3)}s ` +
-    `(median of ${taus.length} frame pairs, range ${fmt(taus[0], 3)}..${fmt(taus[taus.length - 1], 3)})`)
 
-  // Speed: sweep from the right edge to the left edge in one move, the largest jump the pan can make.
-  await moveTo(page, 1439.5, 600)
-  await until(t, -PAN.right * (1439 / 1440))
-  await record(page)
-  await moveTo(page, 0, 600)
-  await until(t, PAN.left)
-  const v = await recorded(page)
-  let peak = 0
-  for (let i = 1; i < v.length; i++) {
-    const dt = (v[i][0] - v[i - 1][0]) / 1000
-    if (dt > 0) peak = Math.max(peak, Math.abs(v[i][1] - v[i - 1][1]) / dt)
+  const copies = await page.$$eval(`${TRACKS} > :not([data-node-id])`, (els) => els.map((e) => ({
+    hidden: e.getAttribute('aria-hidden') === 'true',
+    ids: e.querySelectorAll('[data-node-id]').length,
+    focusable: e.querySelectorAll('a,button,input,[tabindex]').length,
+  })))
+  const fine = copies.length === 15 && copies.every((c) => c.hidden && !c.ids && !c.focusable)
+  t.check('M-G3', fine, `${copies.length} tile copies: aria-hidden, no node id inside, nothing focusable: ${fine}`)
+
+  // The seam: where a row meets its copies, the step must be one column pitch (no gap, no overlap).
+  for (const r of ROWS) {
+    const lefts = await page.$$eval(`${r.track} > *`, (els) => els.map((e) => e.getBoundingClientRect().left).sort((a, b) => a - b))
+    const steps = lefts.slice(1).map((x, i) => x - lefts[i])
+    const worst = Math.max(...steps.map((d) => Math.abs(d - PITCH)))
+    t.check('M-01', steps.length === 9 && worst < 0.1,
+      `row ${r.n} seam: 10 tiles step ${Math.min(...steps).toFixed(3)}..${Math.max(...steps).toFixed(3)}px (pitch ${PITCH.toFixed(3)}, worst off by ${worst.toFixed(3)})`)
   }
-  t.check('M-01', v.length >= 5 && peak <= MAX_SPEED,
-    `edge-to-edge sweep: ${v.length ? fmt(v[v.length - 1][1] - v[0][1]) : 'no'}px over ${v.length - 1} frames, peak ${fmt(peak, 1)} px/s (cap ${MAX_SPEED})`)
 
-  // The mouse leaving the window fires pointerout with no relatedTarget (dispatched: Playwright cannot leave).
-  await page.evaluate(() => document.body.dispatchEvent(new PointerEvent('pointerout', { pointerType: 'mouse', bubbles: true, relatedTarget: null })))
-  const exitGot = await until(t, 0)
-  t.check('M-01', exitGot === 0 && (await transformOf(page)) === 'none', `mouse left the window from canvas x 0: translateX ${fmt(exitGot)}, transform ${await transformOf(page)}`)
+  // 2x, isolated, as the parity harness renders: rest frame, then the same page with motion on.
+  // The hero is taller than 900px, so the viewport grows to hold all of it.
+  const p2 = await open2x(t)
+  await p2.setViewportSize({ width: 1440, height: 1100 })
+  const clip = await p2.$eval(t.section, (el) => {
+    const r = el.getBoundingClientRect()
+    return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.right) - Math.floor(r.left), height: Math.ceil(r.bottom) - Math.floor(r.top) }
+  })
+  const rest = await p2.screenshot({ clip })
+  const restBoxes = await boxes(p2, t.section)
+  await motionOn(p2, TRACKS)
+  for (const r of ROWS) await seek(p2, r.track, 0)
+  const first = await p2.screenshot({ clip })
+  // The scrim (94:103) over the moving rows blends with 1-level rounding: that alone may differ.
+  const d0 = compare(rest, first, 1)
+  const liveBoxes = await boxes(p2, t.section)
+  const same = restBoxes.length === 25 && restBoxes.join('|') === liveBoxes.join('|')
+  t.check('M-G1', same && fringeOnly(d0), `t=0 with motion on vs reduced-motion rest, 2x ${clip.width}x${clip.height}: ${restBoxes.length} node boxes ${same ? 'identical' : 'DIFFER'}; ${fmt(d0, 1)}`)
 
-  // Leaving the hero: scroll so the logos strip is under the pointer, then move onto it.
-  await moveTo(page, 0, 600)
-  await until(t, PAN.left)
-  await page.evaluate(() => window.scrollTo(0, 400))
-  const [lx, ly] = await toViewport(page, 720, 1100)
-  await page.mouse.move(lx, ly)
-  const leftGot = await until(t, 0)
-  const leftTf = await transformOf(page)
-  t.check('M-01', leftGot === 0 && leftTf === 'none', `mouse left the hero: translateX ${fmt(leftGot)}, transform ${leftTf} (eases back to rest, unset)`)
-
-  // Out of view: panned hero scrolled away rests, and mouse moves cost the hero nothing.
-  await page.evaluate(() => window.scrollTo(0, 0))
-  await moveTo(page, 0, 600)
-  await until(t, PAN.left)
-  await page.evaluate(() => window.scrollTo(0, 2400))
-  await visible(page, false)
-  const awayGot = await until(t, 0)
-  const sweep = [[10, 100], [1430, 450], [10, 890], [720, 450]]
-  const awayRects = await rectCallsDuring(page, sweep)
-  const awayTf = await transformOf(page)
-  t.check('M-01', awayGot === 0 && awayRects === 0 && awayTf === 'none',
-    `hero scrolled out of view: translateX ${fmt(awayGot)}, ${awayRects} hero getBoundingClientRect calls over ${sweep.length * 5} mouse moves, transform ${awayTf}`)
-
-  // Back in view the pan resumes (and the counter does see the work, so the 0 above means something).
-  await page.evaluate(() => window.scrollTo(0, 0))
-  await visible(page, true)
-  const backRects = await rectCallsDuring(page, sweep)
-  await moveTo(page, 0, 600)
-  const backGot = await until(t, PAN.left)
-  t.check('M-01', backRects > 0 && near(backGot, PAN.left),
-    `scrolled back into view: ${backRects} hero getBoundingClientRect calls over the same ${sweep.length * 5} moves, mouse at canvas x 0: translateX ${fmt(backGot)} (want ${fmt(PAN.left)})`)
+  for (const r of ROWS) {
+    const rc = await rowClip(p2, r.first)
+    const at0 = await p2.screenshot({ clip: rc })
+    const endX = await seek(p2, r.track, 'end')
+    const dp = compare(at0, await p2.screenshot({ clip: rc }))
+    t.check('M-01', fringeOnly(dp), `row ${r.n} seamless: frame at shift ${endX} (one period) vs shift 0, 2x: ${fmt(dp)}`)
+  }
+  await p2.close()
 }
 
 export async function reduced(page, t) {
   await page.evaluate(() => window.scrollTo(0, 0))
-  const seen = []
-  for (const cx of [0, 1440, 0]) {
-    await moveTo(page, cx, 600)
-    await t.sleep(500)
-    seen.push(await transformOf(page))
-  }
-  t.check('M-01', seen.every((v) => v === 'none'), `reduced motion, mouse at canvas x 0, 1440, 0: transform ${seen.join(', ')}`)
+  const read = () => Promise.all(ROWS.map((r) => page.$eval(r.track, (el) => `${el.getAnimations().length}:${getComputedStyle(el).transform}`)))
+  const a = await read()
+  await t.sleep(500)
+  const b = await read()
+  t.check('M-G2', [...a, ...b].every((s) => s === '0:none'), `per row [animations:transform] ${a.join(', ')} -> ${b.join(', ')} over 0.5s`)
 }
