@@ -29,11 +29,17 @@ const until = async (t, want) => {
   return x
 }
 
-/** Record every translateX the pan loop writes, with its frame time. */
+/**
+ * Record every translateX the pan loop writes, with its frame time, seeded with the
+ * position at the next mouse move (read before the hero's own listener runs) so the
+ * first step is measured too.
+ */
 const record = (page) => page.evaluate((sel) => {
   const el = document.querySelector(sel)
   const s = (window.__pan = [])
-  window.__panMo = new MutationObserver(() => s.push([document.timeline.currentTime, new DOMMatrixReadOnly(el.style.transform || 'none').m41]))
+  const x = () => new DOMMatrixReadOnly(el.style.transform || 'none').m41
+  window.addEventListener('pointermove', (e) => s.push([e.timeStamp, x()]), { capture: true, once: true })
+  window.__panMo = new MutationObserver(() => s.push([document.timeline.currentTime, x()]))
   window.__panMo.observe(el, { attributes: true, attributeFilter: ['style'] })
 }, GRID)
 const recorded = (page) => page.evaluate(() => { window.__panMo.disconnect(); return window.__pan })
@@ -112,7 +118,7 @@ export default async function (page, t) {
   taus.sort((a, b) => a - b)
   const tau = taus[taus.length >> 1]
   t.check('M-01', taus.length >= 5 && near(tau, TAU, 0.06),
-    `eased: first frame at ${fmt(s[0][1])} of ${PAN.left}px, settled in ${s.length} frames, time constant ${fmt(tau, 3)}s ` +
+    `eased: first frame at ${s.length > 1 ? fmt(s[1][1]) : 'none'} of ${PAN.left}px, settled in ${s.length - 1} frames, time constant ${fmt(tau, 3)}s ` +
     `(median of ${taus.length} frame pairs, range ${fmt(taus[0], 3)}..${fmt(taus[taus.length - 1], 3)})`)
 
   // Speed: sweep from the right edge to the left edge in one move, the largest jump the pan can make.
@@ -128,7 +134,7 @@ export default async function (page, t) {
     if (dt > 0) peak = Math.max(peak, Math.abs(v[i][1] - v[i - 1][1]) / dt)
   }
   t.check('M-01', v.length >= 5 && peak <= MAX_SPEED,
-    `edge-to-edge sweep: ${fmt(v[v.length - 1][1] - v[0][1])}px over ${v.length} frames, peak ${fmt(peak, 1)} px/s (cap ${MAX_SPEED})`)
+    `edge-to-edge sweep: ${v.length ? fmt(v[v.length - 1][1] - v[0][1]) : 'no'}px over ${v.length - 1} frames, peak ${fmt(peak, 1)} px/s (cap ${MAX_SPEED})`)
 
   // The mouse leaving the window fires pointerout with no relatedTarget (dispatched: Playwright cannot leave).
   await page.evaluate(() => document.body.dispatchEvent(new PointerEvent('pointerout', { pointerType: 'mouse', bubbles: true, relatedTarget: null })))
