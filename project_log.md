@@ -82,3 +82,19 @@ section is gated against `design/figma/logos.composed.png`.
   1-level rounding on 57% of pixels, so compare() gained a `floor`; the page
   check still catches the old pause-button shadow at floor 1 (769 core px).
   Rest frame unchanged (hero 25/25, ae 1.316); qa:motion 104/104.
+
+## 2026-10-28: talent numbers morph into the loop
+
+- Marius: hovering a number extends it into the quarter loop the Figma draws
+  for 2, and the others are circles. The Figma pill is one cubic stroked 135px
+  with round caps, so each number now owns that path turned in quarter turns to
+  start at its circle, drawn with pathLength 1 and a dash of 0 (a circle) or 1
+  (the loop); stroke-dasharray and stroke-width morph in 0.4s. The dash gap is
+  2, not 1: a gap equal to the path length drew a second circle at its end.
+- At rest 2 is extended, as in Figma, so the Figma photo and line now belong to
+  2; 1, 3 and 4 get the placeholders. Turned loops covered the photo (the blob
+  was cut for the right-hand loop only), so the blob outline turns with the
+  loop: scripts/talent-photos.mjs bakes 1, 3 and 4 in the turned blob.
+- Rest frame: talent ae 1.967 (was 2.009), structural 0. qa:motion 109/109;
+  the new photo-clearance check fails with unturned outlines (about 10k px
+  of each loop over the photo).

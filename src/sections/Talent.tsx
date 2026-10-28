@@ -3,44 +3,66 @@ import { useReducedMotion } from '../motion'
 
 /** talent - Figma 94:935. Heading, blob photo with four numbered shapes, tagline. */
 
-// The shapes are tabs (motion-spec M-04..M-06); 1 is the Figma frame, 2-4 are
-// placeholders: hero tiles 94:93, 94:95, 94:101 in 94:265's blob alpha, lines from 94:84.
+type Pt = readonly [number, number]
+type Box = { x: number; y: number; w: number; h: number }
+type Num = { id: string; text: string; x: number; y: number; w: number }
+
+// The Figma "2" (94:269) is one cubic drawn as a 135px round-capped
+// stroke; here in 94:264 coordinates. A circle is the same stroke at zero length,
+// so every number owns this path turned by quarter turns to start at its circle:
+// the selected one extends along it, the rest stay circles (motion-spec M-04).
+const PILL: Pt[] = [[653.540625, 342.1872], [653.540625, 469.5455], [632.103625, 514.9415], [550.140325, 593.1215]]
+const PILL_W = 135.065
+const START = PILL[0]
+
+const turn = ([x, y]: Pt, q: number): Pt => (q === 1 ? [-y, x] : q === -1 ? [y, -x] : q === 2 ? [-x, -y] : [x, y])
+/** A Figma point moved with the loop that starts at `c`, turned `q` quarter turns (0 keeps it exact). */
+const place = (p: Pt, c: Pt, q: number): Pt => {
+  if (!q) return p
+  const [x, y] = turn([p[0] - START[0], p[1] - START[1]], q)
+  return [c[0] + x, c[1] + y]
+}
+const boxOf = (a: Pt, b: Pt): Box => ({ x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), w: Math.abs(a[0] - b[0]), h: Math.abs(a[1] - b[1]) })
+
+// The photo blob turns with the loop too, so it always leaves room for it. 2 is
+// the Figma frame; 1, 3 and 4 are placeholders baked by scripts/talent-photos.mjs.
+const PHOTO: Pt[] = [[108.398, 103.4], [612.545, 632.754]]
 const STATES = [
-  { src: '/assets/talent/vilnius-portrait.webp', alt: 'GLL community members gathered for a group portrait in Vilnius', line: 'One community. Endless possibilities.' },
   { src: '/assets/talent/members-group.webp', alt: 'GLL members standing together for a group photo', line: 'Global minds. Lithuanian roots.' },
+  { src: '/assets/talent/vilnius-portrait.webp', alt: 'GLL community members gathered for a group portrait in Vilnius', line: 'One community. Endless possibilities.' },
   { src: '/assets/talent/members-selfie.webp', alt: 'GLL members taking a group selfie at an event', line: 'Your next chapter starts here.' },
   { src: '/assets/talent/members-networking.webp', alt: 'GLL members networking at a reception', line: 'Go further, together.' },
 ]
+const REST = 1 // the Figma frame shows 2 extended
 
-type Num = { id: string; text: string; x: number; y: number; w: number }
-type Circle = { state: number; id: string; x: number; y: number; d: number; color: string; num: Num }
+// Node boxes are Figma's: the circles' ELLIPSE boxes and the pill's path box,
+// (550.148, 342.189) written on Chrome's 1/64 px layout grid, where it lands anyway.
+// Each number sits relative to its box (whole px, so nesting moves nothing).
+const PILL_BOX: Box = { x: 35209 / 64, y: 21900 / 64, w: 103.35, h: 250.813 }
+const SHAPES = [
+  { id: '94:266', color: '#66b800', d: 158.806, q: -1, box: { x: 281, y: 0, w: 158.806, h: 158.806 }, num: { id: '94:270', text: '1', x: 66, y: 55, w: 27 } },
+  // As a circle, 2 takes the size of 1 and 3 [PROPOSED DEFAULT]: Figma never draws it as one.
+  { id: '94:269', color: '#ffb400', d: 158.806, q: 0, box: PILL_BOX, num: { id: '94:271', text: '2', x: 636 - PILL_BOX.x, y: 325 - PILL_BOX.y, w: 35 } },
+  { id: '94:268', color: '#ff4c77', d: 158.806, q: 1, box: { x: 292, y: 580, w: 158.806, h: 158.806 }, num: { id: '94:272', text: '3', x: 61, y: 55, w: 37 } },
+  { id: '94:267', color: '#05325b', d: 143.682, q: 2, box: { x: 0, y: 296, w: 143.682, h: 143.682 }, num: { id: '94:273', text: '4', x: 53, y: 48, w: 38 } },
+].map((s) => {
+  const c: Pt = s.q ? [s.box.x + s.d / 2, s.box.y + s.d / 2] : START
+  const [m, c1, c2, e] = PILL.map((p) => place(p, c, s.q))
+  return { ...s, c, path: `M${m} C${c1} ${c2} ${e}` }
+})
+const PHOTOS = STATES.map((s, i) => ({ ...s, box: boxOf(...(PHOTO.map((p) => place(p, SHAPES[i].c, SHAPES[i].q)) as [Pt, Pt])) }))
+const FRAME = { w: 653.499, h: 738.575 } // 94:264
 
-// Plain ELLIPSE nodes, so CSS circles. Coordinates are relative to 94:264,
-// each number relative to its circle (all whole px, so nesting moves nothing).
-const CIRCLES: Circle[] = [
-  { state: 0, id: '94:266', x: 281, y: 0, d: 158.806, color: '#66b800', num: { id: '94:270', text: '1', x: 66, y: 55, w: 27 } },
-  { state: 2, id: '94:268', x: 292, y: 580, d: 158.806, color: '#ff4c77', num: { id: '94:272', text: '3', x: 61, y: 55, w: 37 } },
-  { state: 3, id: '94:267', x: 0, y: 296, d: 143.682, color: '#05325b', num: { id: '94:273', text: '4', x: 53, y: 48, w: 38 } },
-]
-
-// The pill box (550.148, 342.189) written on Chrome's 1/64 px layout grid, which
-// is where it lands anyway, so the nested "2" sums back to exactly (636, 325).
-const PILL = { x: 35209 / 64, y: 21900 / 64, w: 103.35, h: 250.813 }
-const PILL_NUM: Num = { id: '94:271', text: '2', x: 636 - PILL.x, y: 325 - PILL.y, w: 35 }
-// pill.svg's own stroke, reused unpainted as the exact hit area and, wider, as the focus ring.
-const PILL_D = 'M170.933 67.5327C170.933 194.891 149.496 240.287 67.5327 318.467'
-const PILL_W = 135.065
-
-const PHOTO = { left: 108.398, top: 103.4, width: 504.147, height: 529.354 }
 // Only the incoming photo fades, on top; the last fully shown one stays opaque
 // under it until that fade ends, so the blob never thins. The rest hide at once.
 const PHOTO_IN = 'z-[2] opacity-100 motion-safe:transition-opacity motion-safe:duration-300'
 const PHOTO_UNDER = 'z-[1] opacity-100'
 const PHOTO_OFF = 'invisible z-0 opacity-0'
 const LINE_FADE = 'motion-safe:transition-[opacity,visibility] motion-safe:duration-300'
+// The loop grows from the circle along its path while the previous one shrinks back [PROPOSED DEFAULT 0.4s].
+const MORPH = 'motion-safe:transition-[stroke-dasharray,stroke-width] motion-safe:duration-400 motion-safe:ease-in-out'
 
-const TAB = 'absolute z-[1] cursor-pointer appearance-none overflow-visible [-webkit-tap-highlight-color:transparent]'
-const RING = 'focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ink'
+const TAB = 'absolute z-[1] cursor-pointer appearance-none overflow-visible outline-hidden [-webkit-tap-highlight-color:transparent]'
 const STEP: Record<string, (i: number) => number> = {
   ArrowRight: (i) => i + 1, ArrowDown: (i) => i + 1, ArrowLeft: (i) => i - 1, ArrowUp: (i) => i - 1, Home: () => 0, End: () => STATES.length - 1,
 }
@@ -58,8 +80,8 @@ const Digit = ({ n }: { n: Num }) => (
 export default function Talent() {
   const uid = useId()
   const reduced = useReducedMotion()
-  const [active, setActive] = useState(0)
-  const [settled, setSettled] = useState(0)
+  const [active, setActive] = useState(REST)
+  const [settled, setSettled] = useState(REST)
   // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
   const [focused, setFocused] = useState<number | null>(null)
   const under = reduced ? active : settled
@@ -95,17 +117,47 @@ export default function Talent() {
     e.preventDefault()
     tabs.current[(go(i) + STATES.length) % STATES.length]?.focus()
   }
-  const circle = (c: Circle) => (
-    <button
-      key={c.id}
-      {...tab(c.state)}
-      data-node-id={c.id}
-      className={`${TAB} ${RING} rounded-full`}
-      style={{ left: c.x, top: c.y, width: c.d, height: c.d, background: c.color }}
-    >
-      <Digit n={c.num} />
-    </button>
-  )
+  // The button keeps its Figma box; the shape is drawn in 94:264 coordinates. The
+  // button ignores the pointer: only the shape's own outline takes it.
+  const shape = (s: (typeof SHAPES)[number], i: number) => {
+    const on = active === i
+    const w = on ? PILL_W : s.d
+    const stroke = (grow: number, className: string, color?: string) => (
+      <path
+        d={s.path}
+        pathLength={1}
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        className={`${className} ${MORPH}`}
+        // pathLength 1: a dash of 0 is a circle at the start, 1 the whole loop. The gap
+        // outruns the path, or the next dash would draw a second circle at its end.
+        style={{ strokeDasharray: on ? '1 2' : '0 2', strokeWidth: w + grow }}
+      />
+    )
+    return (
+      <button
+        key={s.id}
+        {...tab(i)}
+        data-node-id={s.id}
+        className={`${TAB} group pointer-events-none`}
+        style={{ left: s.box.x, top: s.box.y, width: s.box.w, height: s.box.h }}
+      >
+        <svg aria-hidden="true" className="absolute overflow-visible" style={{ left: -s.box.x, top: -s.box.y, width: FRAME.w, height: FRAME.h }}>
+          {/* Focus ring: 2px of ink 3px out, like an outline; drawn always so it morphs in step. */}
+          {stroke(10, 'invisible stroke-ink group-focus-visible:visible')}
+          {stroke(6, 'invisible stroke-white group-focus-visible:visible')}
+          {stroke(0, '', s.color)}
+          {on ? (
+            <path d={s.path} fill="none" stroke="transparent" strokeWidth={PILL_W} strokeLinecap="round" pointerEvents="visibleStroke" />
+          ) : (
+            <circle cx={s.c[0]} cy={s.c[1]} r={s.d / 2} fill="transparent" pointerEvents="visibleFill" />
+          )}
+        </svg>
+        <Digit n={s.num} />
+      </button>
+    )
+  }
 
   return (
     <div className="relative size-full" data-node-id="94:935">
@@ -124,45 +176,22 @@ export default function Talent() {
           <div data-node-id="94:264" className="absolute left-0 top-0 isolate" style={{ width: 653.499, height: 738.575 }}>
             {/* Zero-size wrappers: roles without a box, so nothing moves or paints. */}
             <div role="tablist" aria-labelledby={`${uid}title`} onKeyDown={onKeyDown} className="absolute left-0 top-0">
-              {circle(CIRCLES[0])}
-              {/* A round-capped 135px stroke: the img spans the stroke, the box is the path.
-                  The button ignores the pointer; only the unpainted stroke path takes it. */}
-              <button
-                {...tab(1)}
-                data-node-id="94:269"
-                className={`${TAB} group pointer-events-none outline-hidden`}
-                style={{ left: PILL.x, top: PILL.y, width: PILL.w, height: PILL.h }}
-              >
-                <svg aria-hidden="true" viewBox="0 0 239 386" className="absolute overflow-visible" style={{ left: -67.533, top: -67.533, width: 239, height: 386 }}>
-                  <path d={PILL_D} strokeWidth={PILL_W + 10} strokeLinecap="round" className="hidden fill-none stroke-ink group-focus-visible:inline" />
-                  <path d={PILL_D} strokeWidth={PILL_W + 6} strokeLinecap="round" className="hidden fill-none stroke-white group-focus-visible:inline" />
-                  <path d={PILL_D} strokeWidth={PILL_W} strokeLinecap="round" fill="none" stroke="transparent" pointerEvents="visibleStroke" />
-                </svg>
-                <img
-                  src="/assets/talent/pill.svg"
-                  alt=""
-                  draggable={false}
-                  className="absolute max-w-none"
-                  style={{ left: -67.533, top: -67.533, width: 239, height: 386 }}
-                />
-                <Digit n={PILL_NUM} />
-              </button>
-              {CIRCLES.slice(1).map(circle)}
+              {SHAPES.map(shape)}
             </div>
 
             <div role="tabpanel" id={`${uid}panel`} aria-labelledby={`${uid}tab${active}`} className="absolute left-0 top-0">
               {/* isolate: the photos' z-order stays below the tabs. */}
-              <div className="absolute isolate" style={PHOTO}>
-                {STATES.map((s, i) => (
+              <div className="absolute left-0 top-0 isolate">
+                {PHOTOS.map((s, i) => (
                   <img
                     key={s.src}
-                    data-node-id={i === 0 ? '94:265' : undefined}
+                    data-node-id={i === REST ? '94:265' : undefined}
                     src={s.src}
                     alt={s.alt}
                     draggable={false}
                     onTransitionEnd={(e) => e.propertyName === 'opacity' && i === active && setSettled(i)}
-                    className={`absolute left-0 top-0 max-w-none ${i === active ? PHOTO_IN : i === under ? PHOTO_UNDER : PHOTO_OFF}`}
-                    style={{ width: PHOTO.width, height: PHOTO.height }}
+                    className={`absolute max-w-none ${i === active ? PHOTO_IN : i === under ? PHOTO_UNDER : PHOTO_OFF}`}
+                    style={{ left: s.box.x, top: s.box.y, width: s.box.w, height: s.box.h }}
                   />
                 ))}
               </div>
@@ -171,7 +200,7 @@ export default function Talent() {
               {STATES.map((s, i) => (
                 <p
                   key={s.line}
-                  data-node-id={i === 0 ? '94:274' : undefined}
+                  data-node-id={i === REST ? '94:274' : undefined}
                   className={`absolute m-0 pt-px text-[32px] font-semibold leading-[36px] tracking-[-0.64px] text-ink ${LINE_FADE} ${i === active ? 'opacity-100' : 'invisible opacity-0'}`}
                   style={{ left: 724, top: 514.074, width: 254, height: 108 }}
                 >

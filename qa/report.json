@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:4197/",
- "at": "2026-10-28T12:47:30.514Z",
+ "at": "2026-10-28T13:17:37.432Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -3583,10 +3583,10 @@
    },
    "raster": {
     "window": "1984x1734",
-    "ae": 2.009,
+    "ae": 1.967,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 31641,
+    "diffPx": 29955,
     "thickPx": 24,
     "thick": 0.0007,
     "edgeOnly": 99.9,
@@ -3595,8 +3595,8 @@
      "dy": 0,
      "atEdge": false,
      "gain": 0,
-     "expX": -0.11,
-     "expY": 0.23
+     "expX": -0.1,
+     "expY": 0.26
     },
     "ink": {
      "whole": {
@@ -3604,14 +3604,14 @@
       "dy": 0.25
      },
      "worst": {
-      "y": 1367.5,
+      "y": 1552.5,
       "h": 185,
-      "dx": -0.2,
-      "dy": 0.23,
-      "expX": -0.43,
-      "expY": -0.06,
-      "resX": 0.23,
-      "resY": 0.29
+      "dx": -0.21,
+      "dy": 0.01,
+      "expX": -0.12,
+      "expY": 0.25,
+      "resX": -0.09,
+      "resY": -0.24
      },
      "flagged": 0,
      "bands": [
@@ -3635,69 +3635,69 @@
       {
        "y": 1367.5,
        "h": 185,
-       "dx": -0.2,
-       "dy": 0.23,
+       "dx": -0.22,
+       "dy": 0.12,
        "method": {
         "x": "lsq",
         "y": "ncc"
        },
-       "expX": -0.43,
-       "expY": -0.06,
-       "spreadX": 0.59,
-       "spreadY": 0.59,
-       "resX": 0.23,
-       "resY": 0.29,
+       "expX": -0.09,
+       "expY": 0.28,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.13,
+       "resY": -0.16,
        "empty": false
       },
       {
        "y": 1552.5,
        "h": 185,
-       "dx": -0.17,
-       "dy": 0.03,
+       "dx": -0.21,
+       "dy": 0.01,
        "method": {
         "x": "ncc",
         "y": "lsq"
        },
-       "expX": -0.19,
-       "expY": 0.16,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": 0.02,
-       "resY": -0.13,
+       "expX": -0.12,
+       "expY": 0.25,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.09,
+       "resY": -0.24,
        "empty": false
       },
       {
        "y": 1737.5,
        "h": 184.5,
-       "dx": -0.2,
-       "dy": 0.08,
+       "dx": -0.21,
+       "dy": 0.07,
        "method": {
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.06,
-       "expY": 0.27,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": -0.14,
-       "resY": -0.19,
+       "expX": -0.12,
+       "expY": 0.25,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.09,
+       "resY": -0.18,
        "empty": false
       },
       {
        "y": 1922,
        "h": 185,
-       "dx": -0.25,
+       "dx": -0.26,
        "dy": 0.04,
        "method": {
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.01,
-       "expY": 0.32,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": -0.24,
-       "resY": -0.28,
+       "expX": -0.08,
+       "expY": 0.28,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.18,
+       "resY": -0.24,
        "empty": false
       }
      ]
