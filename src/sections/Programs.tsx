@@ -17,23 +17,38 @@ const title = 'm-0 text-[28px] font-semibold leading-[34px] text-white'
 const body = 'm-0 whitespace-pre-wrap pt-[1px] text-[17px] font-normal leading-[25px] text-white'
 
 type CardText = { id: string; top: number; height: number; className: string; children: ReactNode }
+type Box = [number, number, number, number]
+
+// M-08: a hovered card lifts 6px. Under reduced motion no rule applies, so nothing moves.
+const card =
+  'relative size-full overflow-hidden rounded-[20px] bg-navy motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out motion-safe:group-hover:-translate-y-[6px]'
+
+/** The card's box. It stays put and takes the hover, so a lifted card never slides out from under the pointer. */
+function Lift({ b, children }: { b: Box; children: ReactNode }) {
+  return (
+    <div className="group" style={box(...b)}>
+      {children}
+    </div>
+  )
+}
 
 function Card(props: {
   id: string
-  b: [number, number, number, number]
+  b: Box
   label: string
   texts: CardText[]
   textWidth: number
 }) {
-  const [x, y, w, h] = props.b
   return (
-    <article data-node-id={props.id} aria-label={props.label} className="overflow-hidden rounded-[20px] bg-navy" style={box(x, y, w, h)}>
-      {props.texts.map((t) => (
-        <p key={t.id} data-node-id={t.id} className={t.className} style={box(28, t.top, props.textWidth, t.height)}>
-          {t.children}
-        </p>
-      ))}
-    </article>
+    <Lift b={props.b}>
+      <article data-node-id={props.id} aria-label={props.label} className={card}>
+        {props.texts.map((t) => (
+          <p key={t.id} data-node-id={t.id} className={t.className} style={box(28, t.top, props.textWidth, t.height)}>
+            {t.children}
+          </p>
+        ))}
+      </article>
+    </Lift>
   )
 }
 
@@ -107,21 +122,23 @@ export default function Programs() {
         />
 
         {/* Card 02 wraps its text in an extra auto-layout frame (94:172) at the padding origin. */}
-        <article data-node-id="94:171" aria-label="Global Lithuanian Awards" className="overflow-hidden rounded-[20px] bg-navy" style={box(960, 317, 312, 355)}>
-          <div data-node-id="94:172" style={box(28, 28, 256, 299)}>
-            <p data-node-id="94:173" className={num} style={box(0, 0, 256, 20)}>
-              02.
-            </p>
-            <p data-node-id="94:174" className={title} style={box(0, 38, 256, 68)}>
-              Global Lithuanian Awards
-            </p>
-            <p data-node-id="94:175" className={body} style={box(0, 124, 256, 175)}>
-              {
-                'December | Vilnius\n\nGlobal Lithuanian Awards | GLA acknowledges and rewards the remarkable achievements of Lithuanian diaspora professionals.'
-              }
-            </p>
-          </div>
-        </article>
+        <Lift b={[960, 317, 312, 355]}>
+          <article data-node-id="94:171" aria-label="Global Lithuanian Awards" className={card}>
+            <div data-node-id="94:172" style={box(28, 28, 256, 299)}>
+              <p data-node-id="94:173" className={num} style={box(0, 0, 256, 20)}>
+                02.
+              </p>
+              <p data-node-id="94:174" className={title} style={box(0, 38, 256, 68)}>
+                Global Lithuanian Awards
+              </p>
+              <p data-node-id="94:175" className={body} style={box(0, 124, 256, 175)}>
+                {
+                  'December | Vilnius\n\nGlobal Lithuanian Awards | GLA acknowledges and rewards the remarkable achievements of Lithuanian diaspora professionals.'
+                }
+              </p>
+            </div>
+          </article>
+        </Lift>
 
         <Card
           id="94:176"

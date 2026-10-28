@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:4197/",
- "at": "2026-10-27T12:40:18.599Z",
+ "at": "2026-10-28T08:56:06.492Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -702,7 +702,7 @@
      "atEdge": false,
      "gain": 0,
      "expX": -0.04,
-     "expY": 0.12
+     "expY": 0.11
     },
     "ink": {
      "whole": {
@@ -2621,7 +2621,7 @@
      "dy": 0,
      "atEdge": false,
      "gain": 0,
-     "expX": 0.03,
+     "expX": 0.08,
      "expY": 0.27
     },
     "ink": {
@@ -2667,11 +2667,11 @@
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": 0.07,
+       "expX": 0.1,
        "expY": 0.27,
-       "spreadX": 0.66,
+       "spreadX": 0.7,
        "spreadY": 0,
-       "resX": -0.24,
+       "resX": -0.27,
        "resY": -0.04,
        "empty": false
       },
@@ -2684,11 +2684,11 @@
         "x": "ncc",
         "y": "lsq"
        },
-       "expX": 0.03,
+       "expX": 0.09,
        "expY": 0.27,
        "spreadX": 0.93,
        "spreadY": 0,
-       "resX": -0.2,
+       "resX": -0.26,
        "resY": -0.1,
        "empty": false
       },
@@ -2701,11 +2701,11 @@
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": 0.01,
+       "expX": 0.11,
        "expY": 0.27,
        "spreadX": 0.93,
        "spreadY": 0,
-       "resX": -0.11,
+       "resX": -0.21,
        "resY": -0.12,
        "empty": false
       },
@@ -2718,11 +2718,11 @@
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.04,
+       "expX": 0.02,
        "expY": 0.27,
-       "spreadX": 0.61,
+       "spreadX": 0.76,
        "spreadY": 0,
-       "resX": -0.06,
+       "resX": -0.12,
        "resY": -0.1,
        "empty": false
       },
@@ -2737,7 +2737,7 @@
        },
        "expX": 0.01,
        "expY": 0.27,
-       "spreadX": 0.5,
+       "spreadX": 0.55,
        "spreadY": 0,
        "resX": -0.1,
        "resY": -0.1,
@@ -3595,8 +3595,8 @@
      "dy": 0,
      "atEdge": false,
      "gain": 0,
-     "expX": -0.21,
-     "expY": 0.14
+     "expX": -0.11,
+     "expY": 0.23
     },
     "ink": {
      "whole": {
@@ -3658,12 +3658,12 @@
         "x": "ncc",
         "y": "lsq"
        },
-       "expX": -0.29,
-       "expY": 0.07,
+       "expX": -0.19,
+       "expY": 0.16,
        "spreadX": 0.78,
        "spreadY": 0.74,
-       "resX": 0.12,
-       "resY": -0.04,
+       "resX": 0.02,
+       "resY": -0.13,
        "empty": false
       },
       {
@@ -3675,12 +3675,12 @@
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.18,
-       "expY": 0.16,
+       "expX": -0.06,
+       "expY": 0.27,
        "spreadX": 0.78,
        "spreadY": 0.74,
-       "resX": -0.02,
-       "resY": -0.08,
+       "resX": -0.14,
+       "resY": -0.19,
        "empty": false
       },
       {
@@ -3692,12 +3692,12 @@
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.12,
-       "expY": 0.22,
+       "expX": -0.01,
+       "expY": 0.32,
        "spreadX": 0.78,
        "spreadY": 0.74,
-       "resX": -0.13,
-       "resY": -0.18,
+       "resX": -0.24,
+       "resY": -0.28,
        "empty": false
       }
      ]
@@ -3802,76 +3802,16 @@
       "pass": true
      },
      {
-      "id": "94:265",
-      "name": "Vilnius portrait — Custom photo shape",
-      "type": "VECTOR",
-      "tag": "img",
-      "dx": -0.01,
-      "dy": -0.01,
-      "dw": -0.01,
-      "dh": -0.01,
-      "against": "box",
-      "origin": 0.01,
-      "size": 0.01,
-      "worst": 0.01,
-      "pass": true
-     },
-     {
       "id": "94:266",
       "name": "GLL golden circle",
       "type": "ELLIPSE",
-      "tag": "div",
+      "tag": "button",
       "dx": 0,
       "dy": 0,
       "dw": -0.01,
       "dh": -0.01,
       "against": "box",
       "origin": 0,
-      "size": 0.01,
-      "worst": 0.01,
-      "pass": true
-     },
-     {
-      "id": "94:267",
-      "name": "GLL golden circle",
-      "type": "ELLIPSE",
-      "tag": "div",
-      "dx": 0,
-      "dy": 0,
-      "dw": -0.01,
-      "dh": -0.01,
-      "against": "box",
-      "origin": 0,
-      "size": 0.01,
-      "worst": 0.01,
-      "pass": true
-     },
-     {
-      "id": "94:268",
-      "name": "GLL golden circle",
-      "type": "ELLIPSE",
-      "tag": "div",
-      "dx": 0,
-      "dy": 0,
-      "dw": -0.01,
-      "dh": -0.01,
-      "against": "box",
-      "origin": 0,
-      "size": 0.01,
-      "worst": 0.01,
-      "pass": true
-     },
-     {
-      "id": "94:269",
-      "name": "Vector",
-      "type": "VECTOR",
-      "tag": "div",
-      "dx": -0.01,
-      "dy": -0.01,
-      "dw": -0.01,
-      "dh": 0,
-      "against": "box",
-      "origin": 0.01,
       "size": 0.01,
       "worst": 0.01,
       "pass": true
@@ -3894,6 +3834,21 @@
       "pass": true
      },
      {
+      "id": "94:269",
+      "name": "Vector",
+      "type": "VECTOR",
+      "tag": "button",
+      "dx": -0.01,
+      "dy": -0.01,
+      "dw": -0.01,
+      "dh": 0,
+      "against": "box",
+      "origin": 0.01,
+      "size": 0.01,
+      "worst": 0.01,
+      "pass": true
+     },
+     {
       "id": "94:271",
       "name": "2",
       "type": "TEXT",
@@ -3908,6 +3863,21 @@
       "worst": 0,
       "originPass": true,
       "sizePass": true,
+      "pass": true
+     },
+     {
+      "id": "94:268",
+      "name": "GLL golden circle",
+      "type": "ELLIPSE",
+      "tag": "button",
+      "dx": 0,
+      "dy": 0,
+      "dw": -0.01,
+      "dh": -0.01,
+      "against": "box",
+      "origin": 0,
+      "size": 0.01,
+      "worst": 0.01,
       "pass": true
      },
      {
@@ -3928,6 +3898,21 @@
       "pass": true
      },
      {
+      "id": "94:267",
+      "name": "GLL golden circle",
+      "type": "ELLIPSE",
+      "tag": "button",
+      "dx": 0,
+      "dy": 0,
+      "dw": -0.01,
+      "dh": -0.01,
+      "against": "box",
+      "origin": 0,
+      "size": 0.01,
+      "worst": 0.01,
+      "pass": true
+     },
+     {
       "id": "94:273",
       "name": "4",
       "type": "TEXT",
@@ -3942,6 +3927,21 @@
       "worst": 0,
       "originPass": true,
       "sizePass": true,
+      "pass": true
+     },
+     {
+      "id": "94:265",
+      "name": "Vilnius portrait — Custom photo shape",
+      "type": "VECTOR",
+      "tag": "img",
+      "dx": -0.01,
+      "dy": -0.01,
+      "dw": -0.01,
+      "dh": -0.01,
+      "against": "box",
+      "origin": 0.01,
+      "size": 0.01,
+      "worst": 0.01,
       "pass": true
      },
      {

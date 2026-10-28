@@ -1,4 +1,7 @@
 /** hero - Figma 94:85. Photo grid under a dark scrim, centred headline block. */
+import { useEffect, useRef, type RefObject } from 'react'
+import { CANVAS_W } from '../canvas'
+import { useReducedMotion } from '../motion'
 
 // Grid geometry from 94:87's children, relative to the group's box (-115, -26).
 const TILE = 299.7864990234375
@@ -7,6 +10,96 @@ const COLS = [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375]
 const ROWS = [0, 342.609375, 685.2109375]
 
 type Tile = { id: string; src?: string; color?: string }
+
+// M-01 pan range: 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
+const GRID_W = 1670.2200927734375
+const PAN_LEFT = 115
+const PAN_RIGHT = GRID_W - CANVAS_W - PAN_LEFT
+const TAU = 0.2 // s, follow time constant
+const SETTLE = 0.05 // px
+
+/** Pointer x in canvas px over the hero -> grid translateX: +PAN_LEFT at 0, 0 at the centre, -PAN_RIGHT at 1440. */
+const panFor = (cx: number) => {
+  const half = CANVAS_W / 2
+  return cx <= half ? PAN_LEFT * (1 - cx / half) : -PAN_RIGHT * Math.min(1, (cx - half) / half)
+}
+
+/**
+ * M-01: the grid eases toward the mouse-driven target and back to 0 when the
+ * mouse leaves. Listens on window because the nav and gradient sections are
+ * painted over the hero's top and swallow its pointer events, and only while
+ * the hero is on screen, so moves elsewhere on the page cost nothing.
+ */
+function usePan(hero: RefObject<HTMLDivElement | null>, grid: RefObject<HTMLDivElement | null>) {
+  const reduced = useReducedMotion()
+  useEffect(() => {
+    const box = hero.current
+    const el = grid.current
+    if (reduced || !box || !el) return
+    let x = 0
+    let target = 0
+    let raf = 0
+    let last = 0
+    let px = NaN
+    let py = NaN
+
+    const step = (now: number) => {
+      // rAF stamps the frame start, which can precede the scheduling call.
+      const dt = Math.max(0, now - last) / 1000
+      last = now
+      x = target + (x - target) * Math.exp(-dt / TAU)
+      if (Math.abs(target - x) < SETTLE) x = target
+      // Unset at rest: a transform promotes a layer and resamples the photos.
+      el.style.transform = x ? `translateX(${x}px)` : ''
+      raf = x === target ? 0 : requestAnimationFrame(step)
+    }
+    const aim = () => {
+      const r = Number.isNaN(px) ? null : box.getBoundingClientRect()
+      const inside = r !== null && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom
+      target = inside ? panFor(((px - r.left) / r.width) * CANVAS_W) : 0
+      if (!raf && target !== x) {
+        last = performance.now()
+        raf = requestAnimationFrame(step)
+      }
+    }
+    const move = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
+      px = e.clientX
+      py = e.clientY
+      aim()
+    }
+    const out = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || e.relatedTarget) return
+      px = py = NaN
+      aim()
+    }
+
+    const detach = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerout', out)
+      window.removeEventListener('scroll', aim)
+    }
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) {
+        detach()
+        px = py = NaN
+        aim()
+        return
+      }
+      window.addEventListener('pointermove', move, { passive: true })
+      window.addEventListener('pointerout', out, { passive: true })
+      // Scrolling moves the hero under a still mouse.
+      window.addEventListener('scroll', aim, { passive: true })
+    })
+    io.observe(box)
+    return () => {
+      io.disconnect()
+      detach()
+      cancelAnimationFrame(raf)
+      el.style.transform = ''
+    }
+  }, [reduced, hero, grid])
+}
 
 // Row-major, in Figma child order. Photos are Figma renders (crop and radius baked in).
 const TILES: Tile[] = [
@@ -28,16 +121,21 @@ const TILES: Tile[] = [
 ]
 
 export default function Hero() {
+  const hero = useRef<HTMLDivElement>(null)
+  const grid = useRef<HTMLDivElement>(null)
+  usePan(hero, grid)
   return (
     <div
+      ref={hero}
       className="relative size-full overflow-hidden rounded-b-[50px]"
       data-node-id="94:85"
     >
       <div className="absolute inset-0 bg-[#0b1722]" data-node-id="94:86" />
 
       <div
+        ref={grid}
         className="absolute"
-        style={{ left: -115, top: -26, width: 1670.2200927734375, height: 984.9974365234375 }}
+        style={{ left: -PAN_LEFT, top: -26, width: GRID_W, height: 984.9974365234375 }}
         data-node-id="94:87"
       >
         {TILES.map((t, i) => {

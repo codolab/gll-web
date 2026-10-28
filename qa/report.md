@@ -1,19 +1,19 @@
 # GLL parity report
 
-Build: http://localhost:4197/ · captured 2026-10-27T12:40:18.598Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Build: http://localhost:4197/ · captured 2026-10-28T08:56:06.491Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
 Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | hero | built | 0,0 | 25/25 | 0.02 | 0/0 of 3 | 1.316 | 0 | 100 (0) | 0,0 / -0.01,0 | y719.5+239.5 | 0.06,0.07 | -0.12,-0.2 | 0.18,0.27 | PASS |
 | gradient | built | nominal? | 1/1 | 0.01 | 0/0 of 0 | 0 | 0 | 100 (0) | 0,0 / 0,0 | y0+180.5 | n/a,0.01 | 0,0 | n/a,0.01 | PASS |
-| logos | built | 0,0 | 9/9 | 0.02 | 0/0 of 0 | 4.063 | 0 | 95.8 (679) | 0,0 / -0.04,0.12 | y1013.5+77 | -0.15,-0.01 | -0.01,0.12 | -0.14,-0.13 | FAIL (ae, edgeOnly) |
+| logos | built | 0,0 | 9/9 | 0.02 | 0/0 of 0 | 4.063 | 0 | 95.8 (679) | 0,0 / -0.04,0.11 | y1013.5+77 | -0.15,-0.01 | -0.01,0.12 | -0.14,-0.13 | FAIL (ae, edgeOnly) |
 | nav | built | 0,0 | 11/11 | 0.02 | 0/0 of 6 | 1.01 | 0 | 100 (0) | 0,0 / 0,0.01 | y10.5+74 | -0.01,0 | 0,0.01 | -0.01,-0.01 | PASS |
 | ribbons | built | 0,0 | 16/16 | 0.01 | 0/0 of 5 | 1.338 | 0 | 100 (0) | 0,0 / 0,0 | y2266+84 | 0.03,0 | 0,0 | 0.03,0 | PASS |
 | programs | built | 0,0 | 24/24 | 0 | 0/0 of 12 | 0.531 | 0 | 100 (0) | 0,0 / 0,0 | y2619+208.5 | -0.05,0.01 | 0,0 | -0.05,0.01 | PASS |
 | impact | built | 0,0 | 19/19 | 0.02 | 0/0 of 8 | 0.876 | 0 | 100 (0) | 0,0 / 0,0.23 | y4521+220.5 | 0.03,0.23 | 0,0.23 | 0.03,0 | PASS |
-| meet | built | +0,+23 | 50/50 | 0.95 | 0/0 of 9 | 2.782 | 0 | 100 (14) | 0,0 / 0.03,0.27 | y5561+60.5 | -0.42,-0.41 | 0.06,-0.04 | -0.48,-0.37 | PASS |
-| talent | built | +3,+26 | 15/15 | 0.02 | 0/0 of 6 | 2.009 | 0 | 99.9 (24) | 0,0 / -0.21,0.14 | y1367.5+185 | -0.2,0.23 | -0.43,-0.06 | 0.23,0.29 | PASS |
+| meet | built | +0,+23 | 50/50 | 0.95 | 0/0 of 9 | 2.782 | 0 | 100 (14) | 0,0 / 0.08,0.27 | y5561+60.5 | -0.42,-0.41 | 0.06,-0.04 | -0.48,-0.37 | PASS |
+| talent | built | +3,+26 | 15/15 | 0.02 | 0/0 of 6 | 2.009 | 0 | 99.9 (24) | 0,0 / -0.11,0.23 | y1367.5+185 | -0.2,0.23 | -0.43,-0.06 | 0.23,0.29 | PASS |
 | community | built | 0,0 | 24/24 | 0.02 | 0/0 of 12 | 2.583 | 0 | 99.8 (184) | 0,0.5 / 0,0.43 | y6610.5+213 | 0.01,0.45 | 0,0.22 | 0.01,0.23 | PASS |
 | footer | built | 0,0 | 41/41 | 0.01 | 0/0 of 21 | 1.965 | 0 | 98.7 (650) | 0,0.5 / 0,0.45 | y7252+214 | 0.01,0.28 | 0,0.5 | 0.01,-0.22 | PASS |
 
@@ -59,7 +59,7 @@ Gates: geometry boxes/images/vectors max |dx,dy,dw,dh| <= 1px; text origin <= 1p
 
 - reference is trimmed: 2793x1466 vs box 2792x1488; its origin solves to +0,+23 device px against Figma's composite (residual 4.31 vs 38.96 at nominal); the node render bounds put it at +0,+22.55, which the snap expectation uses.
 - coverage: 50/66 visible Figma nodes carry a data-node-id.
-- snap expectation is mixed (elements with different fractional offsets) in 6 band(s): y5013.5 spread dx 0.66 dy 0; y5186 spread dx 0.93 dy 0; y5377.5 spread dx 0.93 dy 0; y5423 spread dx 0.61 dy 0
+- snap expectation is mixed (elements with different fractional offsets) in 6 band(s): y5013.5 spread dx 0.7 dy 0; y5186 spread dx 0.93 dy 0; y5377.5 spread dx 0.93 dy 0; y5423 spread dx 0.76 dy 0
 - least-squares fallback (too few edges for correlation) in 1 band(s): y5186 dy
 
 ## talent (94:935)

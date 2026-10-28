@@ -1,3 +1,6 @@
+import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useReducedMotion } from '../motion'
+
 /**
  * impact - Figma 94:180. Periwinkle band: "Global [photo pill] impact"
  * headline on the left, three stats split by hairlines on the right.
@@ -22,11 +25,61 @@ const RULES = [
   { node: '94:195', y: 301 },
 ]
 
+// M-09 count-up: 0 to the value with the same en-US comma and suffix, once per load.
+const COUNT_MS = 1800
+const COUNT_AT = 0.4
+const TARGETS = STATS.map((s) => Number(s.num.replace(/\D/g, '')))
+const SUFFIX = STATS.map((s) => s.num.replace(/^[\d,]+/, ''))
+const en = new Intl.NumberFormat('en-US')
+
+// Counts to show, or null for the final strings (rest frame; always under reduced
+// motion). Parked at 0 before paint, so a section in view never flashes the finals.
+function useCountUp(el: RefObject<HTMLElement | null>) {
+  const reduced = useReducedMotion()
+  const [counts, setCounts] = useState<number[] | null>(null)
+  const done = useRef(false)
+  useLayoutEffect(() => {
+    if (reduced || done.current || !el.current) {
+      done.current = true
+      setCounts(null)
+      return
+    }
+    setCounts(TARGETS.map(() => 0))
+    let raf = 0
+    const io = new IntersectionObserver((entries) => {
+      if (entries[entries.length - 1].intersectionRatio < COUNT_AT) return
+      io.disconnect()
+      let t0 = -1
+      const tick = (now: number) => {
+        if (t0 < 0) t0 = now
+        const t = Math.min(1, (now - t0) / COUNT_MS)
+        if (t < 1) {
+          const k = 1 - (1 - t) ** 3
+          setCounts(TARGETS.map((v) => Math.round(v * k)))
+          raf = requestAnimationFrame(tick)
+        } else {
+          done.current = true
+          setCounts(null)
+        }
+      }
+      raf = requestAnimationFrame(tick)
+    }, { threshold: COUNT_AT })
+    io.observe(el.current)
+    return () => {
+      io.disconnect()
+      cancelAnimationFrame(raf)
+    }
+  }, [el, reduced])
+  return counts
+}
+
 const headline = 'm-0 absolute text-[96px] font-semibold leading-[108px] tracking-[-3px] whitespace-pre text-ink'
 
 export default function Impact() {
+  const root = useRef<HTMLDivElement>(null)
+  const counts = useCountUp(root)
   return (
-    <div className="relative size-full bg-periwinkle" data-node-id="94:180">
+    <div ref={root} className="relative size-full bg-periwinkle" data-node-id="94:180">
       <div data-node-id="94:181" className="absolute left-[64px] top-[88px] w-[1312px]" style={{ height: 485.5625 }}>
         <div data-node-id="94:182" className="absolute left-0 h-[236px] w-[752px]" style={{ top: 124.781 }}>
           <h2 className="m-0 font-[inherit]">
@@ -47,14 +100,20 @@ export default function Impact() {
           </h2>
         </div>
         <div data-node-id="94:187" className="absolute h-[470px] w-[464px]" style={{ left: 848, top: 7.781 }}>
-          {STATS.map((s) => (
+          {STATS.map((s, i) => (
             <div key={s.group} data-node-id={s.group} className="absolute left-0 w-[464px]" style={{ top: s.y, height: s.h }}>
               <p
                 data-node-id={s.numNode}
                 className="absolute left-0 top-0 m-0 h-[76px] whitespace-pre text-[64px] font-semibold leading-[76px] tracking-[-2px] text-ink"
                 style={{ width: s.numW }}
               >
-                {s.num}
+                {/* While counting, assistive tech still reads the final value (M-G1). */}
+                {counts ? (
+                  <>
+                    <span aria-hidden="true">{en.format(counts[i]) + SUFFIX[i]}</span>
+                    <span className="sr-only">{s.num}</span>
+                  </>
+                ) : s.num}
               </p>
               <p
                 data-node-id={s.capNode}

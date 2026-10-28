@@ -1,4 +1,6 @@
 /** logos - Figma 94:111. Partner strip; the last logo overhangs 1440 and the canvas clips it. */
+import type { CSSProperties } from 'react'
+
 type Logo = { id: string; src: string; alt: string; x: number; y: number; w: number; h: number; hardLight?: boolean }
 
 // Figma renders (filters baked). The two LF marks are HARD_LIGHT in Figma, so
@@ -14,20 +16,46 @@ const LOGOS: Logo[] = [
   { id: '94:119', src: '/assets/logos/baltic-amadeus.webp', alt: 'Baltic Amadeus', x: 1312.674, y: 29.081, w: 155.517, h: 45.764 },
 ]
 
+// M-02 period: last right edge + the auto-layout gap (all seven are equal), on
+// Blink's 1/64 px layout grid so every clone lands exactly one period away.
+const GAP = 70.8085
+const LAST = LOGOS[LOGOS.length - 1]
+const PERIOD = Math.round((LAST.x + LAST.w + GAP) * 64) / 64
+const SPEED = 30 // px/s, [PROPOSED DEFAULT]
+
+const track = {
+  width: PERIOD + LAST.x + LAST.w,
+  '--marquee-shift': `${-PERIOD}px`,
+  '--marquee-duration': `${PERIOD / SPEED}s`,
+} as CSSProperties
+
+/** One logo; a clone sits one period to the right, without node id or accessible name. */
+function LogoImg({ l, clone = false }: { l: Logo; clone?: boolean }) {
+  return (
+    <img
+      data-node-id={clone ? undefined : l.id}
+      src={l.src}
+      alt={clone ? '' : l.alt}
+      aria-hidden={clone || undefined}
+      draggable={false}
+      className={`absolute max-w-none ${l.hardLight ? 'mix-blend-hard-light' : ''}`}
+      style={{ left: l.x + (clone ? PERIOD : 0), top: l.y, width: l.w, height: l.h }}
+    />
+  )
+}
+
 export default function Logos() {
   return (
-    <div className="relative size-full" data-node-id="94:111">
-      {LOGOS.map((l) => (
-        <img
-          key={l.id}
-          data-node-id={l.id}
-          src={l.src}
-          alt={l.alt}
-          draggable={false}
-          className={`absolute max-w-none ${l.hardLight ? 'mix-blend-hard-light' : ''}`}
-          style={{ left: l.x, top: l.y, width: l.w, height: l.h }}
-        />
-      ))}
+    <div className="group relative size-full" data-node-id="94:111">
+      {/* The moving track is its own stacking context, so the hard-light marks
+          blend against its backdrop: keep that white, like the page under it. */}
+      <div
+        className="marquee absolute left-0 top-0 h-full bg-white group-hover:[animation-play-state:paused]"
+        style={track}
+      >
+        {LOGOS.map((l) => <LogoImg key={l.id} l={l} />)}
+        {LOGOS.map((l) => <LogoImg key={`clone-${l.id}`} l={l} clone />)}
+      </div>
     </div>
   )
 }

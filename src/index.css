@@ -37,3 +37,17 @@ body { font-family: var(--font-sans); color: var(--color-ink); -webkit-font-smoo
 /* Chromium drops contextual alternates whenever letter-spacing is non-zero;
    Figma keeps them, and in Inter they set "+" and ":" at figure height. */
 body { font-feature-settings: "liga" 1, "calt" 1; }
+
+/* Marquee rows (logos, ribbons; design/motion-spec.md M-02, M-07). The track
+   slides by one repeat unit, --marquee-shift (negative = leftward), and loops.
+   At t = 0 and under reduced motion it rests on the Figma position. */
+@keyframes marquee {
+  to { transform: translateX(var(--marquee-shift)); }
+}
+/* In the components layer so utilities (a hover pause) can override it. */
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee { animation: marquee var(--marquee-duration) linear infinite; }
+    [data-motion="paused"] .marquee { animation-play-state: paused; }
+  }
+}

@@ -6,6 +6,9 @@ const A = '/assets/community'
 
 const box = (x: number, y: number, w: number, h: number): CSSProperties => ({ left: x, top: y, width: w, height: h })
 
+/** M-13: hovering a "Join us" block nudges its arrow right; each arrow adds its own keyboard-focus trigger. */
+const NUDGE = 'motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out motion-safe:group-hover:translate-x-[6px]'
+
 type TextProps = {
   id: string
   as?: ElementType
@@ -54,7 +57,7 @@ export default function Community() {
         <a
           href="#"
           data-node-id="94:282"
-          className="absolute block overflow-hidden bg-green text-ink"
+          className="group absolute block overflow-hidden bg-green text-ink"
           style={{ ...box(0, 0, 272, 264), borderRadius: '24px 132px 132px 24px' }}
         >
           <Text id="94:283" at={[28, 28, 200, 14]} size={12} weight={600} lh={14}>
@@ -63,7 +66,7 @@ export default function Community() {
           <Text id="94:284" at={[28, 86, 210, 74]} size={32} weight={600} lh={37}>
             {'Partner\nwith us'}
           </Text>
-          <img data-node-id="94:285" src={`${A}/arrow-partner.svg`} alt="" className="absolute" style={box(28, 204, 32, 32)} />
+          <img data-node-id="94:285" src={`${A}/arrow-partner.svg`} alt="" className={`absolute ${NUDGE} motion-safe:group-focus-visible:translate-x-[6px]`} style={box(28, 204, 32, 32)} />
         </a>
 
         <img
@@ -121,7 +124,7 @@ export default function Community() {
 
       <div
         data-node-id="94:300"
-        className="absolute overflow-hidden bg-white"
+        className="group absolute overflow-hidden bg-white"
         style={{ ...box(1056, 706, 320, 272), borderRadius: '24px 136px 24px 24px' }}
       >
         <Text id="94:301" at={[28, 28, 250, 14]} size={12} weight={600} lh={14}>
@@ -134,7 +137,7 @@ export default function Community() {
           <Text id="94:304" as="span" at={[0, 6.5, 160, 19]} size={16} weight={600} lh={19}>
             Support us
           </Text>
-          <img data-node-id="94:305" src={`${A}/arrow-support.svg`} alt="" className="absolute" style={box(232, 0, 32, 32)} />
+          <img data-node-id="94:305" src={`${A}/arrow-support.svg`} alt="" className={`absolute ${NUDGE} motion-safe:group-has-focus-visible:translate-x-[6px]`} style={box(232, 0, 32, 32)} />
         </a>
       </div>
     </div>
