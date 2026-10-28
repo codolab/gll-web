@@ -25,11 +25,20 @@ const bar = (page) => page.$eval(BAR, (el) => {
   const r = el.getBoundingClientRect()
   return { state: el.dataset.navBar, opacity: getComputedStyle(el).opacity, fading: el.getAnimations().length, x: r.x, y: r.y, w: r.width, h: r.height, vw: document.documentElement.clientWidth }
 })
-/** Scroll, let the bar's fade land, and return its state. */
+/**
+ * Scroll, give the observer time to report (the state from before the scroll may
+ * already look right), wait for the state the hero's position calls for (or 3s),
+ * let its fade land, and return it.
+ */
 const scrollTo = async (page, y) => {
   await page.evaluate((y) => window.scrollTo(0, y), y)
-  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
-  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition).map((a) => a.finished)))
+  await page.waitForTimeout(150)
+  await page.waitForFunction((r) => {
+    const h = document.getElementById('hero').getBoundingClientRect(), n = document.querySelector('header').getBoundingClientRect()
+    const k = document.querySelector('[data-canvas="root"]').getBoundingClientRect().width / 1440
+    return document.querySelector('[data-nav-bar]').dataset.navBar === (h.bottom < n.bottom + r * k ? 'solid' : 'clear')
+  }, RADIUS, { timeout: 3000 }).catch(() => {})
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition && a.playState === 'running').map((a) => a.finished)))
   return bar(page)
 }
 const fmt = (n) => (Math.round(n * 1000) / 1000).toFixed(3)
@@ -63,6 +72,55 @@ async function open(t, viewport, reducedMotion = 'no-preference', isolate) {
   return page
 }
 
+/** The bar arrives as the hero's rounded bottom reaches the nav (radius scaled with the canvas), not before, and fades in. */
+async function threshold(page, t, label) {
+  const edge = await page.evaluate((r) => {
+    const h = document.getElementById('hero').getBoundingClientRect(), n = document.querySelector('header').getBoundingClientRect()
+    const k = document.querySelector('[data-canvas="root"]').getBoundingClientRect().width / 1440
+    return h.bottom + scrollY - n.bottom - r * k
+  }, RADIUS)
+  const before = await scrollTo(page, Math.floor(edge) - 2)
+  await page.evaluate((y) => window.scrollTo(0, y), Math.ceil(edge) + 2)
+  // Read the bar the moment it turns solid, while its fade is running.
+  const fade = await page.waitForFunction(() => {
+    const el = document.querySelector('[data-nav-bar]'), a = el.getAnimations()[0]
+    return el.dataset.navBar === 'solid' && (a ? `${a.effect.getComputedTiming().duration}ms ${getComputedStyle(el).transitionTimingFunction}` : 'none')
+  }, null, { timeout: 3000 }).then((h) => h.jsonValue(), () => 'never solid')
+  const after = await scrollTo(page, Math.ceil(edge) + 2)
+  t.check('M-16', before.state === 'clear' && before.opacity === '0' && after.state === 'solid' && after.opacity === '1' && fade.startsWith('300ms'),
+    `${label}: hero bottom ${RADIUS}px (canvas) below the nav at scroll ${fmt(edge)}: 2px before -> ${before.state} ${before.opacity}, 2px after -> ${after.state} ${after.opacity} (fade ${fade})`)
+  await scrollTo(page, 0)
+}
+
+/**
+ * Opened already scrolled, as a reload that restores the scroll position is, the bar
+ * is solid from the first frame instead of fading in over the content. Real
+ * restoration is unreliable headless, so the page is scrolled before the app starts.
+ */
+async function preScrolled(t) {
+  const page = await t.browser.newPage({ viewport: { width: 1440, height: 900 } })
+  await page.addInitScript(() => {
+    new MutationObserver((_, mo) => {
+      if (!document.body) return
+      mo.disconnect()
+      document.documentElement.style.minHeight = '7895px'
+      window.scrollTo(0, 3000)
+    }).observe(document, { childList: true, subtree: true })
+    const seen = (window.__bar = [])
+    const f = () => {
+      const el = document.querySelector('[data-nav-bar]')
+      if (el) seen.push(`${Math.round(scrollY)}:${el.dataset.navBar}:${(+getComputedStyle(el).opacity).toFixed(2)}`)
+      if (seen.length < 20) requestAnimationFrame(f)
+    }
+    requestAnimationFrame(f)
+  })
+  await page.goto(t.url, { waitUntil: 'networkidle' })
+  const frames = await page.evaluate(() => window.__bar)
+  await page.close()
+  t.check('M-16', frames.length >= 10 && frames.every((s) => s === '3000:solid:1.00'),
+    `opened at scroll 3000, first ${frames.length} frames: ${[...new Set(frames)].join(', ')}`)
+}
+
 /** Stuck at every scroll: the nav's viewport boxes never move, and the bar is solid past the hero. */
 async function sticky(page, t, label) {
   const top = await boxes(page)
@@ -88,21 +146,8 @@ export default async function (page, t) {
     `scroll 0: ${ref.length} nav node boxes vs ?isolate=nav, worst ${fmt(d0)} canvas px; bar ${rest.state}, opacity ${rest.opacity}`)
 
   await sticky(page, t, '1440x900')
-
-  // The bar arrives as the hero's rounded bottom reaches the nav, not before.
-  const edge = await page.evaluate((r) => {
-    const h = document.getElementById('hero').getBoundingClientRect(), n = document.querySelector('header').getBoundingClientRect()
-    return h.bottom + scrollY - n.height - r
-  }, RADIUS)
-  const before = await scrollTo(page, Math.floor(edge) - 2)
-  await page.evaluate((y) => window.scrollTo(0, y), Math.ceil(edge) + 2)
-  const fade = await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => {
-    const el = document.querySelector('[data-nav-bar]'), a = el.getAnimations()[0]
-    r(a ? `${a.effect.getComputedTiming().duration}ms ${getComputedStyle(el).transitionTimingFunction}` : 'none')
-  }))))
-  const after = await scrollTo(page, Math.ceil(edge) + 2)
-  t.check('M-16', before.state === 'clear' && before.opacity === '0' && after.state === 'solid' && after.opacity === '1' && fade.startsWith('300ms'),
-    `hero bottom ${RADIUS}px below the nav at scroll ${fmt(edge)}: 2px before -> ${before.state} ${before.opacity}, 2px after -> ${after.state} ${after.opacity} (fade ${fade})`)
+  await threshold(page, t, '1440x900')
+  await preScrolled(t)
 
   // Solid, the bar spans the viewport, the nav links stay on top, and nothing under it takes the pointer.
   const solid = await scrollTo(page, 3000)
@@ -132,6 +177,7 @@ export default async function (page, t) {
       `${vp.width}x${vp.height} scroll 0: nav boxes vs the 1440 isolated nav, worst ${fmt(d)} canvas px; at scroll 3000 the bar spans ${fmt(b.x)}..${fmt(b.x + b.w)} of ${b.vw}; ${f.detail}`)
     await scrollTo(p, 0)
     await sticky(p, t, `${vp.width}x${vp.height}`)
+    if (vp.width < 1440) await threshold(p, t, `${vp.width}x${vp.height}`)
     await p.close()
   }
 }

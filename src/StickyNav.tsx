@@ -5,31 +5,45 @@
  * the page the layer is transparent and the nav sits exactly where the frame
  * has it; once the hero has scrolled out from under it, an ink bar fades in.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { CANVAS_W, SECTIONS } from './canvas'
 import Nav from './sections/Nav'
 
 const NAV = SECTIONS.find((s) => s.slug === 'nav')!
 const HERO_RADIUS = 50 // the hero's rounded bottom corners uncover white before its edge arrives
 
-/** True once the hero's bottom edge has scrolled up to `offset` px from the viewport top. */
+/**
+ * Whether the hero's bottom edge has scrolled up to `offset` px from the
+ * viewport top, and whether a change should fade: not until the observer's
+ * first report has painted, so a page reloaded mid-scroll shows its bar at once.
+ */
 function useHeroPassed(offset: number) {
   const [passed, setPassed] = useState(false)
-  useEffect(() => {
+  const [live, setLive] = useState(false)
+  useLayoutEffect(() => {
     const hero = document.getElementById('hero')
     if (!hero) return
-    const io = new IntersectionObserver((entries) => setPassed(!entries[entries.length - 1].isIntersecting), {
-      rootMargin: `${-Math.round(offset)}px 0px 0px 0px`,
-    })
+    const margin = Math.round(offset)
+    setPassed(hero.getBoundingClientRect().bottom < margin)
+    let first = true
+    let raf = 0
+    const io = new IntersectionObserver((entries) => {
+      setPassed(!entries[entries.length - 1].isIntersecting)
+      if (first) raf = requestAnimationFrame(() => (raf = requestAnimationFrame(() => setLive(true))))
+      first = false
+    }, { rootMargin: `${-margin}px 0px 0px 0px` })
     io.observe(hero)
-    return () => io.disconnect()
+    return () => {
+      io.disconnect()
+      cancelAnimationFrame(raf)
+    }
   }, [offset])
-  return passed
+  return { passed, live }
 }
 
 export default function StickyNav({ scale }: { scale: number }) {
   const height = (NAV.y + NAV.h) * scale
-  const solid = useHeroPassed(height + HERO_RADIUS * scale)
+  const { passed: solid, live } = useHeroPassed(height + HERO_RADIUS * scale)
   useEffect(() => {
     // Read by index.css: focused controls scroll clear of the bar (WCAG 2.4.11).
     const root = document.documentElement
@@ -42,7 +56,7 @@ export default function StickyNav({ scale }: { scale: number }) {
     <header className="fixed inset-x-0 top-0 z-40" style={{ height }}>
       <div
         data-nav-bar={solid ? 'solid' : 'clear'}
-        className={`absolute inset-0 bg-ink shadow-[0_8px_24px_rgb(11_23_34/0.18)] transition-opacity duration-300 motion-reduce:transition-none ${solid ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-ink shadow-[0_8px_24px_rgb(11_23_34/0.18)] ${live ? 'transition-opacity duration-300 motion-reduce:transition-none' : ''} ${solid ? 'opacity-100' : 'opacity-0'}`}
       />
       <div className="relative mx-auto h-full" style={{ width: CANVAS_W * scale }}>
         <div className="absolute left-0 top-0 origin-top-left" style={{ width: CANVAS_W, transform: `scale(${scale})` }}>

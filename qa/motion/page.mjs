@@ -14,8 +14,8 @@ const strip = async (page, y) => {
   await page.evaluate((y) => scrollTo(0, y), y)
   await page.evaluate(async () => {
     // The sticky nav's bar fades in once (M-16): a state change, not a loop, so let it land.
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-    await Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition).map((a) => a.finished))
+    await new Promise((r) => setTimeout(r, 150))
+    await Promise.all(document.getAnimations().filter((a) => a instanceof CSSTransition && a.playState === 'running').map((a) => a.finished))
     for (const a of document.getAnimations()) { a.pause(); a.currentTime = 0 }
     return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
   })
