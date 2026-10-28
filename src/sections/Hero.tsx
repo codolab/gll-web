@@ -11,18 +11,16 @@ const ROWS = [0, 342.609375, 685.2109375]
 
 type Tile = { id: string; src?: string; color?: string }
 
-// M-01 pan range: 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
+// 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
+const GRID_X = -115
 const GRID_W = 1670.2200927734375
-const PAN_LEFT = 115
-const PAN_RIGHT = GRID_W - CANVAS_W - PAN_LEFT
-const TAU = 0.2 // s, follow time constant
+// M-01 is a gentle drift: a full-width pan (±115px, 0.2s) made viewers motion sick.
+const PAN = 24 // px each way
+const TAU = 0.6 // s, follow time constant
 const SETTLE = 0.05 // px
 
-/** Pointer x in canvas px over the hero -> grid translateX: +PAN_LEFT at 0, 0 at the centre, -PAN_RIGHT at 1440. */
-const panFor = (cx: number) => {
-  const half = CANVAS_W / 2
-  return cx <= half ? PAN_LEFT * (1 - cx / half) : -PAN_RIGHT * Math.min(1, (cx - half) / half)
-}
+/** Pointer x in canvas px over the hero -> grid translateX: +PAN at 0, 0 at the centre, -PAN at 1440. */
+const panFor = (cx: number) => PAN * (1 - (2 * Math.min(cx, CANVAS_W)) / CANVAS_W)
 
 /**
  * M-01: the grid eases toward the mouse-driven target and back to 0 when the
@@ -136,7 +134,7 @@ export default function Hero() {
       <div
         ref={grid}
         className="absolute"
-        style={{ left: -PAN_LEFT, top: -26, width: GRID_W, height: 984.9974365234375 }}
+        style={{ left: GRID_X, top: -26, width: GRID_W, height: 984.9974365234375 }}
         data-node-id="94:87"
       >
         {TILES.map((t, i) => {

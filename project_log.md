@@ -66,3 +66,11 @@ section is gated against `design/figma/logos.composed.png`.
 - Open questions answered: G-08 timings accepted and G-09 pause coverage
   accepted as is (no visible control, no tap-to-stop). G-06 talent photos and
   lines and G-07 Join us spin are with the designer.
+
+## 2026-10-28: hero pan cut down after motion sickness
+
+- Marius got motion sick from the hero on production. The pan moved the whole
+  photo wall ±115px with a 0.2s lag, so a mouse sweep ran it above 1000 px/s.
+  Now ±24px at 0.6s: an edge-to-edge sweep peaks at 76.7 px/s, and
+  qa/motion/hero.mjs fails anything above 85 px/s. Rest frame unchanged
+  (hero 25/25, ae 1.316).

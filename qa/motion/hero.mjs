@@ -1,8 +1,11 @@
-// M-01: the photo grid 94:87 pans with the mouse x over the hero, eased, and rests untransformed.
+// M-01: the photo grid 94:87 drifts gently with the mouse x over the hero, eased, and rests untransformed.
 // Waits poll for the expected state with a generous cap, so CPU load only slows a run, never fails it.
 const GRID = '[data-node-id="94:87"]'
 const HERO = '[data-node-id="94:85"]'
-const PAN = { left: 115, right: 1670.2200927734375 - 1440 - 115 }
+const PAN = { left: 24, right: 24 }
+const TAU = 0.6
+// An edge-to-edge sweep must stay slow: the first cut peaked above 1000 px/s and made viewers motion sick.
+const MAX_SPEED = 85 // px/s; the easing alone caps it at (2 * 24) / 0.6 = 80
 const near = (a, b, tol = 0.5) => Math.abs(a - b) <= tol
 const fmt = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toFixed(d)
 
@@ -25,6 +28,15 @@ const until = async (t, want) => {
   }
   return x
 }
+
+/** Record every translateX the pan loop writes, with its frame time. */
+const record = (page) => page.evaluate((sel) => {
+  const el = document.querySelector(sel)
+  const s = (window.__pan = [])
+  window.__panMo = new MutationObserver(() => s.push([document.timeline.currentTime, new DOMMatrixReadOnly(el.style.transform || 'none').m41]))
+  window.__panMo.observe(el, { attributes: true, attributeFilter: ['style'] })
+}, GRID)
+const recorded = (page) => page.evaluate(() => { window.__panMo.disconnect(); return window.__pan })
 
 /** Resolves once the hero's visibility is `want` (cap 6s). The hero's own observer, created earlier, is notified first. */
 const visible = (page, want) => page.$eval(HERO, (el, want) => new Promise((res) => {
@@ -88,15 +100,10 @@ export default async function (page, t) {
   // gap by exp(-dt / tau), so consecutive frames give tau exactly whatever the frame pacing.
   await moveTo(page, 720, 600)
   await until(t, 0)
-  await page.evaluate((sel) => {
-    const el = document.querySelector(sel)
-    const s = (window.__pan = [])
-    window.__panMo = new MutationObserver(() => s.push([document.timeline.currentTime, new DOMMatrixReadOnly(el.style.transform || 'none').m41]))
-    window.__panMo.observe(el, { attributes: true, attributeFilter: ['style'] })
-  }, GRID)
+  await record(page)
   await moveTo(page, 0, 600)
   await until(t, PAN.left)
-  const s = await page.evaluate(() => { window.__panMo.disconnect(); return window.__pan })
+  const s = await recorded(page)
   const taus = []
   for (let i = 1; i < s.length; i++) {
     const [r0, r1, dt] = [PAN.left - s[i - 1][1], PAN.left - s[i][1], s[i][0] - s[i - 1][0]]
@@ -104,9 +111,24 @@ export default async function (page, t) {
   }
   taus.sort((a, b) => a - b)
   const tau = taus[taus.length >> 1]
-  t.check('M-01', taus.length >= 5 && near(tau, 0.2, 0.03),
+  t.check('M-01', taus.length >= 5 && near(tau, TAU, 0.06),
     `eased: first frame at ${fmt(s[0][1])} of ${PAN.left}px, settled in ${s.length} frames, time constant ${fmt(tau, 3)}s ` +
     `(median of ${taus.length} frame pairs, range ${fmt(taus[0], 3)}..${fmt(taus[taus.length - 1], 3)})`)
+
+  // Speed: sweep from the right edge to the left edge in one move, the largest jump the pan can make.
+  await moveTo(page, 1439.5, 600)
+  await until(t, -PAN.right * (1439 / 1440))
+  await record(page)
+  await moveTo(page, 0, 600)
+  await until(t, PAN.left)
+  const v = await recorded(page)
+  let peak = 0
+  for (let i = 1; i < v.length; i++) {
+    const dt = (v[i][0] - v[i - 1][0]) / 1000
+    if (dt > 0) peak = Math.max(peak, Math.abs(v[i][1] - v[i - 1][1]) / dt)
+  }
+  t.check('M-01', v.length >= 5 && peak <= MAX_SPEED,
+    `edge-to-edge sweep: ${fmt(v[v.length - 1][1] - v[0][1])}px over ${v.length} frames, peak ${fmt(peak, 1)} px/s (cap ${MAX_SPEED})`)
 
   // The mouse leaving the window fires pointerout with no relatedTarget (dispatched: Playwright cannot leave).
   await page.evaluate(() => document.body.dispatchEvent(new PointerEvent('pointerout', { pointerType: 'mouse', bubbles: true, relatedTarget: null })))
