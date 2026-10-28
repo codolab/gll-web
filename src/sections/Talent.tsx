@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 
 /** talent - Figma 94:935. Heading, blob photo with four numbered shapes, tagline. */
 
@@ -13,10 +13,9 @@ type Num = { id: string; text: string; x: number; y: number; w: number }
 const PILL: Pt[] = [[653.540625, 342.1872], [653.540625, 469.5455], [632.103625, 514.9415], [550.140325, 593.1215]]
 const PILL_W = 135.065
 const START = PILL[0]
-// Figma keeps 30px of white between the photo and every shape (30.06 at the
-// pill), so the extended loop takes that much off the photo with a white band,
-// half a pixel short so its antialiased edge never touches the photo at rest.
-const GAP = 29.5
+// Figma keeps about 32px of white between the photo and every shape (30 to 34.5
+// along the pill), so the extended loop takes that much off the photo with a white band.
+const GAP = 32
 
 const turn = ([x, y]: Pt, q: number): Pt => (q === 1 ? [-y, x] : q === -1 ? [y, -x] : q === 2 ? [-x, -y] : [x, y])
 /** A Figma point moved with the loop that starts at `c`, turned `q` quarter turns (0 keeps it exact). */
@@ -27,10 +26,20 @@ const place = (p: Pt, c: Pt, q: number): Pt => {
 }
 
 // The photo (94:265): Figma's image fill at 2x its box (scripts/assets.mjs fill),
-// clipped to the node's own vector, so the edge stays sharp at any density.
+// clipped to a vector, so the edge stays sharp at any density. Figma's own outline is
+// cut round the 2 loop; this one gives every number the same notch and a petal
+// between each pair, so only the selected loop cuts in (scripts/talent-mask.mjs).
 const PHOTO = { x: 108.398, y: 103.4, w: 504.147, h: 529.354 }
 const BLOB =
-  'M68.152 22.5161C100.651 -9.99506 122.75 -2.49247 146.149 33.77C200.746 108.796 298.242 105.045 358.039 30.0187C386.638 -11.2455 410.037 -6.24377 441.235 22.5161L482.833 65.0308C510.132 91.2898 511.432 122.551 485.433 147.559C446.435 188.823 442.535 238.841 442.535 278.854C441.235 367.635 387.938 432.658 298.242 436.409C226.745 438.91 183.847 463.918 148.748 506.433C125.349 535.193 95.4508 536.443 69.452 512.685L23.954 468.92C-5.94461 440.16 -8.54449 416.402 20.0542 385.141C82.4514 315.117 86.3512 227.587 29.1538 158.813C-0.744841 121.3 0.555101 98.7924 29.1538 67.5317L68.152 22.5161Z'
+  'M68.152 22.516C100.651 -9.995 122.75 -2.492 146.149 33.77C200.746 108.796 298.242 105.045 358.039 30.019C386.638 -11.245 410.037 -6.244 441.235 22.516C455.101 36.688 468.967 50.859 482.833 65.031C510.132 91.29 507.59 118.221 487.376 132.931C412.35 187.528 416.101 285.024 491.127 344.821C508.174 358.408 511.238 406.123 481.276 444.382C467.571 462.64 453.866 480.899 440.161 499.157C406.438 539.348 392.579 530.828 368.861 498.236C314.264 423.21 216.768 426.961 156.971 501.987C133.572 530.747 95.451 536.443 69.452 512.685C54.286 498.097 39.12 483.508 23.954 468.92C-5.945 440.16 -8.544 416.402 20.054 385.141C82.451 315.117 86.351 227.587 29.154 158.813C-0.745 121.3 0.555 98.792 29.154 67.532C42.153 52.526 55.153 37.521 68.152 22.516Z'
+// Where each loop's band meets the next number's notch, a rounded white corner
+// instead of a spike of photo, as Figma draws it after 2 (scripts/talent-mask.mjs).
+const FILLS = [
+  'M399.91 179.91A150 150 0 0 1 541.39 333.99L653.54 342.19L611.34 182.8L405.52 80.54Z',
+  'M500.64 502.13A150 150 0 0 1 383.61 547.44L371.4 659.4L550.14 593.12L572.11 571.41Z',
+  'M227.45 521.21A150 150 0 0 1 176.7 388.4L71.84 367.84L120.47 556L162.41 596.56Z',
+  'M172.15 332.16A150 150 0 0 1 340.83 190.67L360.4 79.4L175.24 116.91L72.73 327.31Z',
+]
 // 2 is the Figma frame; the other lines are placeholders from frame 94:84 (gaps.md G-06).
 const LINES = ['Global minds. Lithuanian roots.', 'One community. Endless possibilities.', 'Your next chapter starts here.', 'Go further, together.']
 const REST = 1 // the Figma frame shows 2 extended
@@ -57,6 +66,11 @@ const LINE_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration
 const LINE_OFF = 'invisible opacity-0 motion-safe:transition-[opacity,visibility] motion-safe:duration-150'
 // The loop grows from the circle along its path while the previous one shrinks back [PROPOSED DEFAULT 0.4s].
 const MORPH = 'motion-safe:transition-[stroke-dasharray,stroke-width] motion-safe:duration-400 motion-safe:ease-in-out'
+// A loop's corner fill rounds the corner its finished band makes, so it shows once the
+// band has grown (at once without motion) and fades as the band starts to shrink.
+const FILL_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration-100'
+const FILL_WAIT = 'opacity-0 motion-reduce:opacity-100'
+const FILL_OFF = 'opacity-0 motion-safe:transition-opacity motion-safe:duration-100'
 
 const TAB = 'absolute z-[1] cursor-pointer appearance-none overflow-visible outline-hidden [-webkit-tap-highlight-color:transparent]'
 const STEP: Record<string, (i: number) => number> = {
@@ -77,9 +91,22 @@ const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => (
 export default function Talent() {
   const uid = useId()
   const [active, setActive] = useState(REST)
+  // The loop whose band has finished growing, set when its transition ends.
+  const [grown, setGrown] = useState<number | null>(REST)
   // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
   const [focused, setFocused] = useState<number | null>(null)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
+
+  const select = (i: number) => {
+    if (i === active) return
+    setActive(i)
+    setGrown(null)
+  }
+  // A selection flipped back within one frame never transitions, so no end event comes.
+  useEffect(() => {
+    const t = setTimeout(() => setGrown(active), 450)
+    return () => clearTimeout(t)
+  }, [active])
 
   // Tabs with automatic activation: hover, focus, tap or arrow keys select.
   const tab = (i: number) => ({
@@ -91,13 +118,13 @@ export default function Talent() {
     'aria-controls': `${uid}panel`,
     'aria-label': `${i + 1}: ${LINES[i]}`,
     tabIndex: (focused ?? active) === i ? 0 : -1,
-    onPointerEnter: () => setActive(i),
+    onPointerEnter: () => select(i),
     onFocus: () => {
       setFocused(i)
-      setActive(i)
+      select(i)
     },
     onBlur: () => setFocused(null),
-    onClick: () => setActive(i),
+    onClick: () => select(i),
   })
   const onKeyDown = (e: KeyboardEvent) => {
     const i = tabs.current.indexOf(e.target as HTMLButtonElement)
@@ -180,16 +207,19 @@ export default function Talent() {
               {/* The white band each loop takes off the photo: over the photo, under the tagline. */}
               <svg aria-hidden="true" className="pointer-events-none absolute left-0 top-0 overflow-visible" style={{ width: FRAME.w, height: FRAME.h }}>
                 {SHAPES.map((s, i) => (
-                  <path
-                    key={s.id}
-                    d={s.path}
-                    pathLength={1}
-                    fill="none"
-                    stroke="white"
-                    strokeLinecap="round"
-                    className={MORPH}
-                    style={{ strokeDasharray: active === i ? '1 2' : '0 2', strokeWidth: active === i ? PILL_W + 2 * GAP : s.d }}
-                  />
+                  <g key={s.id}>
+                    <path
+                      d={s.path}
+                      pathLength={1}
+                      fill="none"
+                      stroke="white"
+                      strokeLinecap="round"
+                      className={MORPH}
+                      style={{ strokeDasharray: active === i ? '1 2' : '0 2', strokeWidth: active === i ? PILL_W + 2 * GAP : s.d }}
+                      onTransitionEnd={(e) => e.propertyName === 'stroke-dasharray' && active === i && setGrown(i)}
+                    />
+                    <path d={FILLS[i]} fill="white" className={active !== i ? FILL_OFF : grown === i ? FILL_ON : FILL_WAIT} />
+                  </g>
                 ))}
               </svg>
               {/* pt-px: Chrome floors the negative half-leading (baseline 29) where Figma

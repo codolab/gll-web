@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:4197/",
- "at": "2026-10-28T14:40:13.261Z",
+ "at": "2026-10-28T22:53:44.467Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -3583,13 +3583,16 @@
    },
    "raster": {
     "window": "1984x1734",
-    "ae": 1.736,
-    "structural": 0,
-    "structBlob": null,
-    "diffPx": 26686,
-    "thickPx": 4,
-    "thick": 0.0001,
-    "edgeOnly": 100,
+    "ae": 2.086,
+    "structural": 0.429,
+    "structBlob": {
+     "cells": 34,
+     "at": "72x152 at 900,1592"
+    },
+    "diffPx": 39162,
+    "thickPx": 9606,
+    "thick": 0.2792,
+    "edgeOnly": 75.5,
     "shift": {
      "dx": 0,
      "dy": 0,
@@ -3600,18 +3603,18 @@
     },
     "ink": {
      "whole": {
-      "dx": -0.15,
-      "dy": 0.25
+      "dx": -0.16,
+      "dy": 0.28
      },
      "worst": {
-      "y": 1552.5,
+      "y": 1922,
       "h": 185,
-      "dx": -0.12,
-      "dy": 0.01,
-      "expX": -0.11,
-      "expY": 0.26,
-      "resX": -0.01,
-      "resY": -0.25
+      "dx": -0.26,
+      "dy": 0.04,
+      "expX": -0.08,
+      "expY": 0.28,
+      "resX": -0.18,
+      "resY": -0.24
      },
      "flagged": 0,
      "bands": [
@@ -3652,25 +3655,25 @@
       {
        "y": 1552.5,
        "h": 185,
-       "dx": -0.12,
-       "dy": 0.01,
+       "dx": -0.24,
+       "dy": 0.45,
        "method": {
-        "x": "ncc",
+        "x": "lsq",
         "y": "lsq"
        },
        "expX": -0.11,
        "expY": 0.26,
        "spreadX": 0.39,
        "spreadY": 0.39,
-       "resX": -0.01,
-       "resY": -0.25,
+       "resX": -0.13,
+       "resY": 0.19,
        "empty": false
       },
       {
        "y": 1737.5,
        "h": 184.5,
        "dx": -0.16,
-       "dy": 0.07,
+       "dy": 0.17,
        "method": {
         "x": "ncc",
         "y": "ncc"
@@ -3680,13 +3683,13 @@
        "spreadX": 0.39,
        "spreadY": 0.39,
        "resX": -0.05,
-       "resY": -0.19,
+       "resY": -0.09,
        "empty": false
       },
       {
        "y": 1922,
        "h": 185,
-       "dx": -0.25,
+       "dx": -0.26,
        "dy": 0.04,
        "method": {
         "x": "ncc",
@@ -3696,7 +3699,7 @@
        "expY": 0.28,
        "spreadX": 0.39,
        "spreadY": 0.39,
-       "resX": -0.17,
+       "resX": -0.18,
        "resY": -0.24,
        "empty": false
       }
@@ -3965,12 +3968,12 @@
    },
    "broken": [],
    "errors": [],
-   "verdict": "PASS",
+   "verdict": "FAIL",
    "gates": {
     "geometry": true,
     "ae": true,
-    "structural": true,
-    "edgeOnly": true,
+    "structural": false,
+    "edgeOnly": false,
     "ink": true
    }
   },

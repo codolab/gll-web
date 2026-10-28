@@ -1,9 +1,11 @@
 // M-04..M-06: the four numbered shapes (94:266, 94:269, 94:268, 94:267) are tabs
 // with automatic activation (hover, focus, tap, arrow keys). The selected one is
 // drawn as the Figma loop (the "2" pill, turned to start at its circle) and the
-// rest as circles, morphing in 0.4s; the loop takes a 30px white band off the one
-// Figma photo (94:265), which never changes; the tagline (94:274 stack) swaps one
-// line at a time. All instant under reduced motion. State 2 is the Figma frame.
+// rest as circles, morphing in 0.4s. The one Figma photo (94:265) never changes:
+// its outline gives every number the same notch, and the selected loop takes a
+// 32px white band off it, its corner with the next notch rounded, never a sliver.
+// The tagline (94:274 stack) swaps one line at a time. All instant under reduced
+// motion. State 2 is the Figma frame, except the photo's outline near the 2 loop (M-G1).
 // One t.check per aspect.
 import { execFileSync } from 'node:child_process'
 
@@ -13,7 +15,9 @@ const REST = 1
 const PILL_W = 135.065
 const CIRCLE = [158.806, 158.806, 158.806, 143.682]
 const MORPH_S = 0.4
-const GAP = 29.5
+const GAP = 32
+const NOTCH = [31.8, 31.8, 31.8, 34.3] // Figma's notches under 1 and beside 4; 2 and 3 copy 1's
+const SPREAD = 12 // measured 4.4 to 5.2 on the copies of notch 1, 9.2 on Figma's notch beside 4
 const SETTLE_MS = 650
 const f2 = (n) => n.toFixed(2)
 // Other builders' edits can hot-reload the shared dev page mid-run, resetting it to state 2.
@@ -63,17 +67,18 @@ const away = async (page) => {
   await page.mouse.move(h.left + h.width / 2, h.top + h.height / 2)
 }
 
-/** Every frame for `ms`: each photo's and each line's effective opacity. */
+/** Every frame for `ms`: each line's opacity, each shape's dash and width, each band's dash and its corner fill's opacity. */
 const sampleFades = (page, ms) => page.evaluate((ms) => {
   const sec = document.querySelector('[data-section="talent"]')
   const lines = [...sec.querySelectorAll('p')]
   const shapes = [...sec.querySelectorAll('[role="tab"]')].map((b) => b.querySelectorAll('svg path')[2])
   const op = (el) => { const cs = getComputedStyle(el); return cs.visibility === 'visible' ? +cs.opacity : 0 }
   const form = (el) => { const cs = getComputedStyle(el); return [parseFloat(cs.strokeDasharray), parseFloat(cs.strokeWidth)] }
+  const groups = [...sec.querySelectorAll('[role="tabpanel"] svg g')]
   window.__fade = []
   const t0 = performance.now()
   const f = (now) => {
-    window.__fade.push([now, null, lines.map(op), shapes.map(form)])
+    window.__fade.push([now, null, lines.map(op), shapes.map(form), groups.map((g) => parseFloat(getComputedStyle(g.firstElementChild).strokeDasharray)), groups.map((g) => op(g.lastElementChild))])
     if (now - t0 < ms) requestAnimationFrame(f)
   }
   requestAnimationFrame(f)
@@ -146,6 +151,48 @@ async function band(page) {
   return { tab: pts.tab, n: pts.pts.length, bad: bad.length }
 }
 
+/**
+ * Gap between each circle (drawn as a circle) and the photo's clip outline, in px:
+ * the nearest and the farthest outline point within 40deg of the line to the photo's
+ * centre, so a notch that is off-centre or turned away shows as a wide spread.
+ */
+const notches = (page) => page.evaluate((CIRCLE) => {
+  const sec = document.querySelector('[data-section="talent"]')
+  const img = sec.querySelector('img'), box = img.getBoundingClientRect()
+  const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), p = document.createElementNS(ns, 'path')
+  p.setAttribute('d', getComputedStyle(img).clipPath.match(/path\("(.+)"\)/)[1])
+  svg.append(p); document.body.append(svg)
+  const pts = []
+  for (let l = 0, L = p.getTotalLength(); l < L; l += 1) { const q = p.getPointAtLength(l); pts.push([box.left + q.x, box.top + q.y]) }
+  svg.remove()
+  const mid = [box.left + box.width / 2, box.top + box.height / 2]
+  return [...sec.querySelectorAll('[role="tab"]')].map((b, i) => {
+    const s = b.querySelectorAll('svg path')[2], o = s.getPointAtLength(0), c = new DOMPoint(o.x, o.y).matrixTransform(s.getScreenCTM())
+    const to = Math.atan2(mid[1] - c.y, mid[0] - c.x)
+    // The outline's nearest point per degree, from -40 to 40deg round the line to the centre.
+    const near = new Array(81).fill(Infinity)
+    for (const [x, y] of pts) {
+      const a = Math.round((Math.atan2(Math.sin(Math.atan2(y - c.y, x - c.x) - to), Math.cos(Math.atan2(y - c.y, x - c.x) - to)) * 180) / Math.PI)
+      if (Math.abs(a) <= 40) near[a + 40] = Math.min(near[a + 40], Math.hypot(x - c.x, y - c.y) - CIRCLE[i] / 2)
+    }
+    return [Math.min(...near), Math.max(...near)]
+  })
+}, CIRCLE)
+
+/**
+ * Photo left as slivers: the visible photo (painted black, shapes and text hidden)
+ * from a real screenshot, and the pixels an opening by an 8px disc removes from it.
+ * Smooth edges and wide corners lose a few; a spike or a thin strip loses many.
+ */
+async function slivers(page) {
+  const sec = '[data-section="talent"]'
+  const style = await page.addStyleTag({ content: `${sec} img { filter: brightness(0) !important } ${sec} [role="tab"], ${sec} p { visibility: hidden !important }` })
+  const png = await page.locator('[data-node-id="94:264"]').screenshot()
+  await style.evaluate((el) => el.remove())
+  const area = (...op) => +execFileSync('magick', ['png:-', '-alpha', 'off', '-colorspace', 'gray', '-threshold', '50%', '-negate', ...op, '-format', '%[fx:mean*w*h]', 'info:'], { input: png }).toString()
+  return Math.round(area() - area('-morphology', 'Open', 'Disk:8'))
+}
+
 /** Worst distance between a circle's number and the circle's centre, over the unselected tabs. */
 const centred = (page) => page.evaluate(() => Math.max(...[...document.querySelectorAll('[data-section="talent"] [role="tab"][aria-selected="false"]')].map((b) => {
   const p = b.querySelectorAll('svg path')[2], o = p.getPointAtLength(0), c = new DOMPoint(o.x, o.y).matrixTransform(p.getScreenCTM())
@@ -207,6 +254,7 @@ export default async function (page, t) {
   const pts = await points(page)
   const hovered = []
   const clear = []
+  const thin = []
   const offsets = []
   let one
   for (const i of [0, 2, 3, 1]) {
@@ -216,6 +264,7 @@ export default async function (page, t) {
     if (i === 0) one = await page.evaluate(() => window.__fade)
     hovered.push([i, await snap(page)])
     clear.push(await band(page))
+    thin.push(await slivers(page))
     offsets.push(await centred(page))
   }
   t.check('M-04', all(hovered), `hover selects: ${trail(hovered)}; extended ${trail(hovered, 'extended')}`)
@@ -238,15 +287,46 @@ export default async function (page, t) {
     `2 shrinks ${f2(shrink[0])} -> ${f2(shrink.at(-1))} (falling ${falling}), width ${f2(w1[0])} -> ${f2(w1.at(-1))}; 3 and 4 stay circles ${held}; ` +
     `${steps.length} frames, longest ${worstFrame.toFixed(1)}ms`)
 
+  // The corner fill rounds the corner of a finished band: never before it, soon after, gone as it leaves.
+  // Once the band leaves (or starts) and the fill is hidden, the fill stays hidden until the band is out again.
+  const fillTiming = (rec, k) => {
+    const from = rec.findIndex((x) => x[4][k] < 0.999)
+    const hid = rec.findIndex((x, j) => j >= from && x[5][k] <= 0.01)
+    const done = rec.findIndex((x, j) => j > hid && x[4][k] >= 0.999)
+    const shown = rec.findIndex((x, j) => j >= done && x[5][k] >= 0.999)
+    const early = rec.filter((x, j) => j > hid && j < done && x[5][k] > 0.01).length
+    return { early, lag: from < 0 || hid < 0 || done < 0 || shown < 0 ? Infinity : rec[shown][0] - rec[done][0] }
+  }
+  const f1 = fillTiming(one, 0)
+  const gone2 = one.findIndex((x) => x[5][1] <= 0.01), fade2 = gone2 < 0 ? Infinity : one[gone2][0] - one[0][0]
+  await sampleFades(page, 1000)
+  await page.mouse.move(pts[0].x, pts[0].y)
+  await t.sleep(60)
+  await page.mouse.move(pts[1].x, pts[1].y)
+  await t.sleep(1100)
+  const back = fillTiming(await page.evaluate(() => window.__fade), 1)
+  t.check('M-05', f1.early === 0 && f1.lag <= 200 && fade2 <= 150 && back.early === 0 && back.lag <= 200,
+    `corner fill: 2->1, fill 1 drawn ${f1.lag.toFixed(0)}ms after band 1 is out (${f1.early} frames early), fill 2 gone within ${fade2.toFixed(0)}ms; ` +
+    `2->1->2 in 60ms, fill 2 back ${back.lag.toFixed(0)}ms after band 2 (${back.early} frames early)`)
+
   t.check('M-04', offsets.every((d) => d <= 0.5),
     `numbers centred in their circles: worst ${offsets.map((d) => `${f2(d)}px`).join(', ')} across hover 1, 3, 4, 2`)
 
-  // The photo keeps Figma's 30px of white round whichever loop is out, and no more.
-  const bands = await page.$$eval(`${t.section} [role="tabpanel"] svg path`, (ps) => ps.map((p) => [parseFloat(getComputedStyle(p).strokeDasharray), parseFloat(getComputedStyle(p).strokeWidth)]))
+  // The band keeps 32px of white between the loop and the photo (its head sits in the circle's notch).
+  const bands = await page.$$eval(`${t.section} [role="tabpanel"] svg g > path:first-child`, (ps) => ps.map((p) => [parseFloat(getComputedStyle(p).strokeDasharray), parseFloat(getComputedStyle(p).strokeWidth)]))
   const bandOk = bands.length === 4 && bands.every(([d, w], i) => (i === 1 ? d >= 0.999 && Math.abs(w - (PILL_W + 2 * GAP)) < 0.01 : d <= 0.001 && Math.abs(w - CIRCLE[i]) < 0.01))
   t.check('M-05', bandOk && clear.every((c) => c.n > 500 && c.bad === 0),
     `white band round the loop, from screenshots: ${clear.map((c) => `${c.tab} ${c.bad}/${c.n} points not white`).join(', ')}; ` +
     `band at rest ${bands.map(([d, w]) => `${d >= 0.999 ? 'loop' : 'circle'} ${f2(w)}px`).join(', ')} (loop ${f2(PILL_W)} + 2 x ${GAP})`)
+
+  // The outline is the same for every number: each circle sits in its notch at Figma's gap.
+  const gaps = await notches(page)
+  t.check('M-05', gaps.every(([lo, hi], i) => Math.abs(lo - NOTCH[i]) <= 1 && hi - lo <= SPREAD),
+    `photo outline notches each circle: gap within 40deg of the photo's centre ${gaps.map(([lo, hi], i) => `${i + 1} ${f2(lo)}-${f2(hi)}px`).join(', ')} ` +
+    `(Figma's nearest ${NOTCH.join('/')}, spread under ${SPREAD})`)
+  // Where the loop meets the next notch the corner is rounded: no spike or strip of photo is left.
+  t.check('M-05', thin.every((n) => n <= 10),
+    `no slivers of photo: pixels an 8px opening removes, hover ${[0, 2, 3, 1].map((i, j) => `${i + 1} ${thin[j]}`).join(', ')} (smooth edges lose under 10; a spike 16 or more)`)
 
   await page.mouse.move(pts[2].x, pts[2].y)
   await t.sleep(SETTLE_MS)
@@ -320,7 +400,7 @@ export default async function (page, t) {
     return { src: i.src.split('/').pop(), w: i.naturalWidth, h: i.naturalHeight, at2x: decoded && Math.abs(i.naturalWidth - 2 * r.width) <= 1.5 && Math.abs(i.naturalHeight - 2 * r.height) <= 1.5, clip: getComputedStyle(i).clipPath.startsWith('path(') }
   })))
   t.check('M-05', photos.length === 1 && photos[0].src === PHOTO && photos[0].at2x && photos[0].clip && [rest, ...hovered.map(([, s]) => s), ...keyed.map(([, s]) => s)].every((s) => s.photo === PHOTO),
-    `one photo: ${photos.map((p) => `${p.src} ${p.w}x${p.h} decoded at 2x its box ${p.at2x}, clipped to the Figma vector ${p.clip}`).join(', ')}; shown unchanged in all ${1 + hovered.length + keyed.length} states sampled`)
+    `one photo: ${photos.map((p) => `${p.src} ${p.w}x${p.h} decoded at 2x its box ${p.at2x}, clipped to a vector ${p.clip}`).join(', ')}; shown unchanged in all ${1 + hovered.length + keyed.length} states sampled`)
 
   // M-06: the tagline.
   const lines = await fit(page)

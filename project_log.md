@@ -116,3 +116,39 @@ section is gated against `design/figma/logos.composed.png`.
   never touches the photo at rest); the band check also asserts the band's
   width, the photo check that it decoded at 2x, the line check that both lines
   fade part-way, reduced motion covers the band paths, frame limit 34ms.
+
+## 2026-10-29 - Talent: one outline for every number
+
+- Marius: "the image mask has to be symmetrical and only the number selected
+  with its quarter circle drawn should overlap that symmetry". Figma's outline
+  (94:265) is drawn for 2 selected: its right side is one scoop round the 2
+  loop and it has no fourth petal, so with 1, 3 or 4 selected it looked wrong.
+- New resting outline (scripts/talent-mask.mjs): Figma's three petals and its
+  notches under 1 and beside 4 as drawn; 2 and 3 take the notch under 1 (same
+  circle size), turned onto them; a fourth petal, the top-left one turned 180deg
+  and stretched to the wider gap (2's circle sits 26px above 4's mirror). Every
+  circle now sits 31.8px from the photo (4: 34.3, Figma's own).
+- The selected loop's band is 32px (Figma keeps 30 to 34.5 along the loop).
+  Where it met the next notch it left a spike of photo; a white corner fill
+  (radius 150, the closest match to Figma's own corner after 2) rounds it.
+  It rounds the corner of the finished band, so it is drawn when the band's
+  growth ends (its transitionend, 0.1s fade) and fades as the band shrinks.
+- Checks: every circle's notch gap (fails on Figma's outline: 2 at 19.6px) and
+  slivers (pixels an 8px opening removes from the visible photo: 2 to 5 with the
+  fills, 16 to 34 without). Both mutation-tested. qa:motion 109/109.
+- Review round: a clock-timed fill (delay 0.3s) showed the spike from about
+  0.17s to 0.3s into each growth and stuck on screen for 0.3s after a quick
+  2 -> 1 -> 2; the fill now waits for the band's transitionend (with a 0.45s
+  fallback for a selection flipped back within one frame). New check samples
+  every frame: never drawn before its band is out, drawn within 0.2s after,
+  and back after 2 -> 1 -> 2 in 60ms (the clock version fails it). The notch
+  check now reads the whole notch (nearest and farthest outline point within
+  40deg); Figma's outline fails it at 2 (19.6 to 89.6px). The generator reads
+  GAP from Talent.tsx and stops if a corner circle is not tangent to both
+  curves. Selecting 1 or 4 cuts more photo than 2 or 3 (their corners span
+  88 and 94deg against 49 and 57deg), because Figma's circles are not evenly
+  placed. qa:motion 110/110.
+- Rest frame: talent ae 2.086 (gate 3), geometry 15/15, but structural and
+  edge-only now fail: with 2 selected the outline is the symmetric one minus
+  the band, not Figma's, so a thin crescent round the head of the 2 loop and a
+  strip along the corner differ from 94:265. Recorded in motion-spec M-G1.

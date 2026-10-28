@@ -1,7 +1,7 @@
 # GLL parity report
 
-Build: http://localhost:4197/ · captured 2026-10-28T14:40:13.260Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
-Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
+Build: http://localhost:4197/ · captured 2026-10-28T22:53:44.466Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Verdicts: 9 PASS, 2 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -13,7 +13,7 @@ Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
 | programs | built | 0,0 | 24/24 | 0 | 0/0 of 12 | 0.531 | 0 | 100 (0) | 0,0 / 0,0 | y2619+208.5 | -0.05,0.01 | 0,0 | -0.05,0.01 | PASS |
 | impact | built | 0,0 | 19/19 | 0.02 | 0/0 of 8 | 0.876 | 0 | 100 (0) | 0,0 / 0,0.23 | y4521+220.5 | 0.03,0.23 | 0,0.23 | 0.03,0 | PASS |
 | meet | built | +0,+23 | 50/50 | 0.95 | 0/0 of 9 | 2.782 | 0 | 100 (14) | 0,0 / 0.08,0.27 | y5561+60.5 | -0.42,-0.41 | 0.06,-0.04 | -0.48,-0.37 | PASS |
-| talent | built | +3,+26 | 15/15 | 0.02 | 0/0 of 6 | 1.736 | 0 | 100 (4) | 0,0 / -0.09,0.27 | y1552.5+185 | -0.12,0.01 | -0.11,0.26 | -0.01,-0.25 | PASS |
+| talent | built | +3,+26 | 15/15 | 0.02 | 0/0 of 6 | 2.086 | 0.429 (34) | 75.5 (9606) | 0,0 / -0.09,0.27 | y1922+185 | -0.26,0.04 | -0.08,0.28 | -0.18,-0.24 | FAIL (structural, edgeOnly) |
 | community | built | 0,0 | 24/24 | 0.02 | 0/0 of 12 | 2.583 | 0 | 99.8 (184) | 0,0.5 / 0,0.43 | y6610.5+213 | 0.01,0.45 | 0,0.22 | 0.01,0.23 | PASS |
 | footer | built | 0,0 | 41/41 | 0.01 | 0/0 of 21 | 1.965 | 0 | 98.7 (650) | 0,0.5 / 0,0.45 | y7252+214 | 0.01,0.28 | 0,0.5 | 0.01,-0.22 | PASS |
 
@@ -66,7 +66,8 @@ Gates: geometry boxes/images/vectors max |dx,dy,dw,dh| <= 1px; text origin <= 1p
 
 - reference is trimmed: 1958x1708 vs box 1984x1734; its origin solves to +3,+26 device px against Figma's composite (residual 3.06 vs 37.09 at nominal); the node render bounds put it at +2.89,+26.61, which the snap expectation uses.
 - coverage: 15/15 visible Figma nodes carry a data-node-id.
-- least-squares fallback (too few edges for correlation) in 2 band(s): y1367.5 dx; y1552.5 dy
+- structural: largest block of differing 8px cells is 34 cells, 72x152 at 900,1592 (canvas CSS px).
+- least-squares fallback (too few edges for correlation) in 2 band(s): y1367.5 dx; y1552.5 dx dy
 
 ## community (94:276)
 
