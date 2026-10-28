@@ -98,3 +98,8 @@ section is gated against `design/figma/logos.composed.png`.
 - Rest frame: talent ae 1.967 (was 2.009), structural 0. qa:motion 109/109;
   the new photo-clearance check fails with unturned outlines (about 10k px
   of each loop over the photo).
+- Review round: the outgoing photo now fades out (0.2s) once the incoming one
+  is full, because each blob has its own outline and the part only the old one
+  covered popped; and the "2" digit centres in its circle when retracted (the
+  Figma puts it 6.8px below the loop's start). Both have checks that fail
+  without the fix. qa:motion 111/111.

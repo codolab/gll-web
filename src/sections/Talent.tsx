@@ -54,9 +54,12 @@ const PHOTOS = STATES.map((s, i) => ({ ...s, box: boxOf(...(PHOTO.map((p) => pla
 const FRAME = { w: 653.499, h: 738.575 } // 94:264
 
 // Only the incoming photo fades, on top; the last fully shown one stays opaque
-// under it until that fade ends, so the blob never thins. The rest hide at once.
+// under it until that fade ends, so the blob never thins, then fades out itself:
+// each blob has its own outline, so the part only it covers must not pop. The
+// rest hide at once.
 const PHOTO_IN = 'z-[2] opacity-100 motion-safe:transition-opacity motion-safe:duration-300'
 const PHOTO_UNDER = 'z-[1] opacity-100'
+const PHOTO_LEAVING = 'z-0 opacity-0 motion-safe:transition-opacity motion-safe:duration-200'
 const PHOTO_OFF = 'invisible z-0 opacity-0'
 const LINE_FADE = 'motion-safe:transition-[opacity,visibility] motion-safe:duration-300'
 // The loop grows from the circle along its path while the previous one shrinks back [PROPOSED DEFAULT 0.4s].
@@ -67,11 +70,12 @@ const STEP: Record<string, (i: number) => number> = {
   ArrowRight: (i) => i + 1, ArrowDown: (i) => i + 1, ArrowLeft: (i) => i - 1, ArrowUp: (i) => i - 1, Home: () => 0, End: () => STATES.length - 1,
 }
 
-const Digit = ({ n }: { n: Num }) => (
+// The Figma "2" sits 6.8px below its loop's start; as a circle it centres like the others.
+const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => (
   <span
     data-node-id={n.id}
-    className="absolute h-12 whitespace-nowrap text-left text-[56px] font-semibold leading-[48px] tracking-[-2px] text-white"
-    style={{ left: n.x, top: n.y, width: n.w }}
+    className="absolute h-12 whitespace-nowrap text-left text-[56px] font-semibold leading-[48px] tracking-[-2px] text-white motion-safe:transition-transform motion-safe:duration-400 motion-safe:ease-in-out"
+    style={{ left: n.x, top: n.y, width: n.w, transform: dy ? `translateY(${dy}px)` : undefined }}
   >
     {n.text}
   </span>
@@ -82,6 +86,7 @@ export default function Talent() {
   const reduced = useReducedMotion()
   const [active, setActive] = useState(REST)
   const [settled, setSettled] = useState(REST)
+  const [leaving, setLeaving] = useState<number | null>(null)
   // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
   const [focused, setFocused] = useState<number | null>(null)
   const under = reduced ? active : settled
@@ -154,7 +159,7 @@ export default function Talent() {
             <circle cx={s.c[0]} cy={s.c[1]} r={s.d / 2} fill="transparent" pointerEvents="visibleFill" />
           )}
         </svg>
-        <Digit n={s.num} />
+        <Digit n={s.num} dy={on || s.q ? 0 : s.c[1] - (s.box.y + s.num.y + 24)} />
       </button>
     )
   }
@@ -189,8 +194,14 @@ export default function Talent() {
                     src={s.src}
                     alt={s.alt}
                     draggable={false}
-                    onTransitionEnd={(e) => e.propertyName === 'opacity' && i === active && setSettled(i)}
-                    className={`absolute max-w-none ${i === active ? PHOTO_IN : i === under ? PHOTO_UNDER : PHOTO_OFF}`}
+                    onTransitionEnd={(e) => {
+                      if (e.propertyName !== 'opacity') return
+                      if (i === active && i !== settled) {
+                        setLeaving(settled)
+                        setSettled(i)
+                      } else if (i === leaving) setLeaving(null)
+                    }}
+                    className={`absolute max-w-none ${i === active ? PHOTO_IN : i === under ? PHOTO_UNDER : i === leaving ? PHOTO_LEAVING : PHOTO_OFF}`}
                     style={{ left: s.box.x, top: s.box.y, width: s.box.w, height: s.box.h }}
                   />
                 ))}

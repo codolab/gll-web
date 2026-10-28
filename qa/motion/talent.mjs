@@ -151,6 +151,13 @@ const overlap = (page) => page.evaluate(async () => {
   return { tab: b.dataset.nodeId, photo: img.src.split('/').pop(), n, over }
 })
 
+/** Worst distance between a circle's number and the circle's centre, over the unselected tabs. */
+const centred = (page) => page.evaluate(() => Math.max(...[...document.querySelectorAll('[data-section="talent"] [role="tab"][aria-selected="false"]')].map((b) => {
+  const p = b.querySelectorAll('svg path')[2], o = p.getPointAtLength(0), c = new DOMPoint(o.x, o.y).matrixTransform(p.getScreenCTM())
+  const r = b.querySelector('[data-node-id]').getBoundingClientRect()
+  return Math.hypot(r.left + r.width / 2 - c.x, r.top + r.height / 2 - c.y)
+})))
+
 /** Lines each tagline wraps to, and how far its text reaches below the box top. */
 const fit = (page) => page.evaluate(() => [...document.querySelectorAll('[data-section="talent"] p')].map((p) => {
   const r = document.createRange(); r.selectNodeContents(p)
@@ -205,6 +212,7 @@ export default async function (page, t) {
   const pts = await points(page)
   const hovered = []
   const clear = []
+  const offsets = []
   let one
   for (const i of [0, 2, 3, 1]) {
     if (i === 0) await sampleFades(page, 900)
@@ -213,6 +221,7 @@ export default async function (page, t) {
     if (i === 0) one = await page.evaluate(() => window.__fade)
     hovered.push([i, await snap(page)])
     clear.push(await overlap(page))
+    offsets.push(await centred(page))
   }
   t.check('M-04', all(hovered), `hover selects: ${trail(hovered)}; extended ${trail(hovered, 'extended')}`)
 
@@ -229,6 +238,9 @@ export default async function (page, t) {
   t.check('M-04', rising && falling && held && widths && shrink.at(-1) <= 0.001 && Math.abs(morphDur - MORPH_S) < 0.12 && mid > 0.1 && mid < 0.9,
     `morph 2->1: 1 extends ${f2(grow[0])} -> ${f2(grow.at(-1))} in ~${f2(morphDur)}s (mid ${f2(mid)}, rising ${rising}), width ${f2(w0[0])} -> ${f2(w0.at(-1))}; ` +
     `2 shrinks ${f2(shrink[0])} -> ${f2(shrink.at(-1))} (falling ${falling}), width ${f2(w1[0])} -> ${f2(w1.at(-1))}; 3 and 4 stay circles ${held}`)
+
+  t.check('M-04', offsets.every((d) => d <= 0.5),
+    `numbers centred in their circles: worst ${offsets.map((d) => `${f2(d)}px`).join(', ')} across hover 1, 3, 4, 2`)
 
   // The blob turns with the loop: the extended shape never paints over the photo.
   t.check('M-05', clear.every((c) => c.n > 1000 && c.over === 0),
@@ -311,11 +323,19 @@ export default async function (page, t) {
     `photo per state: rest ${rest.photo}; hover ${hovered.map(([, s]) => s.photo).join(', ')}; keys ${keyed.map(([, s]) => s.photo.replace('.webp', '')).join(', ')}`)
 
   const pf = fade(one, 1, 0, 'photo')
+  // Then the outgoing photo fades out too: the part of its outline the new blob lacks must not pop.
+  const iIn = one.findIndex((x) => x[1][0] >= 0.999)
+  const leave = one.slice(iIn).map((x) => x[1][1])
+  const iGone = leave.findIndex((v) => v <= 0.001)
+  const outDur = iGone > 0 ? (one[iIn + iGone][0] - one[iIn][0]) / 1000 : NaN
+  const outMid = leave.filter((v) => v > 0.05 && v < 0.95).length
   const durs = await page.$$eval(`${t.section} img[src$=".webp"]`, (imgs) => imgs.map((i) => parseFloat(getComputedStyle(i).transitionDuration) || 0))
   const inDur = Math.max(...durs)
   const cov1 = Math.min(...coverage(one))
   t.check('M-05', Math.abs(inDur - 0.3) < 0.01 && pf.dur > 0.2 && pf.dur < 0.5 && pf.mid > 0.05 && pf.mid < 0.95 && pf.held && cov1 >= 0.999,
     `crossfade 2->1: incoming transition ${f2(inDur)}s, measured ${f2(pf.dur)}s, mid-fade ${f2(pf.mid)}, photo 2 opaque underneath ${pf.held}, blob coverage min ${f2(cov1)}`)
+  t.check('M-05', outDur > 0.12 && outDur < 0.35 && outMid >= 3,
+    `then photo 2 fades out in ${f2(outDur)}s once photo 1 is full (${outMid} frames part-way), so its own outline does not pop`)
 
   // Rapid 2 -> 3 -> 4: the last fully shown photo stays opaque; the others hide at once.
   await page.mouse.move(pts[0].x, pts[0].y)
