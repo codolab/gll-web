@@ -4,7 +4,7 @@ import { useReducedMotion } from './motion'
 import Hero from './sections/Hero'
 import Gradient from './sections/Gradient'
 import Logos from './sections/Logos'
-import Nav from './sections/Nav'
+import StickyNav from './StickyNav'
 import Ribbons from './sections/Ribbons'
 import Programs from './sections/Programs'
 import Impact from './sections/Impact'
@@ -17,7 +17,6 @@ const REGISTRY: Record<string, ComponentType> = {
   hero: Hero,
   gradient: Gradient,
   logos: Logos,
-  nav: Nav,
   ribbons: Ribbons,
   programs: Programs,
   impact: Impact,
@@ -71,13 +70,15 @@ export default function App() {
           Pause moving content
         </button>
       )}
+      {(!isolated || isolated === 'nav') && <StickyNav scale={scale} />}
       <div className="relative mx-auto" style={{ width: CANVAS_W * scale, height: CANVAS_H * scale }}>
         <div
           data-canvas="root"
           className="absolute left-0 top-0 origin-top-left overflow-hidden bg-white"
           style={{ width: CANVAS_W, height: CANVAS_H, transform: `scale(${scale})`, background: backdrop }}
         >
-          {shown.map((s) => {
+          {/* The nav renders in StickyNav, outside the canvas, so it can stay on screen. */}
+          {shown.filter((s) => s.slug !== 'nav').map((s) => {
             const Section = REGISTRY[s.slug]
             return (
               <div
