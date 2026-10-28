@@ -12,7 +12,8 @@
     "qa:one": "node scripts/check-one.mjs",
     "qa:validate": "node scripts/validate-harness.mjs",
     "capture": "node scripts/capture.mjs",
-    "diff": "node scripts/diff.mjs"
+    "diff": "node scripts/diff.mjs",
+    "qa:motion": "node scripts/motion-check.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

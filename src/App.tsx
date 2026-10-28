@@ -1,5 +1,6 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { SECTIONS, CANVAS_W, CANVAS_H } from './canvas'
+import { useReducedMotion } from './motion'
 import Hero from './sections/Hero'
 import Gradient from './sections/Gradient'
 import Logos from './sections/Logos'
@@ -52,10 +53,24 @@ const isolated = new URLSearchParams(window.location.search).get('isolate')
 
 export default function App() {
   const scale = useCanvasScale()
+  const reduced = useReducedMotion()
+  const [paused, setPaused] = useState(false)
   const shown = isolated ? SECTIONS.filter((s) => s.slug === isolated) : SECTIONS
   const backdrop = isolated ? shown[0]?.backdrop : undefined
   return (
-    <main className="w-full overflow-x-hidden">
+    <main className="w-full overflow-x-hidden" data-motion={paused ? 'paused' : undefined}>
+      {/* WCAG 2.2.2: the marquees run past 5s, so the first tab stop pauses them.
+          Visible only on focus, so the design is untouched (motion-spec M-G5). */}
+      {!reduced && (
+        <button
+          type="button"
+          aria-pressed={paused}
+          onClick={() => setPaused((p) => !p)}
+          className="fixed left-4 top-4 z-50 -translate-y-[calc(100%+64px)] rounded-full bg-white px-5 py-3 text-[16px] font-semibold text-ink focus:translate-y-0 focus:shadow-lg"
+        >
+          Pause moving content
+        </button>
+      )}
       <div className="relative mx-auto" style={{ width: CANVAS_W * scale, height: CANVAS_H * scale }}>
         <div
           data-canvas="root"

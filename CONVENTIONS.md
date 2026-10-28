@@ -68,8 +68,25 @@ node scripts/assets.mjs fill   <slug> 94:287=conversations                      
 
 Links are `<a href="#">`, buttons are `<button type="button">`, the
 newsletter field is a real `<input type="email">`. Hover/focus states are
-welcome but must not change the default render. No animation that changes the
-first frame (the ribbons and logo strip may become marquees later; not now).
+welcome but must not change the default render.
+
+## Motion
+
+`design/motion-spec.md` is the motion contract (items M-xx). The rest frame
+must stay the Figma frame: before any pointer input, scroll trigger or
+animation tick a section renders exactly as it did. Under
+`prefers-reduced-motion: reduce` decorative motion stops; the parity harness
+captures that way and also strips CSS animations and transitions.
+
+- CSS motion: Tailwind `motion-safe:` variants or the `.marquee` class in
+  `src/index.css` (set `--marquee-shift` and `--marquee-duration` inline).
+- Script motion: `useReducedMotion()` from `src/motion.ts`.
+- At rest, leave `transform` unset rather than `translate(0)`: a transform
+  promotes a layer and can move how a photo resamples.
+- Clones for looping: no `data-node-id`, `aria-hidden`, not focusable.
+- Each section with motion owns `qa/motion/<slug>.mjs` (see the header of
+  `scripts/motion-check.mjs`): one `t.check('M-xx', pass, detail)` per spec item,
+  plus a `reduced` export proving decorative motion stops.
 
 ## Checking your work
 
@@ -92,7 +109,7 @@ When `design/figma/<slug>.composed.png` exists the harness uses it instead of `<
 ## Rules
 
 - Strict TypeScript: `npx tsc -b` must pass.
-- Touch only `src/sections/<YourComponent>.tsx` and `public/assets/<your-slug>/`.
+- Touch only `src/sections/<YourComponent>.tsx`, `public/assets/<your-slug>/` and `qa/motion/<your-slug>.mjs`.
   Never edit App.tsx, canvas.ts, index.css, scripts, or another section.
 - Copy is reproduced character for character from `characters`, including
   curly quotes, dashes and non-breaking spaces the design uses.

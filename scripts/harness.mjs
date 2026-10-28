@@ -283,9 +283,13 @@ export function renderTrim(s) {
 
 // ---------------------------------------------------------------- capture
 
-/** Load `?isolate=<slug>` with every image decoded and every animation frozen. */
+/**
+ * Load `?isolate=<slug>` with every image decoded and every animation frozen.
+ * Reduced motion parks the script-driven motion (count-up, parallax) on its
+ * rest frame, which is the Figma frame (design/motion-spec.md M-G1).
+ */
 export async function openIsolated(browser, base, slug) {
-  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: DPR })
+  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: DPR, reducedMotion: 'reduce' })
   const errors = []
   page.on('pageerror', (e) => errors.push(`pageerror: ${String(e.message).split('\n')[0].slice(0, 160)}`))
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text().split('\n')[0].slice(0, 160)}`) })
