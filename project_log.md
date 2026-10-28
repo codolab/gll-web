@@ -82,3 +82,18 @@ section is gated against `design/figma/logos.composed.png`.
   1-level rounding on 57% of pixels, so compare() gained a `floor`; the page
   check still catches the old pause-button shadow at floor 1 (769 core px).
   Rest frame unchanged (hero 25/25, ae 1.316); qa:motion 104/104.
+
+## 2026-10-28: sticky nav
+
+- Marius asked for a sticky header. The nav cannot stick from inside the canvas
+  (transformed and clipped), so `src/StickyNav.tsx` renders it in a fixed layer
+  with the canvas's scale and centring. Clear at the top, so the frame is
+  unchanged; an ink bar fades in (0.3s) once the hero's rounded bottom reaches
+  the nav. Focusable controls get `scroll-margin-top` so Tab never lands under
+  the bar; page `scroll-padding-top` was tried first and shrank every
+  scrollIntoView target, which broke the talent hit-area check.
+- qa/motion/nav.mjs (M-16) at 1440, 1024 and 1921 wide; the focus checks fail
+  with the margin removed. qa:motion 118/118; parity unchanged (nav 11/11, ae
+  1.009); scroll-0 viewport vs production differs only by 1px glyph fringes.
+- Built in .worktrees/gll-sticky-header: another session was working in
+  projects/gll on feat/talent-morph at the same time.

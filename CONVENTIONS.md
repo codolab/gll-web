@@ -84,6 +84,11 @@ captures that way and also strips CSS animations and transitions.
 - At rest, leave `transform` unset rather than `translate(0)`: a transform
   promotes a layer and can move how a photo resamples.
 - Clones for looping: no `data-node-id`, `aria-hidden`, not focusable.
+- The nav is the exception to the layout model: `src/StickyNav.tsx` renders it
+  in a fixed layer outside the canvas, with the canvas's scale and centring, so
+  it stays on screen (M-16). It covers the top 95px of the viewport (scaled), so
+  a check that points there hits the nav. Focusable controls carry
+  `scroll-margin-top` so keyboard focus never lands under it.
 - Each section with motion owns `qa/motion/<slug>.mjs` (see the header of
   `scripts/motion-check.mjs`): one `t.check('M-xx', pass, detail)` per spec item,
   plus a `reduced` export proving decorative motion stops.
