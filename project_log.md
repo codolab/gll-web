@@ -103,3 +103,16 @@ section is gated against `design/figma/logos.composed.png`.
   covered popped; and the "2" digit centres in its circle when retracted (the
   Figma puts it 6.8px below the loop's start). Both have checks that fail
   without the fix. qa:motion 111/111.
+- Marius: "jaggy and garbled; take the full image from Figma; no lags, jags
+  or overlapping images; simplicity is key". Rebuilt: one photo, the Figma
+  image fill (assets.mjs fill) clipped by CSS to the node's own vector; the
+  per-number photos, their turned outlines and the photo crossfade are gone.
+  The extended loop takes Figma's 30px gap (measured 30.06 at the pill,
+  31.8 to 34.3 at the circles) off the photo with a white band that morphs
+  with it, layered over the photo and under the tagline. Lines swap out then
+  in, never both. Rest frame talent ae 1.736 (was 2.009 on main). Morph runs
+  at 16.7ms frames (one 33ms frame in 221 at 4x CPU throttle).
+- Review round: band 29.5px (half a pixel inside Figma's 30.06, so its edge
+  never touches the photo at rest); the band check also asserts the band's
+  width, the photo check that it decoded at 2x, the line check that both lines
+  fade part-way, reduced motion covers the band paths, frame limit 34ms.

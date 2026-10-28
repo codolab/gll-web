@@ -1,5 +1,4 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
-import { useReducedMotion } from '../motion'
 
 /** talent - Figma 94:935. Heading, blob photo with four numbered shapes, tagline. */
 
@@ -14,6 +13,10 @@ type Num = { id: string; text: string; x: number; y: number; w: number }
 const PILL: Pt[] = [[653.540625, 342.1872], [653.540625, 469.5455], [632.103625, 514.9415], [550.140325, 593.1215]]
 const PILL_W = 135.065
 const START = PILL[0]
+// Figma keeps 30px of white between the photo and every shape (30.06 at the
+// pill), so the extended loop takes that much off the photo with a white band,
+// half a pixel short so its antialiased edge never touches the photo at rest.
+const GAP = 29.5
 
 const turn = ([x, y]: Pt, q: number): Pt => (q === 1 ? [-y, x] : q === -1 ? [y, -x] : q === 2 ? [-x, -y] : [x, y])
 /** A Figma point moved with the loop that starts at `c`, turned `q` quarter turns (0 keeps it exact). */
@@ -22,17 +25,14 @@ const place = (p: Pt, c: Pt, q: number): Pt => {
   const [x, y] = turn([p[0] - START[0], p[1] - START[1]], q)
   return [c[0] + x, c[1] + y]
 }
-const boxOf = (a: Pt, b: Pt): Box => ({ x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), w: Math.abs(a[0] - b[0]), h: Math.abs(a[1] - b[1]) })
 
-// The photo blob turns with the loop too, so it always leaves room for it. 2 is
-// the Figma frame; 1, 3 and 4 are placeholders baked by scripts/talent-photos.mjs.
-const PHOTO: Pt[] = [[108.398, 103.4], [612.545, 632.754]]
-const STATES = [
-  { src: '/assets/talent/members-group.webp', alt: 'GLL members standing together for a group photo', line: 'Global minds. Lithuanian roots.' },
-  { src: '/assets/talent/vilnius-portrait.webp', alt: 'GLL community members gathered for a group portrait in Vilnius', line: 'One community. Endless possibilities.' },
-  { src: '/assets/talent/members-selfie.webp', alt: 'GLL members taking a group selfie at an event', line: 'Your next chapter starts here.' },
-  { src: '/assets/talent/members-networking.webp', alt: 'GLL members networking at a reception', line: 'Go further, together.' },
-]
+// The photo (94:265): Figma's image fill at 2x its box (scripts/assets.mjs fill),
+// clipped to the node's own vector, so the edge stays sharp at any density.
+const PHOTO = { x: 108.398, y: 103.4, w: 504.147, h: 529.354 }
+const BLOB =
+  'M68.152 22.5161C100.651 -9.99506 122.75 -2.49247 146.149 33.77C200.746 108.796 298.242 105.045 358.039 30.0187C386.638 -11.2455 410.037 -6.24377 441.235 22.5161L482.833 65.0308C510.132 91.2898 511.432 122.551 485.433 147.559C446.435 188.823 442.535 238.841 442.535 278.854C441.235 367.635 387.938 432.658 298.242 436.409C226.745 438.91 183.847 463.918 148.748 506.433C125.349 535.193 95.4508 536.443 69.452 512.685L23.954 468.92C-5.94461 440.16 -8.54449 416.402 20.0542 385.141C82.4514 315.117 86.3512 227.587 29.1538 158.813C-0.744841 121.3 0.555101 98.7924 29.1538 67.5317L68.152 22.5161Z'
+// 2 is the Figma frame; the other lines are placeholders from frame 94:84 (gaps.md G-06).
+const LINES = ['Global minds. Lithuanian roots.', 'One community. Endless possibilities.', 'Your next chapter starts here.', 'Go further, together.']
 const REST = 1 // the Figma frame shows 2 extended
 
 // Node boxes are Figma's: the circles' ELLIPSE boxes and the pill's path box,
@@ -50,24 +50,17 @@ const SHAPES = [
   const [m, c1, c2, e] = PILL.map((p) => place(p, c, s.q))
   return { ...s, c, path: `M${m} C${c1} ${c2} ${e}` }
 })
-const PHOTOS = STATES.map((s, i) => ({ ...s, box: boxOf(...(PHOTO.map((p) => place(p, SHAPES[i].c, SHAPES[i].q)) as [Pt, Pt])) }))
 const FRAME = { w: 653.499, h: 738.575 } // 94:264
 
-// Only the incoming photo fades, on top; the last fully shown one stays opaque
-// under it until that fade ends, so the blob never thins, then fades out itself:
-// each blob has its own outline, so the part only it covers must not pop. The
-// rest hide at once.
-const PHOTO_IN = 'z-[2] opacity-100 motion-safe:transition-opacity motion-safe:duration-300'
-const PHOTO_UNDER = 'z-[1] opacity-100'
-const PHOTO_LEAVING = 'z-0 opacity-0 motion-safe:transition-opacity motion-safe:duration-200'
-const PHOTO_OFF = 'invisible z-0 opacity-0'
-const LINE_FADE = 'motion-safe:transition-[opacity,visibility] motion-safe:duration-300'
+// One line at a time: the old one fades out, then the new one fades in.
+const LINE_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration-150 motion-safe:delay-150'
+const LINE_OFF = 'invisible opacity-0 motion-safe:transition-[opacity,visibility] motion-safe:duration-150'
 // The loop grows from the circle along its path while the previous one shrinks back [PROPOSED DEFAULT 0.4s].
 const MORPH = 'motion-safe:transition-[stroke-dasharray,stroke-width] motion-safe:duration-400 motion-safe:ease-in-out'
 
 const TAB = 'absolute z-[1] cursor-pointer appearance-none overflow-visible outline-hidden [-webkit-tap-highlight-color:transparent]'
 const STEP: Record<string, (i: number) => number> = {
-  ArrowRight: (i) => i + 1, ArrowDown: (i) => i + 1, ArrowLeft: (i) => i - 1, ArrowUp: (i) => i - 1, Home: () => 0, End: () => STATES.length - 1,
+  ArrowRight: (i) => i + 1, ArrowDown: (i) => i + 1, ArrowLeft: (i) => i - 1, ArrowUp: (i) => i - 1, Home: () => 0, End: () => LINES.length - 1,
 }
 
 // The Figma "2" sits 6.8px below its loop's start; as a circle it centres like the others.
@@ -83,19 +76,10 @@ const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => (
 
 export default function Talent() {
   const uid = useId()
-  const reduced = useReducedMotion()
   const [active, setActive] = useState(REST)
-  const [settled, setSettled] = useState(REST)
-  const [leaving, setLeaving] = useState<number | null>(null)
   // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
   const [focused, setFocused] = useState<number | null>(null)
-  const under = reduced ? active : settled
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
-  // No transitionend fires under reduced motion, so settle with the selection.
-  const select = (i: number) => {
-    setActive(i)
-    if (reduced) setSettled(i)
-  }
 
   // Tabs with automatic activation: hover, focus, tap or arrow keys select.
   const tab = (i: number) => ({
@@ -105,22 +89,22 @@ export default function Talent() {
     id: `${uid}tab${i}`,
     'aria-selected': active === i,
     'aria-controls': `${uid}panel`,
-    'aria-label': `${i + 1}: ${STATES[i].line}`,
+    'aria-label': `${i + 1}: ${LINES[i]}`,
     tabIndex: (focused ?? active) === i ? 0 : -1,
-    onPointerEnter: () => select(i),
+    onPointerEnter: () => setActive(i),
     onFocus: () => {
       setFocused(i)
-      select(i)
+      setActive(i)
     },
     onBlur: () => setFocused(null),
-    onClick: () => select(i),
+    onClick: () => setActive(i),
   })
   const onKeyDown = (e: KeyboardEvent) => {
     const i = tabs.current.indexOf(e.target as HTMLButtonElement)
     const go = STEP[e.key]
     if (i < 0 || !go) return
     e.preventDefault()
-    tabs.current[(go(i) + STATES.length) % STATES.length]?.focus()
+    tabs.current[(go(i) + LINES.length) % LINES.length]?.focus()
   }
   // The button keeps its Figma box; the shape is drawn in 94:264 coordinates. The
   // button ignores the pointer: only the shape's own outline takes it.
@@ -185,37 +169,39 @@ export default function Talent() {
             </div>
 
             <div role="tabpanel" id={`${uid}panel`} aria-labelledby={`${uid}tab${active}`} className="absolute left-0 top-0">
-              {/* isolate: the photos' z-order stays below the tabs. */}
-              <div className="absolute left-0 top-0 isolate">
-                {PHOTOS.map((s, i) => (
-                  <img
-                    key={s.src}
-                    data-node-id={i === REST ? '94:265' : undefined}
-                    src={s.src}
-                    alt={s.alt}
-                    draggable={false}
-                    onTransitionEnd={(e) => {
-                      if (e.propertyName !== 'opacity') return
-                      if (i === active && i !== settled) {
-                        setLeaving(settled)
-                        setSettled(i)
-                      } else if (i === leaving) setLeaving(null)
-                    }}
-                    className={`absolute max-w-none ${i === active ? PHOTO_IN : i === under ? PHOTO_UNDER : i === leaving ? PHOTO_LEAVING : PHOTO_OFF}`}
-                    style={{ left: s.box.x, top: s.box.y, width: s.box.w, height: s.box.h }}
+              <img
+                data-node-id="94:265"
+                src="/assets/talent/vilnius-photo.webp"
+                alt="GLL community members gathered for a group portrait in Vilnius"
+                draggable={false}
+                className="absolute max-w-none"
+                style={{ left: PHOTO.x, top: PHOTO.y, width: PHOTO.w, height: PHOTO.h, clipPath: `path('${BLOB}')` }}
+              />
+              {/* The white band each loop takes off the photo: over the photo, under the tagline. */}
+              <svg aria-hidden="true" className="pointer-events-none absolute left-0 top-0 overflow-visible" style={{ width: FRAME.w, height: FRAME.h }}>
+                {SHAPES.map((s, i) => (
+                  <path
+                    key={s.id}
+                    d={s.path}
+                    pathLength={1}
+                    fill="none"
+                    stroke="white"
+                    strokeLinecap="round"
+                    className={MORPH}
+                    style={{ strokeDasharray: active === i ? '1 2' : '0 2', strokeWidth: active === i ? PILL_W + 2 * GAP : s.d }}
                   />
                 ))}
-              </div>
+              </svg>
               {/* pt-px: Chrome floors the negative half-leading (baseline 29) where Figma
                   rounds it (30); Figma's lines measure 1px lower on all three. */}
-              {STATES.map((s, i) => (
+              {LINES.map((line, i) => (
                 <p
-                  key={s.line}
+                  key={line}
                   data-node-id={i === REST ? '94:274' : undefined}
-                  className={`absolute m-0 pt-px text-[32px] font-semibold leading-[36px] tracking-[-0.64px] text-ink ${LINE_FADE} ${i === active ? 'opacity-100' : 'invisible opacity-0'}`}
+                  className={`absolute m-0 pt-px text-[32px] font-semibold leading-[36px] tracking-[-0.64px] text-ink ${i === active ? LINE_ON : LINE_OFF}`}
                   style={{ left: 724, top: 514.074, width: 254, height: 108 }}
                 >
-                  {s.line}
+                  {line}
                 </p>
               ))}
             </div>
