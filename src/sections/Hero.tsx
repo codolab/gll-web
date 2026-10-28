@@ -1,106 +1,51 @@
-/** hero - Figma 94:85. Photo grid under a dark scrim, centred headline block. */
-import { useEffect, useRef, type RefObject } from 'react'
-import { CANVAS_W } from '../canvas'
-import { useReducedMotion } from '../motion'
+/**
+ * hero - Figma 94:85. Photo grid under a dark scrim, centred headline block.
+ * M-01: each photo row slides on its own as a seamless loop, rows 1 and 3
+ * rightward and row 2 leftward.
+ */
+import type { CSSProperties } from 'react'
 
 // Grid geometry from 94:87's children, relative to the group's box (-115, -26).
 const TILE = 299.7864990234375
 const RADIUS = 22.306095123291016
 const COLS = [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375]
 const ROWS = [0, 342.609375, 685.2109375]
+const DIRS = [1, -1, 1] as const
+// One row repeats every five column pitches (1713.04), rounded to whole px: a
+// moving layer whose origin and shift sit on the pixel grid draws its photos
+// without resampling at rest and after each full period.
+const PERIOD = Math.round((COLS[4] / 4) * 5)
+const SPEED = 20 // px/s, [PROPOSED DEFAULT]
 
 type Tile = { id: string; src?: string; color?: string }
 
-// M-01 pan range: 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
+function HeroTile({ tile, x, y, copy }: { tile: Tile; x: number; y: number; copy: boolean }) {
+  const node = copy ? undefined : tile.id
+  const style = { left: x, top: y, width: TILE, height: TILE }
+  return tile.src ? (
+    <img src={tile.src} alt="" aria-hidden={copy || undefined} className="absolute block max-w-none" style={style} data-node-id={node} />
+  ) : (
+    <div aria-hidden={copy || undefined} className="absolute" style={{ ...style, background: tile.color, borderRadius: RADIUS }} data-node-id={node} />
+  )
+}
+
+/** The row's five tiles at their Figma x plus one period of copies on the side the row enters from. */
+function HeroRow({ tiles, top, dir }: { tiles: Tile[]; top: number; dir: 1 | -1 }) {
+  // Every left stays >= 0 (Blink truncates a fractional negative one) and the
+  // track sits at the grid's whole-px origin; the row's fractional top goes on the tiles.
+  const base = dir > 0 ? PERIOD : 0
+  const style = { left: -base, '--marquee-shift': `${dir * PERIOD}px`, '--marquee-duration': `${PERIOD / SPEED}s` } as CSSProperties
+  return (
+    <div className="marquee absolute inset-y-0 w-full" style={style}>
+      {tiles.map((t, i) => <HeroTile key={t.id} tile={t} x={COLS[i] + base} y={top} copy={false} />)}
+      {tiles.map((t, i) => <HeroTile key={`c${t.id}`} tile={t} x={COLS[i] + base - dir * PERIOD} y={top} copy />)}
+    </div>
+  )
+}
+
+// 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
+const GRID_X = -115
 const GRID_W = 1670.2200927734375
-const PAN_LEFT = 115
-const PAN_RIGHT = GRID_W - CANVAS_W - PAN_LEFT
-const TAU = 0.2 // s, follow time constant
-const SETTLE = 0.05 // px
-
-/** Pointer x in canvas px over the hero -> grid translateX: +PAN_LEFT at 0, 0 at the centre, -PAN_RIGHT at 1440. */
-const panFor = (cx: number) => {
-  const half = CANVAS_W / 2
-  return cx <= half ? PAN_LEFT * (1 - cx / half) : -PAN_RIGHT * Math.min(1, (cx - half) / half)
-}
-
-/**
- * M-01: the grid eases toward the mouse-driven target and back to 0 when the
- * mouse leaves. Listens on window because the nav and gradient sections are
- * painted over the hero's top and swallow its pointer events, and only while
- * the hero is on screen, so moves elsewhere on the page cost nothing.
- */
-function usePan(hero: RefObject<HTMLDivElement | null>, grid: RefObject<HTMLDivElement | null>) {
-  const reduced = useReducedMotion()
-  useEffect(() => {
-    const box = hero.current
-    const el = grid.current
-    if (reduced || !box || !el) return
-    let x = 0
-    let target = 0
-    let raf = 0
-    let last = 0
-    let px = NaN
-    let py = NaN
-
-    const step = (now: number) => {
-      // rAF stamps the frame start, which can precede the scheduling call.
-      const dt = Math.max(0, now - last) / 1000
-      last = now
-      x = target + (x - target) * Math.exp(-dt / TAU)
-      if (Math.abs(target - x) < SETTLE) x = target
-      // Unset at rest: a transform promotes a layer and resamples the photos.
-      el.style.transform = x ? `translateX(${x}px)` : ''
-      raf = x === target ? 0 : requestAnimationFrame(step)
-    }
-    const aim = () => {
-      const r = Number.isNaN(px) ? null : box.getBoundingClientRect()
-      const inside = r !== null && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom
-      target = inside ? panFor(((px - r.left) / r.width) * CANVAS_W) : 0
-      if (!raf && target !== x) {
-        last = performance.now()
-        raf = requestAnimationFrame(step)
-      }
-    }
-    const move = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return
-      px = e.clientX
-      py = e.clientY
-      aim()
-    }
-    const out = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse' || e.relatedTarget) return
-      px = py = NaN
-      aim()
-    }
-
-    const detach = () => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerout', out)
-      window.removeEventListener('scroll', aim)
-    }
-    const io = new IntersectionObserver((entries) => {
-      const e = entries[entries.length - 1]
-      if (!e.isIntersecting) {
-        detach()
-        px = py = NaN
-        aim()
-        return
-      }
-      window.addEventListener('pointermove', move, { passive: true })
-      window.addEventListener('pointerout', out, { passive: true })
-      // Scrolling moves the hero under a still mouse.
-      window.addEventListener('scroll', aim, { passive: true })
-    })
-    io.observe(box)
-    return () => {
-      io.disconnect()
-      detach()
-      cancelAnimationFrame(raf)
-      el.style.transform = ''
-    }
-  }, [reduced, hero, grid])
-}
 
 // Row-major, in Figma child order. Photos are Figma renders (crop and radius baked in).
 const TILES: Tile[] = [
@@ -122,43 +67,18 @@ const TILES: Tile[] = [
 ]
 
 export default function Hero() {
-  const hero = useRef<HTMLDivElement>(null)
-  const grid = useRef<HTMLDivElement>(null)
-  usePan(hero, grid)
   return (
-    <div
-      ref={hero}
-      className="relative size-full overflow-hidden rounded-b-[50px]"
-      data-node-id="94:85"
-    >
+    <div className="relative size-full overflow-hidden rounded-b-[50px]" data-node-id="94:85">
       <div className="absolute inset-0 bg-[#0b1722]" data-node-id="94:86" />
 
       <div
-        ref={grid}
         className="absolute"
-        style={{ left: -PAN_LEFT, top: -26, width: GRID_W, height: 984.9974365234375 }}
+        style={{ left: GRID_X, top: -26, width: GRID_W, height: 984.9974365234375 }}
         data-node-id="94:87"
       >
-        {TILES.map((t, i) => {
-          const style = { left: COLS[i % 5], top: ROWS[Math.floor(i / 5)], width: TILE, height: TILE }
-          return t.src ? (
-            <img
-              key={t.id}
-              src={t.src}
-              alt=""
-              className="absolute block max-w-none"
-              style={style}
-              data-node-id={t.id}
-            />
-          ) : (
-            <div
-              key={t.id}
-              className="absolute"
-              style={{ ...style, background: t.color, borderRadius: RADIUS }}
-              data-node-id={t.id}
-            />
-          )
-        })}
+        {ROWS.map((top, r) => (
+          <HeroRow key={top} tiles={TILES.slice(r * 5, r * 5 + 5)} top={top} dir={DIRS[r]} />
+        ))}
       </div>
 
       <div className="absolute inset-0 bg-[rgb(8_22_35/0.71)]" data-node-id="94:103" />

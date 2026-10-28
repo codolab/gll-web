@@ -88,14 +88,16 @@ const rgb = (png) => execFileSync('magick', ['png:-', '-alpha', 'off', '-depth',
  * Compare two same-size captures. `core` counts differing pixels whose eight
  * neighbours differ too: a shifted, missing or re-blended element leaves solid
  * blocks, while raster rounding on a promoted layer leaves 1px fringes only.
+ * Differences up to `floor` levels do not count: the GPU blends a translucent
+ * layer over a moving one with 1-level rounding everywhere (the hero scrim).
  */
-export function compare(a, b) {
+export function compare(a, b, floor = 0) {
   const w = a.readUInt32BE(16), h = a.readUInt32BE(20), x = rgb(a), y = rgb(b)
   const m = new Uint8Array(w * h)
   let n = 0, max = 0, core = 0
   for (let p = 0; p < w * h; p++) {
     const i = p * 3, d = Math.max(Math.abs(x[i] - y[i]), Math.abs(x[i + 1] - y[i + 1]), Math.abs(x[i + 2] - y[i + 2]))
-    if (d) { m[p] = 1; n++; max = Math.max(max, d) }
+    if (d > floor) { m[p] = 1; n++; max = Math.max(max, d) }
   }
   for (let r = 1; r < h - 1; r++) for (let c = 1; c < w - 1; c++) {
     let all = m[r * w + c]
@@ -104,5 +106,5 @@ export function compare(a, b) {
   }
   return { n, max, core, pct: (100 * n) / (w * h) }
 }
-export const fmt = (d) => `${d.n} px differ (${d.pct.toFixed(3)}%, max delta ${d.max}, ${d.core} beyond 1px fringes)`
+export const fmt = (d, floor = 0) => `${d.n} px differ${floor ? ` by more than ${floor}` : ''} (${d.pct.toFixed(3)}%, max delta ${d.max}, ${d.core} beyond 1px fringes)`
 export const fringeOnly = (d) => d.core === 0 && d.pct <= 0.1
