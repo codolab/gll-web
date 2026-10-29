@@ -7,9 +7,11 @@
  */
 import { useEffect, useLayoutEffect, useState } from 'react'
 import type { Canvas } from './canvas'
+import { useCanvasSurface } from './surface'
 import Nav from './sections/Nav'
 
-const HERO_RADIUS = 50 // the hero's rounded bottom corners uncover white before its edge arrives
+// Desktop's hero rounds its bottom corners, which uncover white before its edge arrives; wide's band is square.
+const HERO_RADIUS = { desktop: 50, wide: 0 }
 
 /**
  * Whether the hero's bottom edge has scrolled up to `offset` px from the
@@ -43,7 +45,7 @@ function useHeroPassed(offset: number) {
 export default function StickyNav({ canvas, scale }: { canvas: Canvas; scale: number }) {
   const NAV = canvas.sections.find((s) => s.slug === 'nav')!
   const height = (NAV.y + NAV.h) * scale
-  const { passed: solid, live } = useHeroPassed(height + HERO_RADIUS * scale)
+  const { passed: solid, live } = useHeroPassed(height + HERO_RADIUS[useCanvasSurface()] * scale)
   useEffect(() => {
     // Read by index.css: focused controls scroll clear of the bar (WCAG 2.4.11).
     const root = document.documentElement

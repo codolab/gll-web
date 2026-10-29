@@ -1,15 +1,24 @@
 // M-13: hovering "Partner with us" (94:282) or the "Support us" link (94:303) nudges its arrow 6px right.
 // M-14 ("the logo spins") is not built: frame 94:84 has no logo in this section (gaps.md G-07).
-const BLOCKS = [
-  { name: 'Partner with us', hover: '94:282', arrow: '94:285', link: '94:282' },
-  { name: 'Support us', hover: '94:303', arrow: '94:305', link: '94:303' },
-]
+// Same blocks on the wide canvas (173:310), under their wide node ids; the nudge stays 6 canvas px.
+const BY_SURFACE = {
+  desktop: [
+    { name: 'Partner with us', hover: '94:282', arrow: '94:285', link: '94:282' },
+    { name: 'Support us', hover: '94:303', arrow: '94:305', link: '94:303' },
+  ],
+  wide: [
+    { name: 'Partner with us', hover: '173:1464', arrow: '173:1467', link: '173:1464' },
+    { name: 'Support us', hover: '173:1485', arrow: '173:1487', link: '173:1485' },
+  ],
+}
 const sel = (id) => `[data-node-id="${id}"]`
 const fmt = (n) => (Math.round(n * 100) / 100).toFixed(2)
 
 const probe = (page, id) => page.$eval(sel(id), (el) => {
   const cs = getComputedStyle(el)
-  const k = document.querySelector('[data-canvas="root"]').getBoundingClientRect().width / 1440
+  // Canvas scale, whichever canvas: rendered width over layout width.
+  const root = document.querySelector('[data-canvas="root"]')
+  const k = root.getBoundingClientRect().width / root.offsetWidth
   return { ...el.getBoundingClientRect().toJSON(), k, translate: cs.translate, transform: cs.transform }
 })
 const atRest = (p) => p.translate === 'none' && p.transform === 'none'
@@ -29,6 +38,7 @@ const tabTo = async (page, id) => {
 }
 
 export default async function (page, t) {
+  const BLOCKS = BY_SURFACE[t.surface]
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   const rest0 = await Promise.all(BLOCKS.map((b) => probe(page, b.arrow)))
   t.check('M-13', rest0.every(atRest), `rest: ${BLOCKS.map((b, i) => `${b.arrow} translate ${rest0[i].translate}/transform ${rest0[i].transform}`).join(', ')}`)
@@ -87,6 +97,7 @@ export default async function (page, t) {
 }
 
 export async function reduced(page, t) {
+  const BLOCKS = BY_SURFACE[t.surface]
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   const seen = []
   for (const b of BLOCKS) {

@@ -5,7 +5,12 @@
 // the Figma frame. One t.check per aspect.
 const PHOTOS = ['vilnius-portrait.webp', 'members-group.webp', 'members-selfie.webp', 'members-networking.webp']
 const LINES = ['One community. Endless possibilities.', 'Global minds. Lithuanian roots.', 'Your next chapter starts here.', 'Go further, together.']
-const PILL = '94:269'
+// Node ids per canvas (wide repeats 94:935 inside 173:509): pill, heading, photo, tagline, shapes frame.
+const NODES = {
+  desktop: { pill: '94:269', title: '94:261', photo: '94:265', line: '94:274', frame: '94:264' },
+  wide: { pill: '173:518', title: '173:510', photo: '173:514', line: '173:523', frame: '173:513' },
+}
+let N = NODES.desktop
 // pill.svg's centreline at t = 0.5, in the 94:269 box: deep inside the 135px stroke.
 const PILL_MID = { x: 82.4, y: 143.9 }
 const SETTLE_MS = 650
@@ -36,7 +41,7 @@ const snap = (page) => page.evaluate((PILL) => {
     focus: tabs.indexOf(a) + 1,
     ring: tabs.includes(a) ? ring(a) : null,
   }
-}, PILL)
+}, N.pill)
 const roving = (i) => [0, 1, 2, 3].map((k) => (k === i ? 0 : -1)).join(',')
 const is = (s, i) => s.selected === i + 1 && s.nSelected === 1 && s.tabindex === roving(i) && s.photo === PHOTOS[i] && s.line === LINES[i]
 const all = (list) => list.every(([i, s]) => is(s, i))
@@ -47,10 +52,10 @@ const points = (page) => page.evaluate(({ PILL, PILL_MID }) =>
   [...document.querySelectorAll('[data-section="talent"] [role="tab"]')].map((b) => {
     const r = b.getBoundingClientRect()
     return b.dataset.nodeId === PILL ? { x: r.left + PILL_MID.x, y: r.top + PILL_MID.y } : { x: r.left + r.width / 2, y: r.top + r.height / 2 }
-  }), { PILL, PILL_MID })
+  }), { PILL: N.pill, PILL_MID })
 
 const away = async (page) => {
-  const h = await page.$eval('[data-node-id="94:261"]', (el) => el.getBoundingClientRect().toJSON())
+  const h = await page.$eval(`[data-node-id="${N.title}"]`, (el) => el.getBoundingClientRect().toJSON())
   await page.mouse.move(h.left + h.width / 2, h.top + h.height / 2)
 }
 
@@ -120,7 +125,7 @@ const hitArea = (page) => page.evaluate(async (PILL) => {
     out.push({ id: b.dataset.nodeId, ok, n })
   }
   return out
-}, PILL)
+}, N.pill)
 
 /** Lines each tagline wraps to, and how far its text reaches below the box top. */
 const fit = (page) => page.evaluate(() => [...document.querySelectorAll('[data-section="talent"] p')].map((p) => {
@@ -141,6 +146,7 @@ const focusBefore = (page) => page.evaluate(() => {
 })
 
 export default async function (page, t) {
+  N = NODES[t.surface]
   await mark(page)
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await away(page)
@@ -149,7 +155,7 @@ export default async function (page, t) {
   // Tabs semantics at rest.
   const rest = await snap(page)
   const aria = await page.locator(t.section).ariaSnapshot()
-  const wiring = await page.evaluate(() => {
+  const wiring = await page.evaluate((N) => {
     const sec = document.querySelector('[data-section="talent"]')
     const panel = sec.querySelector('[role="tabpanel"]')
     const tabs = [...sec.querySelectorAll('[role="tablist"] [role="tab"]')]
@@ -158,14 +164,14 @@ export default async function (page, t) {
       tabs: tabs.length,
       controls: tabs.every((b) => b.getAttribute('aria-controls') === panel.id),
       labelled: panel.getAttribute('aria-labelledby') === active.id,
-      holds: panel.contains(sec.querySelector('[data-node-id="94:265"]')) && panel.contains(sec.querySelector('[data-node-id="94:274"]')),
+      holds: panel.contains(sec.querySelector(`[data-node-id="${N.photo}"]`)) && panel.contains(sec.querySelector(`[data-node-id="${N.line}"]`)),
     }
-  })
+  }, N)
   t.check('M-04', is(rest, 0) && wiring.tabs === 4 && wiring.controls && wiring.labelled && wiring.holds &&
       aria.includes('tablist "A world of Lithuanian talent"') && aria.includes('tab "1: One community. Endless possibilities." [selected]') &&
       aria.includes('tabpanel "1: One community. Endless possibilities."'),
     `tabs semantics: tablist named by the h2, ${wiring.tabs} tabs, aria-controls -> panel ${wiring.controls}, panel labelled by the selected tab ${wiring.labelled}, ` +
-    `panel holds 94:265 + 94:274 ${wiring.holds}; rest selected ${rest.selected}, tabindex ${rest.tabindex}`)
+    `panel holds ${N.photo} + ${N.line} ${wiring.holds}; rest selected ${rest.selected}, tabindex ${rest.tabindex}`)
 
   const hits = await hitArea(page)
   t.check('M-04', hits.every((h) => h.n > 0 && h.ok === h.n),
@@ -212,7 +218,7 @@ export default async function (page, t) {
 
   // A hover while a tab holds keyboard focus must not move the tab stop: Tab still leaves the group.
   // Focus moves scroll the page: centre the composition (focus stays put) and measure again.
-  await page.$eval('[data-node-id="94:264"]', (el) => el.scrollIntoView({ block: 'center' }))
+  await page.$eval(`[data-node-id="${N.frame}"]`, (el) => el.scrollIntoView({ block: 'center' }))
   const now = await points(page)
   await page.mouse.move(now[2].x, now[2].y)
   await t.sleep(SETTLE_MS)
@@ -233,7 +239,7 @@ export default async function (page, t) {
   t.check('M-04', rings.every((r) => r === true) && clicked.focus === 4 && clicked.ring === false,
     `focus ring: keyboard focus ${rings.filter(Boolean).length}/${rings.length} drawn (outline / pill stroke), mouse click focus ${clicked.ring ? 'drawn' : 'none'}`)
 
-  const touch = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, hasTouch: true, reducedMotion: 'no-preference' })
+  const touch = await t.browser.newPage({ viewport: { width: t.width ?? 1440, height: 900 }, hasTouch: true, reducedMotion: 'no-preference' })
   await touch.goto(t.url, { waitUntil: 'networkidle' })
   await touch.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await t.sleep(200)
@@ -287,17 +293,18 @@ export default async function (page, t) {
   // M-06: the tagline.
   const lines = await fit(page)
   t.check('M-06', rest.line === LINES[0] && [...hovered, ...keyed].every(([i, s]) => s.line === LINES[i]),
-    `tagline per state: rest "${rest.line}" (94:274); hover ${hovered.map(([, s]) => `"${s.line}"`).join(', ')}`)
+    `tagline per state: rest "${rest.line}" (${N.line}); hover ${hovered.map(([, s]) => `"${s.line}"`).join(', ')}`)
   t.check('M-06', lines.every((l) => l.lines <= 3 && l.bottom <= lines[0].bottom && l.w <= 254),
     `fits 254x108: ${lines.map((l, i) => `${i + 1} ${l.lines} lines ${l.w}px, text bottom ${l.bottom}px`).join('; ')} (state 1 sets the limit)`)
   const lf = fade(one, 0, 1, 'line')
-  const lineDur = await page.$eval('[data-node-id="94:274"]', (el) => parseFloat(getComputedStyle(el).transitionDuration))
+  const lineDur = await page.$eval(`[data-node-id="${N.line}"]`, (el) => parseFloat(getComputedStyle(el).transitionDuration))
   t.check('M-06', Math.abs(lineDur - 0.3) < 0.01 && lf.dur > 0.2 && lf.dur < 0.5 && lf.mid > 0.05 && lf.mid < 0.95,
     `crossfade 1->2: transition ${f2(lineDur)}s, measured ${f2(lf.dur)}s, mid-fade ${f2(lf.mid)}`)
   if (await reloaded(page)) t.check('M-04', false, 'page reloaded mid-run (dev server hot reload): the checks above saw a reset page, rerun')
 }
 
 export async function reduced(page, t) {
+  N = NODES[t.surface]
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await away(page)
   await t.sleep(200)

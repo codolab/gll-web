@@ -63,7 +63,7 @@ export default function App() {
   const reduced = useReducedMotion()
   const [paused, setPaused] = useState(false)
   return (
-    <main className="w-full overflow-x-hidden" data-motion={paused ? 'paused' : undefined} data-surface={surface}>
+    <main className="w-full overflow-x-clip" data-motion={paused ? 'paused' : undefined} data-surface={surface}>
       {/* WCAG 2.2.2: the marquees run past 5s, so the first tab stop pauses them.
           Visible only on focus, so the design is untouched (motion-spec M-G5). */}
       {!reduced && (

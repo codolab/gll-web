@@ -8,9 +8,13 @@
 // layer is rendered alone into figma/parts/ and composited in paint order onto
 // the section box. A layer's render covers its bounding box, unless Figma
 // trimmed it to its ink (groups, text): then it starts at the top-left of its
-// painted descendants' render bounds.
+// painted descendants' render bounds. Figma exports on the absolute 2x pixel
+// grid, so a layer lands at round(2*origin) - round(2*section): placed at
+// round(2*(origin - section)) instead, the talent group sat 1 device px low and
+// ae rose 2.10 -> 2.17. <slug>.parts.json records each layer's origin and
+// placement, so the harness's snap model can treat each layer as its own render.
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { figma, download, FILE_KEY, FRAME } from './figma-api.mjs'
 import { CONF } from './surface.mjs'
 
@@ -56,16 +60,19 @@ for (const s of wanted.filter((s) => s.nodes)) {
   const part = (id) => `${D}/figma/parts/${id.replace(':', '-')}.png`
   await render(s.nodes.map((id) => ({ id, out: part(id) })))
   const args = ['-size', `${Math.round(s.w * 2)}x${Math.round(s.h * 2)}`, 'xc:none']
+  const parts = []
   for (const n of root.children) {
     const [w, h] = size(part(n.id))
     const b = n.absoluteBoundingBox
     const full = Math.abs(w - b.width * 2) <= 1.5 && Math.abs(h - b.height * 2) <= 1.5
     const o = full ? b : inkOrigin(n)
-    const dx = Math.round((o.x - s.x) * 2), dy = Math.round((o.y - s.y) * 2)
+    const dx = Math.round(o.x * 2) - Math.round(s.x * 2), dy = Math.round(o.y * 2) - Math.round(s.y * 2)
+    parts.push({ id: n.id, x: o.x, y: o.y, box: { x: b.x, y: b.y, w: b.width, h: b.height }, dx, dy })
     args.push(part(n.id), '-geometry', `${dx >= 0 ? '+' : ''}${dx}${dy >= 0 ? '+' : ''}${dy}`, '-composite')
     console.log(`  ${s.slug} ${n.id} ${full ? 'box' : 'ink'} at ${dx},${dy}`)
   }
   execFileSync('magick', [...args, '-depth', '8', `${D}/figma/${s.slug}.png`])
+  writeFileSync(`${D}/figma/${s.slug}.parts.json`, JSON.stringify(parts, null, 1) + '\n')
   console.log('ref', s.slug, `(composite of ${s.nodes.length})`)
 }
 

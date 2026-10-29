@@ -8,7 +8,8 @@
 // export `reduced`, run the same way under prefers-reduced-motion: reduce.
 // Files starting with `_` are shared helpers, not checks.
 // t.check(id, pass, detail) records one spec item (id = M-xx from the spec).
-// Both get the full page (not ?isolate) at 1440x900, 1x, at the top; each
+// Both get the full page (not ?isolate) at the frame width x 900 (t.width:
+// 1440, or 1640 under SURFACE=wide), 1x, at the top; each
 // module scrolls its section into view. Exit code 1 if any check fails or a
 // module throws. The default URL is the production preview: the dev server
 // hot-reloads mid-run whenever a file is saved.
@@ -19,10 +20,13 @@
 import { readdirSync, writeFileSync, mkdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { at, QA, SURFACE, launch } from './harness.mjs'
+import { CONF } from './surface.mjs'
 
 const pinned = new URL(process.env.URL ?? 'http://localhost:4197/')
 pinned.searchParams.set('surface', SURFACE)
 const PAGE_URL = pinned.href
+// The frame width, so the canvas renders at 1x: 1440 desktop, 1640 wide.
+const WIDTH = CONF.viewport.width
 const only = process.argv.slice(2)
 const files = readdirSync(at('qa/motion')).filter((f) => f.endsWith('.mjs') && !f.startsWith('_'))
   .filter((f) => !only.length || only.includes(f.replace(/\.mjs$/, '')))
@@ -39,11 +43,11 @@ for (const f of files) {
   const mod = await import(pathToFileURL(at('qa/motion', f)).href)
   for (const [mode, fn] of [['motion', mod.default], ['reduce', mod.reduced]]) {
     if (!fn) continue
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: mode === 'reduce' ? 'reduce' : 'no-preference' })
+    const page = await browser.newPage({ viewport: { width: WIDTH, height: 900 }, reducedMotion: mode === 'reduce' ? 'reduce' : 'no-preference' })
     const errors = []
     page.on('pageerror', (e) => errors.push(String(e.message).split('\n')[0]))
     const t = {
-      slug, mode, browser, url: PAGE_URL, surface: SURFACE, sleep,
+      slug, mode, browser, url: PAGE_URL, surface: SURFACE, width: WIDTH, sleep,
       translateX: (sel) => translateX(page, sel),
       section: `[data-section="${slug}"]`,
       check: (id, pass, detail = '') => results.push({ slug, mode, id, pass: !!pass, detail: String(detail) }),

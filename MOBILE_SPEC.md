@@ -66,26 +66,29 @@ logos 30, ribbons 40.
 
 ## Sections, top to bottom
 
-1. **Nav** (sticky, `h-16`). Logo (`/assets/nav/logo.svg`) 40px tall at the
-   gutter; right: the pink "JOIN US" pill (`h-11`, `bg-pink-hot`, white 14/600)
-   and a 44x44 menu button (three 2px white bars, CSS, no new asset). Clear over
+1. **Nav** (fixed, `h-16`; `position: sticky` would need every ancestor to be
+   unclipped). Logo (`/assets/nav/logo.svg`) 40px tall at the window gutter at
+   every width; right: the "JOIN US" pill (`h-11`, `bg-pink`, the desktop fill of
+   94:137, white 14/600) and a 44x44 menu button (three 2px white bars, CSS, no new asset). Clear over
    the hero; an ink bar fades in once the hero has scrolled past (the desktop
    M-16 behaviour). The menu is a full-screen ink sheet: About, Network,
-   Programs, Events, Join us at 28/36 600 white in 56px rows, a close button in
-   the menu button's place. Escape and every link close it; focus moves into it
+   Programs, Events, Join us at 28/36 600 white in 56px rows under a copy of the
+   header row, a close button in the menu button's place. Escape and every link close it; focus moves into it
    on open and back to the button on close; the page behind does not scroll.
-2. **Hero** (ink band, `min-h-[640px]`, `h-[100svh]` capped at 760). Three rows
-   of the desktop tiles (`/assets/hero/*`, 132x116, radius 12, gap 12) fill the
-   band behind a 71% `ink-deep` scrim (Rectangle 14), rows drifting right, left,
-   right at 20 px/s. Copy centred, starting 112px from the top: headline 44/46
+2. **Hero** (ink band, `min-h-[640px]`, `h-[100svh]` capped at 760, bottom
+   radius 32 from the desktop's 50). Three rows of the desktop tiles
+   (`/assets/hero/*`, 244x244, radius 18, gap 16: three rows of smaller tiles
+   cannot fill the band) behind a 71% `ink-deep` scrim (Rectangle 14) and the
+   desktop's top gradient, rows drifting right, left, right at 20 px/s. Copy centred, starting 112px from the top: headline 44/46
    white, sub 17/26 white (desktop copy), "BECOME A MEMBER" white pill, ink text.
 3. **Logos** (white). One marquee row of the eight desktop logos at 60% of their
    desktop size, 28px above and below. The two LF marks keep `mix-blend-hard-light`
    on a white track.
 4. **Talent** (white). Heading "A world of Lithuanian talent" 32/38 centred.
    Below it the desktop rest-frame figure, static: the blob photo with the four
-   numbered circles and the amber "2" loop, built as one fixed-size figure
-   (the desktop coordinates of group 94:264) scaled to the content width. Live
+   numbered circles and the amber "2" loop, built as one fixed-size 722x739
+   figure (the desktop coordinates of group 94:264, wide enough for the loop's
+   round cap) scaled to the content width, 480 at most. Live
    text digits, decorative (`aria-hidden`), not tabs: the four states have no
    content yet (G-06). Tagline "One community. Endless possibilities." 22/28
    below, left-aligned. Its own copies of the photo and loop under
@@ -94,17 +97,21 @@ logos 30, ribbons 40.
 5. **Ribbons** (white). Two marquee rows, "Connect globally" (300 + 600 "globally")
    and "Grow together", 44/56, dots between phrases as desktop, rows 8px apart.
 6. **Programs** (ink band). Heading 32/38 white centred (desktop copy, two
-   lines). The "Programs" photo card full width (aspect 4:5, radius 16) with
+   lines). The "Programs" photo card full width (aspect 4:5, 4:3 from 640px;
+   radius 16) with
    "Programs" 44/48 white and the "SEE ALL PROGRAMS" white pill centred on it.
    Then the three navy program cards stacked: number 12/16, title 22/28, meta
    15/22, body 15/22, all white, padding 24, radius 16.
 7. **Impact** (periwinkle band). "Global" / pill photo + "impact" at 56/60 (the
    pill 104x58), then the three stats stacked, each a 40/46 figure over its
-   15/22 label with a 1px ink/20 rule between. The count-up runs as desktop.
+   15/22 label with the desktop's 1px rule (ink at 88%, 94:191) between. The
+   count-up runs as desktop; the accessible text is always the final value.
 8. **Meet** (white). Heading 32/38 left. A horizontal scroll-snap row of the
    four desktop cards at 78% of the window (cap 320px), gap 12, the gutter as
-   scroll padding; native swipe. Below: the dots as drawn and the two arrow
-   buttons (44x44, desktop arrow assets) that scroll by one card.
+   scroll padding; native swipe, `scroll-snap-stop: always`. Below: one dot per
+   resting position and the two arrow buttons (44x44, desktop arrow assets) that
+   scroll by one card and stop at the ends (`aria-disabled`, still focusable): a
+   scroller has real ends, and looping would rewind three cards in one slide.
 9. **Community** (periwinkle band). Headline 40/44, lead 17/26. Bento as a
    two-column grid, gap 12: green "Partner with us" card | conversations photo;
    navy "Go further, together." circle | flag photo; the pink "10,000+" card
@@ -117,7 +124,8 @@ logos 30, ribbons 40.
     "Subscribe to our newsletter" 22/28, the email input and SUBSCRIBE button
     stacked, each full width and 48px. Below: logo and the two social icons;
     the five link columns as a two-column grid (About, Network, Programs, Events,
-    Join us), headings 17/24 600, links 15/32; the copyright line 12/18.
+    Join us), headings 17/24 600, links 15/22 in 44px rows; the copyright line
+    12/18 with the current year. The email field is 16px, so iOS does not zoom.
 
 ## Checks
 

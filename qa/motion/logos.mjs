@@ -1,15 +1,21 @@
 // logos: M-02 (strip scrolls left at 30 px/s, seamless loop), M-03 (hover pause),
 // and M-G5 (the page's pause button stops every marquee, the ribbons included).
-import { sample, speed, secs, settle, seek, coverage, clipOf, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
+import { sample, speed, secs, settle, seek, coverage, clipOf, boxes, open2x, openWide, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
 
 const SPEED = -30
 const GAP = 70.8085 // the strip's auto-layout spacing: the widest empty run the row may show
 const TRACK = '[data-section="logos"] .marquee'
 const PAUSE = 'main > button[aria-pressed]'
-const ALL = [[TRACK, SPEED], ['[data-node-id="94:140"] > .marquee', -40], ['[data-node-id="94:147"] > .marquee', 40]]
+// Node ids per canvas: the strip, its logos, one hard-light LF mark, the two ribbon rows.
+const NODES = {
+  desktop: { strip: '94:111', logos: 8, lf: '94:116', rows: ['94:140', '94:147'] },
+  wide: { strip: '173:337', logos: 9, lf: '173:342', rows: ['173:367', '173:377'] },
+}
 const ok = (p) => p.then(() => true, () => false)
 
 export default async function (page, t) {
+  const N = NODES[t.surface]
+  const ALL = [[TRACK, SPEED], [`[data-node-id="${N.rows[0]}"] > .marquee`, -40], [`[data-node-id="${N.rows[1]}"] > .marquee`, 40]]
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   const period = await page.$eval(TRACK, (el) => -parseFloat(getComputedStyle(el).getPropertyValue('--marquee-shift')))
 
@@ -20,7 +26,7 @@ export default async function (page, t) {
   t.check('M-02', Math.abs(v - SPEED) < 1.5, `track ${a.x.toFixed(2)} -> ${b.x.toFixed(2)}px over ${secs(a, b)}s = ${v.toFixed(2)} px/s (want ${SPEED}, leftward); period ${period}px = ${(period / -SPEED).toFixed(2)}s`)
 
   // M-03: hover the strip, then leave it. The play state lands a style recalc later, so wait for it.
-  const strip = await clipOf(page, '[data-node-id="94:111"]')
+  const strip = await clipOf(page, `[data-node-id="${N.strip}"]`)
   await page.mouse.move(strip.x + strip.width / 2, strip.y + strip.height / 2)
   const held = await ok(settle(page, TRACK, 'paused'))
   const h0 = await sample(page, TRACK)
@@ -57,20 +63,30 @@ export default async function (page, t) {
   const again = await measure()
   const resumed = again.every((s, i) => Math.abs(s - ALL[i][1]) < 2)
   t.check('M-G5', hidden && shown && on && still.every((s) => s === 0) && off && resumed,
-    `hidden before focus: ${hidden}; Tab focuses it inside the viewport: ${shown}; Enter -> aria-pressed true, tracks (logos, 94:140, 94:147) at ${still.map((s) => s.toFixed(2)).join(' / ')} px/s; Enter -> false: ${again.map((s) => s.toFixed(2)).join(' / ')} px/s`)
+    `hidden before focus: ${hidden}; Tab focuses it inside the viewport: ${shown}; Enter -> aria-pressed true, tracks (logos, ${N.rows.join(', ')}) at ${still.map((s) => s.toFixed(2)).join(' / ')} px/s; Enter -> false: ${again.map((s) => s.toFixed(2)).join(' / ')} px/s`)
   await page.$eval(PAUSE, (el) => el.blur())
 
   const cov = await coverage(page, TRACK, '[data-canvas="root"]', SPEED)
   t.check('M-02', cov.run <= GAP + 0.5 && Math.abs(cov.live - cov.run) < 0.05,
     `coverage over one period, exact at ${cov.n} edge-crossing shifts: widest empty run ${cov.run.toFixed(2)}px at shift ${cov.d.toFixed(2)} (design gap ${GAP}); re-measured live there: ${cov.live.toFixed(2)}px`)
 
+  // Bleed: wider windows show the canvas at 1x with margins; the track must fill them all through the loop.
+  for (const width of [1920, 2560]) {
+    const { page: wp, bleed } = await openWide(t, width)
+    const wc = await coverage(wp, TRACK, null, SPEED)
+    t.check('M-02', bleed > 0 && wc.run <= GAP + 0.5 && Math.abs(wc.live - wc.run) < 0.05,
+      `bleed at ${width}px (canvas bleed ${bleed}px each side): widest empty run across the window over one period ${wc.run.toFixed(2)}px at shift ${wc.d.toFixed(2)} (design gap ${GAP}); re-measured live: ${wc.live.toFixed(2)}px`)
+    await wp.close()
+  }
+
+  // Clones fill the loop and the bleed: at least one full strip, none exposed.
   const clones = await page.$$eval(`${TRACK} > img:not([data-node-id])`, (els) => els.map((e) => ({ aria: e.getAttribute('aria-hidden'), alt: e.getAttribute('alt'), tab: e.tabIndex })))
-  const fine = clones.length === 8 && clones.every((c) => c.aria === 'true' && c.alt === '' && c.tab < 0)
-  t.check('M-G3', fine, `${clones.length} clone logos: no node id, aria-hidden, alt="", not focusable: ${fine}`)
+  const fine = clones.length >= N.logos && clones.every((c) => c.aria === 'true' && c.alt === '' && c.tab < 0)
+  t.check('M-G3', fine, `${clones.length} clone logos (strip of ${N.logos}): no node id, aria-hidden, alt="", not focusable: ${fine}`)
 
   // 2x, isolated, as the parity harness renders: rest frame, then the same page with motion on.
   const p2 = await open2x(t)
-  const lf = '[data-node-id="94:116"]'
+  const lf = `[data-node-id="${N.lf}"]`
   const pad = (c) => ({ x: c.x - 2, y: c.y - 2, width: c.width + 4, height: c.height + 4 })
   const clip = await clipOf(p2, t.section)
   const rest = await p2.screenshot({ clip })
@@ -85,7 +101,7 @@ export default async function (page, t) {
   const first = await p2.screenshot({ clip })
   const d0 = compare(rest, first), dc = compare(promoted, first)
   const liveBoxes = await boxes(p2, t.section)
-  const same = restBoxes.length === 9 && restBoxes.join('|') === liveBoxes.join('|')
+  const same = restBoxes.length === N.logos + 1 && restBoxes.join('|') === liveBoxes.join('|')
   t.check('M-G1', same && fringeOnly(d0) && dc.n === 0,
     `t=0 with motion on vs reduced-motion rest, 2x ${clip.width}x${clip.height}: ${restBoxes.length} node boxes ${same ? 'identical' : 'DIFFER'}; ${fmt(d0)}; vs the rest frame on a promoted layer (will-change only): ${dc.n} px differ`)
 
@@ -99,7 +115,7 @@ export default async function (page, t) {
   await p2.addStyleTag({ content: '.marquee{background-color:transparent!important}' })
   const db = compare(lfRest, await p2.screenshot({ clip: pad(await clipOf(p2, lf)) }))
   t.check('M-02', fringeOnly(dm) && !fringeOnly(db),
-    `hard-light: LF 94:116 at shift ${midX} vs rest, 2x: ${fmt(dm)}; same frame without the track's white: ${fmt(db)}`)
+    `hard-light: LF ${N.lf} at shift ${midX} vs rest, 2x: ${fmt(dm)}; same frame without the track's white: ${fmt(db)}`)
   await p2.close()
 }
 

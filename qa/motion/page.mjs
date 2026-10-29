@@ -7,7 +7,7 @@
 // At scroll 0 the nav sits over the moving hero rows, whose blend rounds by 1 level.
 import { compare, fmt } from './_marquee.mjs'
 
-const STRIP = { x: 0, y: 0, width: 1440, height: 48 }
+const STRIP_H = 48
 const SCROLLS = [0, 1300, 5800] // hero, talent, community: none of them moves on its own at t=0
 
 const strip = async (page, y) => {
@@ -19,11 +19,11 @@ const strip = async (page, y) => {
     for (const a of document.getAnimations()) { a.pause(); a.currentTime = 0 }
     return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
   })
-  return page.screenshot({ clip: STRIP })
+  return page.screenshot({ clip: { x: 0, y: 0, width: page.viewportSize().width, height: STRIP_H } })
 }
 
 export default async function (page, t) {
-  const calm = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
+  const calm = await t.browser.newPage({ viewport: { width: t.width, height: 900 }, reducedMotion: 'reduce' })
   await calm.goto(t.url, { waitUntil: 'networkidle' })
   await calm.evaluate(() => document.fonts.ready)
   const diffs = []
@@ -32,5 +32,5 @@ export default async function (page, t) {
   await calm.close()
   const bottom = await page.$eval('main > button[aria-pressed]', (el) => el.getBoundingClientRect().bottom)
   t.check('M-G1', diffs.every(([, d]) => d.core === 0),
-    `top ${STRIP.height}px of the viewport, motion on vs reduced: ${diffs.map(([y, d]) => `scroll ${y}: ${fmt(d, floor(y))}`).join('; ')}; pause button bottom at ${bottom}px`)
+    `top ${STRIP_H}px of the viewport, motion on vs reduced: ${diffs.map(([y, d]) => `scroll ${y}: ${fmt(d, floor(y))}`).join('; ')}; pause button bottom at ${bottom}px`)
 }

@@ -603,14 +603,29 @@ function snapItems(s, paint, origin = { x: 0, y: 0 }) {
   // Where the harness put the reference relative to where Figma's content truly
   // is: round(2*origin) + solved offset, against 2*origin + the true (possibly
   // fractional) trim.
-  const dX = (Math.round(s.x * DPR) + origin.x - (s.x * DPR + (origin.trimX ?? origin.x))) / DPR
-  const dY = (Math.round(s.y * DPR) + origin.y - (s.y * DPR + (origin.trimY ?? origin.y))) / DPR
+  const dX0 = (Math.round(s.x * DPR) + origin.x - (s.x * DPR + (origin.trimX ?? origin.x))) / DPR
+  const dY0 = (Math.round(s.y * DPR) + origin.y - (s.y * DPR + (origin.trimY ?? origin.y))) / DPR
+  // A composite reference (scripts/fetch-refs.mjs) is several renders, each
+  // placed at its own whole device px: an element takes the offset of the
+  // topmost layer whose box holds its centre.
+  const partsFile = DESIGN(`figma/${s.slug}.parts.json`)
+  const parts = s.nodes && existsSync(partsFile) ? JSON.parse(readFileSync(partsFile, 'utf8')).reverse() : null
+  const offsets = (p) => {
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2
+    const part = parts?.find(({ box: b }) => cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h)
+    if (!part) return { dX: dX0, dY: dY0 }
+    return {
+      dX: (Math.round(s.x * DPR) + origin.x + part.dx - part.x * DPR) / DPR,
+      dY: (Math.round(s.y * DPR) + origin.y + part.dy - part.y * DPR) / DPR,
+    }
+  }
   const snap = (v) => Math.round(v) - v
   const vis = (p) => Math.max(0, Math.min(CANVAS.w, p.x + p.w) - Math.max(0, p.x))
   const items = []
   for (const p of paint ?? []) {
     const vw = vis(p)
     if (!vw) continue
+    const { dX, dY } = offsets(p)
     if (p.text || p.content) {
       items.push({ axis: 'y', y0: p.y, y1: p.y + p.h, e: snap(p.y) - dY, w: vw, area: true })
       items.push({ axis: 'x', y0: p.y, y1: p.y + p.h, e: (p.text && !p.content ? 0 : snap(p.x)) - dX, w: p.w, area: true })

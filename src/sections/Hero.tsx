@@ -1,27 +1,69 @@
 /**
- * hero - Figma 94:85. Photo grid under a dark scrim, centred headline block.
+ * hero - Figma 94:85; wide: loose layers in 173:310 under a synthetic root.
+ * Photo grid under a dark scrim, centred headline block.
  * M-01: each photo row slides on its own as a seamless loop, rows 1 and 3
  * rightward and row 2 leftward.
  */
 import type { CSSProperties } from 'react'
-
-// Grid geometry from 94:87's children, relative to the group's box (-115, -26).
-const TILE = 299.7864990234375
-const RADIUS = 22.306095123291016
-const COLS = [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375]
-const ROWS = [0, 342.609375, 685.2109375]
-const DIRS = [1, -1, 1] as const
-// One row repeats every five column pitches (1713.04), rounded to whole px: a
-// moving layer whose origin and shift sit on the pixel grid draws its photos
-// without resampling at rest and after each full period.
-const PERIOD = Math.round((COLS[4] / 4) * 5)
-const SPEED = 20 // px/s, [PROPOSED DEFAULT]
+import { useCanvasSurface, type CanvasSurface } from '../surface'
 
 type Tile = { id: string; src?: string; color?: string }
 
-function HeroTile({ tile, x, y, copy }: { tile: Tile; x: number; y: number; copy: boolean }) {
+// Row-major, in Figma child order; the colour tiles sit in the same cells on both frames.
+const LOOKS = [
+  '#ff3567', 'cannes-podcast', '8th-birthday', 'yolk-volley-360', 'best-leader-winner',
+  'jaqs-volleyball', 'photo-1778077500638', 'yolk-volley-308', 'cannes-pod-2', 'rgb(255 170 0 / 0.8)',
+  'nyc-event', '#66b800', 'first-jumpers', 'yolk-volley-274', 'yolk-volley-60',
+]
+const tiles = (ns: number, first: number, prefix: string): Tile[] => LOOKS.map((look, i) => {
+  const id = `${ns}:${first + i}`
+  return /^(#|rgb)/.test(look) ? { id, color: look } : { id, src: `/assets/hero/${prefix}${look}.webp` }
+})
+
+/**
+ * Per-surface geometry, from the node JSON. Tile columns and rows are relative
+ * to the grid origin (`grid`, whole px; desktop's is group 94:87, wide has no group).
+ * Photos are Figma renders of each tile (crop and radius baked in).
+ */
+const LAYOUT = {
+  desktop: {
+    w: 1440,
+    root: '94:85', ink: '94:86', scrim: '94:103',
+    grid: { id: '94:87', x: -115, y: -26, w: 1670.2200927734375, h: 984.9974365234375 },
+    tileW: 299.7864990234375, tileH: 299.7864990234375,
+    cols: [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375],
+    rows: [0, 342.609375, 685.2109375],
+    // The rounded frame clips the rows at 0..1440, so they never reach past it.
+    reach: 0,
+    tiles: tiles(94, 88, ''),
+    copy: { id: '94:104', x: 214, y: 317, w: 1012.0790405273438, h: 431.83160400390625 },
+    block: '94:105', title: { id: '94:106', x: 0, w: 1012.0790405273438 }, lede: { id: '94:107', x: 192.03955078125 },
+    cta: { id: '94:108', x: 395.03955078125, top: 382.51202392578125 }, label: { id: '94:109', top: 12.6597900390626 },
+  },
+  wide: {
+    w: 1640,
+    root: 'wide:hero', ink: '173:312', scrim: '173:329',
+    grid: { id: undefined, x: -131, y: -26, w: 1902.2228393554688, h: 984.9974365234375 },
+    tileW: 341.42352294921875, tileH: 299.7864990234375,
+    cols: [0.02783203125, 390.226318359375, 780.420166015625, 1170.60986328125, 1560.79931640625],
+    rows: [0, 342.609375, 685.2109375],
+    // Square band: the rows fill the margin of a window up to 2560 (bleed 460).
+    reach: 460,
+    tiles: tiles(173, 314, 'wide-'),
+    copy: { id: '173:330', x: 243.7041015625, y: 317.04541015625, w: 1152.592041015625, h: 431.7417907714844 },
+    block: '173:331', title: { id: '173:332', x: 36.2958984375, w: 1080 }, lede: { id: '173:333', x: 262.2958984375 },
+    cta: { id: '173:334', x: 465.2958984375, top: 382.51202392578125 }, label: { id: '173:335', top: 12.6597900390626 },
+  },
+}
+type Layout = (typeof LAYOUT)[CanvasSurface]
+
+const RADIUS = 22.306095123291016
+const DIRS = [1, -1, 1] as const
+const SPEED = 20 // px/s, [PROPOSED DEFAULT]
+
+function HeroTile({ tile, x, y, w, h, copy }: { tile: Tile; x: number; y: number; w: number; h: number; copy: boolean }) {
   const node = copy ? undefined : tile.id
-  const style = { left: x, top: y, width: TILE, height: TILE }
+  const style = { left: x, top: y, width: w, height: h }
   return tile.src ? (
     <img src={tile.src} alt="" aria-hidden={copy || undefined} className="absolute block max-w-none" style={style} data-node-id={node} />
   ) : (
@@ -29,69 +71,71 @@ function HeroTile({ tile, x, y, copy }: { tile: Tile; x: number; y: number; copy
   )
 }
 
-/** The row's five tiles at their Figma x plus one period of copies on the side the row enters from. */
-function HeroRow({ tiles, top, dir }: { tiles: Tile[]; top: number; dir: 1 | -1 }) {
+/**
+ * One row: its five tiles at their Figma x, plus copies (tile n is column n mod 5,
+ * shifted by whole periods) wherever the row is visible during one period of travel.
+ */
+function HeroRow({ L, r, dir }: { L: Layout; r: number; dir: 1 | -1 }) {
+  // A row repeats every five column pitches, rounded to whole px: a moving layer
+  // whose origin and shift sit on the pixel grid draws its photos without
+  // resampling at rest and after each full period.
+  const period = Math.round(((L.cols[4] - L.cols[0]) / 4) * 5)
+  const lo = -L.grid.x - L.reach - (dir > 0 ? period : 0)
+  const hi = L.w - L.grid.x + L.reach + (dir < 0 ? period : 0)
+  const at = (n: number) => L.cols[((n % 5) + 5) % 5] + Math.floor(n / 5) * period
+  const shown: number[] = []
+  for (let n = Math.floor((lo - L.tileW) / period) * 5; at(n) < hi; n++) if (at(n) + L.tileW > lo) shown.push(n)
   // Every left stays >= 0 (Blink truncates a fractional negative one) and the
   // track sits at the grid's whole-px origin; the row's fractional top goes on the tiles.
-  const base = dir > 0 ? PERIOD : 0
-  const style = { left: -base, '--marquee-shift': `${dir * PERIOD}px`, '--marquee-duration': `${PERIOD / SPEED}s` } as CSSProperties
+  const base = Math.max(0, -Math.floor(shown[0] / 5)) * period
+  const row = L.tiles.slice(r * 5, r * 5 + 5)
+  const top = L.rows[r]
+  const style = { left: -base, '--marquee-shift': `${dir * period}px`, '--marquee-duration': `${period / SPEED}s` } as CSSProperties
   return (
     <div className="marquee absolute inset-y-0 w-full" style={style}>
-      {tiles.map((t, i) => <HeroTile key={t.id} tile={t} x={COLS[i] + base} y={top} copy={false} />)}
-      {tiles.map((t, i) => <HeroTile key={`c${t.id}`} tile={t} x={COLS[i] + base - dir * PERIOD} y={top} copy />)}
+      {row.map((t, i) => <HeroTile key={t.id} tile={t} x={L.cols[i] + base} y={top} w={L.tileW} h={L.tileH} copy={false} />)}
+      {shown.filter((n) => n < 0 || n > 4).map((n) => (
+        <HeroTile key={n} tile={row[((n % 5) + 5) % 5]} x={at(n) + base} y={top} w={L.tileW} h={L.tileH} copy />
+      ))}
     </div>
   )
 }
 
-// 94:87 overhangs the canvas by 115 on the left and the rest of its width on the right.
-const GRID_X = -115
-const GRID_W = 1670.2200927734375
-
-// Row-major, in Figma child order. Photos are Figma renders (crop and radius baked in).
-const TILES: Tile[] = [
-  { id: '94:88', color: '#ff3567' },
-  { id: '94:89', src: '/assets/hero/cannes-podcast.webp' },
-  { id: '94:90', src: '/assets/hero/8th-birthday.webp' },
-  { id: '94:91', src: '/assets/hero/yolk-volley-360.webp' },
-  { id: '94:92', src: '/assets/hero/best-leader-winner.webp' },
-  { id: '94:93', src: '/assets/hero/jaqs-volleyball.webp' },
-  { id: '94:94', src: '/assets/hero/photo-1778077500638.webp' },
-  { id: '94:95', src: '/assets/hero/yolk-volley-308.webp' },
-  { id: '94:96', src: '/assets/hero/cannes-pod-2.webp' },
-  { id: '94:97', color: 'rgb(255 170 0 / 0.8)' },
-  { id: '94:98', src: '/assets/hero/nyc-event.webp' },
-  { id: '94:99', color: '#66b800' },
-  { id: '94:100', src: '/assets/hero/first-jumpers.webp' },
-  { id: '94:101', src: '/assets/hero/yolk-volley-274.webp' },
-  { id: '94:102', src: '/assets/hero/yolk-volley-60.webp' },
-]
+// A full-width band's fill reaches past the frame edges into a wider window (CONVENTIONS "Bleed").
+const BAND = { left: 'calc(-1 * var(--bleed, 0px))', right: 'calc(-1 * var(--bleed, 0px))' }
 
 export default function Hero() {
+  const surface = useCanvasSurface()
+  const L = LAYOUT[surface]
+  const wide = surface === 'wide'
   return (
-    <div className="relative size-full overflow-hidden rounded-b-[50px]" data-node-id="94:85">
-      <div className="absolute inset-0 bg-[#0b1722]" data-node-id="94:86" />
+    // Desktop's hero is one frame with a rounded, clipping bottom; wide's layers are square and unclipped.
+    <div className={wide ? 'relative size-full' : 'relative size-full overflow-hidden rounded-b-[50px]'} data-node-id={L.root}>
+      <div className={wide ? 'absolute inset-y-0 bg-[#0b1722]' : 'absolute inset-0 bg-[#0b1722]'} style={wide ? BAND : undefined} data-node-id={L.ink} />
 
       <div
         className="absolute"
-        style={{ left: GRID_X, top: -26, width: GRID_W, height: 984.9974365234375 }}
-        data-node-id="94:87"
+        style={{ left: L.grid.x, top: L.grid.y, width: L.grid.w, height: L.grid.h }}
+        data-node-id={L.grid.id}
+        data-hero-rows=""
       >
-        {ROWS.map((top, r) => (
-          <HeroRow key={top} tiles={TILES.slice(r * 5, r * 5 + 5)} top={top} dir={DIRS[r]} />
+        {L.rows.map((top, r) => (
+          <HeroRow key={top} L={L} r={r} dir={DIRS[r]} />
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-[rgb(8_22_35/0.71)]" data-node-id="94:103" />
+      <div className={wide ? 'absolute inset-y-0 bg-[rgb(8_22_35/0.71)]' : 'absolute inset-0 bg-[rgb(8_22_35/0.71)]'} style={wide ? BAND : undefined} data-node-id={L.scrim} />
 
       <div
         className="absolute"
-        style={{ left: 214, top: 317, width: 1012.0790405273438, height: 431.83160400390625 }}
-        data-node-id="94:104"
+        style={{ left: L.copy.x, top: L.copy.y, width: L.copy.w, height: L.copy.h }}
+        data-node-id={L.copy.id}
       >
-        <div className="absolute left-0 top-0 h-[326px] w-full" data-node-id="94:105">
+        <div className="absolute left-0 top-0 h-[326px] w-full" data-node-id={L.block}>
           <h1
-            className="absolute left-0 top-0 m-0 flex h-[194px] w-full items-center justify-center text-center text-[88px] font-semibold leading-[96.58419799804688px] tracking-[-4.109965801239014px] text-white"
-            data-node-id="94:106"
+            className="absolute top-0 m-0 flex h-[194px] items-center justify-center text-center text-[88px] font-semibold leading-[96.58419799804688px] tracking-[-4.109965801239014px] text-white"
+            style={{ left: L.title.x, width: L.title.w }}
+            data-node-id={L.title.id}
           >
             {/* Figma tracks between glyphs only; CSS also tracks after the last one.
                 An inline end margin lands on the final line only and cancels it,
@@ -102,8 +146,8 @@ export default function Hero() {
           </h1>
           <p
             className="absolute m-0 h-[108px] w-[628px] text-center text-[24px] font-normal leading-[36px] text-white"
-            style={{ left: 192.03955078125, top: 218 }}
-            data-node-id="94:107"
+            style={{ left: L.lede.x, top: 218 }}
+            data-node-id={L.lede.id}
           >
             {/* Chromium's baseline is round(ascent) + floor(half-leading) = 26; Figma
                 rounds the exact 26.73 to 27. Measured 1px high without this. */}
@@ -116,13 +160,13 @@ export default function Hero() {
         <a
           href="#"
           className="absolute block h-[49.31958770751953px] w-[222px] rounded-[138.7113494873047px] bg-white"
-          style={{ left: 395.03955078125, top: 382.51202392578125 }}
-          data-node-id="94:108"
+          style={{ left: L.cta.x, top: L.cta.top }}
+          data-node-id={L.cta.id}
         >
           <span
             className="absolute left-[32px] flex h-[24px] w-[158px] justify-center whitespace-nowrap text-[16px] font-semibold uppercase leading-[24px] text-[#0b1722]"
-            style={{ top: 12.6597900390626 }}
-            data-node-id="94:109"
+            style={{ top: L.label.top }}
+            data-node-id={L.label.id}
           >
             BECOME A MEMBER
           </span>

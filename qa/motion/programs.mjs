@@ -1,23 +1,28 @@
-// M-08: a hovered program card (94:167, 94:171, 94:176) lifts 6px; the photo block 94:159 stays.
-const CARDS = ['94:167', '94:171', '94:176']
-const PHOTO = '94:159'
-const HEADING = '94:157'
+// M-08: a hovered program card (desktop 94:167, 94:171, 94:176; wide 173:390,
+// 173:402, 173:407) lifts 6px; the photo block (94:159; 173:394) stays.
+const IDS = {
+  desktop: { cards: ['94:167', '94:171', '94:176'], photo: '94:159', heading: '94:157' },
+  wide: { cards: ['173:390', '173:402', '173:407'], photo: '173:394', heading: '173:388' },
+}
 const sel = (id) => `[data-node-id="${id}"]`
 const fmt = (n) => (Math.round(n * 100) / 100).toFixed(2)
 
 /** Rect in viewport px, the canvas scale, and the computed translate/transform. */
 const probe = (page, id) => page.$eval(sel(id), (el) => {
   const cs = getComputedStyle(el)
-  const k = document.querySelector('[data-canvas="root"]').getBoundingClientRect().width / 1440
+  // Canvas scale on either surface: rendered width over layout width.
+  const c = document.querySelector('[data-canvas="root"]')
+  const k = c.getBoundingClientRect().width / c.offsetWidth
   return { ...el.getBoundingClientRect().toJSON(), k, translate: cs.translate, transform: cs.transform }
 })
 const restStyle = (p) => p.translate === 'none' && p.transform === 'none'
-const awayFromCards = async (page) => {
+const awayFromCards = async (page, HEADING) => {
   const h = await probe(page, HEADING)
   await page.mouse.move(h.left + h.width / 2, h.top + h.height / 2)
 }
 
 export default async function (page, t) {
+  const { cards: CARDS, photo: PHOTO, heading: HEADING } = IDS[t.surface]
   const rest = []
   for (const id of CARDS) {
     const p = await probe(page, id)
@@ -27,7 +32,7 @@ export default async function (page, t) {
 
   for (const id of CARDS) {
     await page.$eval(sel(id), (el) => el.scrollIntoView({ block: 'center' }))
-    await awayFromCards(page)
+    await awayFromCards(page, HEADING)
     await t.sleep(400)
     const before = await probe(page, id)
     const photoBefore = await probe(page, PHOTO)
@@ -56,7 +61,7 @@ export default async function (page, t) {
     await page.mouse.move(before.left + before.width / 2, before.bottom - 2)
     await t.sleep(400)
     const edge = await probe(page, id)
-    await awayFromCards(page)
+    await awayFromCards(page, HEADING)
     await t.sleep(400)
     const after = await probe(page, id)
     const lift = (before.top - hovered.top) / before.k
@@ -72,10 +77,11 @@ export default async function (page, t) {
 }
 
 export async function reduced(page, t) {
+  const { cards: CARDS, heading: HEADING } = IDS[t.surface]
   const seen = []
   for (const id of CARDS) {
     await page.$eval(sel(id), (el) => el.scrollIntoView({ block: 'center' }))
-    await awayFromCards(page)
+    await awayFromCards(page, HEADING)
     const before = await probe(page, id)
     await page.mouse.move(before.left + before.width / 2, before.top + before.height / 2)
     await t.sleep(400)
