@@ -139,6 +139,14 @@ section is gated against `design/figma/logos.composed.png`.
 - Built in .worktrees/gll-sticky-header: another session was working in
   projects/gll on feat/talent-morph at the same time.
 
+## 2026-10-29: copyright year
+
+- Marius: "copyright should be 2026". The footer line (94:368) printed the
+  frame's "© 2024"; it now prints the current year, so it reads 2026 today and
+  does not need another change in January. A deliberate deviation from the frame.
+- Parity unchanged: footer 41/41, ae 1.966 (was 1.965); 10/11 sections pass,
+  logos FAIL as before.
+
 ## 2026-10-29: talent photo outline the same for every number
 
 - Marius: "the image mask has to be symmetrical and only the number selected

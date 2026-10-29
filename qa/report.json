@@ -1,6 +1,6 @@
 {
  "url": "http://localhost:4197/",
- "at": "2026-10-29T10:45:28.714Z",
+ "at": "2026-10-29T11:45:29.293Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -3936,7 +3936,7 @@
       "id": "94:265",
       "name": "Vilnius portrait — Custom photo shape",
       "type": "VECTOR",
-      "tag": "img",
+      "tag": "div",
       "dx": -0.01,
       "dy": -0.01,
       "dw": -0.01,
@@ -4551,18 +4551,18 @@
    },
    "raster": {
     "window": "2880x2142",
-    "ae": 1.965,
+    "ae": 1.966,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 50051,
-    "thickPx": 650,
-    "thick": 0.0105,
+    "diffPx": 50122,
+    "thickPx": 674,
+    "thick": 0.0109,
     "edgeOnly": 98.7,
     "shift": {
      "dx": 0,
      "dy": 0.5,
      "atEdge": false,
-     "gain": 1.057,
+     "gain": 1.056,
      "expX": 0,
      "expY": 0.45
     },
@@ -4654,7 +4654,7 @@
       {
        "y": 7680.5,
        "h": 214,
-       "dx": 0,
+       "dx": -0.01,
        "dy": 0.49,
        "method": {
         "x": "ncc",
@@ -4664,7 +4664,7 @@
        "expY": 0.5,
        "spreadX": 0,
        "spreadY": 0,
-       "resX": 0,
+       "resX": -0.01,
        "resY": -0.01,
        "empty": false
       }
