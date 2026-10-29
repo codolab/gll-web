@@ -1,7 +1,7 @@
 /** logos - Figma 94:111 (wide 173:337). Partner strip; the last logo overhangs the frame and the canvas clips it. */
 import type { CSSProperties } from 'react'
 import { CANVASES } from '../canvas'
-import { useCanvasSurface, type CanvasSurface } from '../surface'
+import { useCanvasSurface, WINDOW_MAX, type CanvasSurface } from '../surface'
 
 type Mark = { src: string; alt: string; y: number; w: number; h: number; hardLight?: boolean }
 type Logo = Mark & { id: string; x: number }
@@ -52,7 +52,6 @@ const STRIPS: Record<CanvasSurface, { id: string; logos: Logo[] }> = {
 
 const GAP = 70.8085 // the auto-layout spacing, equal between all logos
 const SPEED = 30 // px/s, [PROPOSED DEFAULT]
-const WINDOW_MAX = 2560 // widest window the track fills edge to edge (canvas bleed)
 
 /**
  * The strip repeated every period, leftward: originals plus every clone that

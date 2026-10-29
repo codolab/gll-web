@@ -12,6 +12,8 @@ export type CanvasSurface = Exclude<Surface, 'mobile'>
 
 export const MOBILE_MAX = 1023
 export const WIDE_MIN = 1540
+/** The widest window the canvases fill edge to edge; wider, the composition stops here, centred (gaps.md G-11). */
+export const WINDOW_MAX = 2560
 
 /** QA only: `?surface=` pins a composition whatever the viewport (scripts/harness.mjs). */
 const pinned = new URLSearchParams(window.location.search).get('surface')

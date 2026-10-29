@@ -5,7 +5,7 @@
  * rightward and row 2 leftward.
  */
 import type { CSSProperties } from 'react'
-import { useCanvasSurface, type CanvasSurface } from '../surface'
+import { useCanvasSurface, WINDOW_MAX, type CanvasSurface } from '../surface'
 
 type Tile = { id: string; src?: string; color?: string }
 
@@ -58,7 +58,6 @@ type Layout = (typeof LAYOUT)[CanvasSurface]
 const RADIUS = 22.306095123291016
 const DIRS = [1, -1, 1] as const
 const SPEED = 20 // px/s, [PROPOSED DEFAULT]
-const WINDOW_MAX = 2560 // widest window the rows fill edge to edge (canvas bleed), as for the logos and ribbons
 
 function HeroTile({ tile, x, y, w, h, copy }: { tile: Tile; x: number; y: number; w: number; h: number; copy: boolean }) {
   const node = copy ? undefined : tile.id

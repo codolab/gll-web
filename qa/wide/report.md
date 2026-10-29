@@ -1,7 +1,7 @@
 # GLL parity report
 
-Build: http://localhost:4210/ · captured 2026-10-29T11:50:55.408Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
-Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
+Build: http://localhost:4210/ · captured 2026-10-29T12:22:16.292Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Verdicts: 9 PASS, 2 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -13,7 +13,7 @@ Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
 | programs | built | 0,0 | 25/25 | 0.02 | 0/0 of 12 | 0.668 | 0 | 100 (0) | 0,0 / 0,-0.08 | y2619+208.5 | -0.05,-0.1 | 0,-0.08 | -0.05,-0.02 | PASS |
 | impact | built | 0,0 | 19/19 | 0.02 | 0/0 of 8 | 0.769 | 0 | 100 (0) | 0,0 / 0,0.23 | y4521+220.5 | 0.03,0.23 | 0,0.23 | 0.03,0 | PASS |
 | meet | built | +0,+23 | 68/68 | 0.95 | 0/0 of 13 | 2.803 | 0 | 99 (534) | 0,0 / 0.03,0.14 | y5186+172.5 | -0.38,0.06 | 0.03,0.11 | -0.41,-0.05 | PASS |
-| talent | built | 0,0 | 16/16 | 0.02 | 0/0 of 6 | 2.096 | 0 | 99.9 (32) | 0,0 / -0.1,0.23 | y1367.5+185 | -0.27,0.2 | -0.44,-0.06 | 0.17,0.26 | PASS |
+| talent | built | 0,0 | 16/16 | 0.02 | 0/0 of 6 | 2.106 | 0.426 (34) | 75.8 (9582) | 0,0 / -0.09,0.27 | y1922+185 | 0.2,0.07 | -0.07,0.28 | 0.27,-0.21 | FAIL (structural, edgeOnly) |
 | community | built | 0,0 | 24/24 | 0.03 | 0/0 of 12 | 2.071 | 0 | 100 (5) | 0,0 / -0.02,0.18 | y6223.5+232.5 | -0.11,0.12 | -0.06,0.2 | -0.05,-0.08 | PASS |
 | footer | built | 0,0 | 42/42 | 0.01 | 0/0 of 21 | 0.6 | 0 | 99.6 (104) | 0,0 / 0,0.05 | y7350.5+214 | 0,0.16 | 0,0.01 | 0,0.15 | PASS |
 
@@ -66,8 +66,9 @@ Gates: geometry boxes/images/vectors max |dx,dy,dw,dh| <= 1px; text origin <= 1p
 ## talent (wide:talent)
 
 - coverage: 16/16 visible Figma nodes carry a data-node-id.
-- snap expectation is mixed (elements with different fractional offsets) in 4 band(s): y1367.5 spread dx 0.59 dy 0.59; y1552.5 spread dx 0.78 dy 0.73; y1737.5 spread dx 0.78 dy 0.73; y1922 spread dx 0.78 dy 0.73
-- least-squares fallback (too few edges for correlation) in 2 band(s): y1367.5 dx; y1552.5 dy
+- structural: largest block of differing 8px cells is 34 cells, 72x152 at 1000,1592 (canvas CSS px).
+- snap expectation is mixed (elements with different fractional offsets) in 2 band(s): y1737.5 spread dx 0.65 dy 0.39; y1922 spread dx 0.65 dy 0.39
+- least-squares fallback (too few edges for correlation) in 2 band(s): y1367.5 dx; y1552.5 dx dy
 
 ## community (173:1456)
 

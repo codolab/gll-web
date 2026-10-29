@@ -71,18 +71,18 @@ const EVERY: Stops = { at: CARDS.map((_, i) => i), card: CARDS.map((_, i) => i) 
 
 /**
  * Each card rests on the start edge, except where the row ends first: those clamp
- * to the end. A card that would stop short of the end by under half a card (two
- * cards shown from about 600px) is merged into the end stop and loses its snap,
- * so no swipe or arrow press ever moves the row a few pixels.
+ * to the end. A card already whole inside the window at the end stop (the third
+ * card from 672px) is merged into it and loses its snap, since its own stop would
+ * only nudge the row by the gutter. Any card the end stop cuts keeps its stop.
  */
 function measure(el: HTMLElement): Stops {
   const items = el.children as HTMLCollectionOf<HTMLElement>
   const max = el.scrollWidth - el.clientWidth
-  const pitch = items[1].offsetLeft - items[0].offsetLeft
   const stops: Stops = { at: [], card: [] }
   for (let i = 0; i < N; i++) {
     const x = Math.min(max, items[i].offsetLeft - items[0].offsetLeft)
-    if (i < N - 1 && max - x < pitch / 2) continue
+    // offsetLeft - max: the card's left edge in the window at the end stop.
+    if (i < N - 1 && items[i].offsetLeft - max >= 0) continue
     stops.at.push(x)
     stops.card.push(i)
   }

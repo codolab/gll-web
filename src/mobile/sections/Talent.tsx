@@ -84,7 +84,7 @@ export default function MobileTalent() {
         {/* Two lines at every width, as the phone width sets it; one line at 640 trails off.
             The figure stops at 480 on tablets, and the tagline keeps to its left edge. */}
         <div className="mx-auto max-w-[480px]">
-          <p className="m-0 mt-8 max-w-[260px] text-balance text-[22px] font-semibold leading-[28px] tracking-[-0.44px] text-ink">
+          <p data-talent="tagline" className="m-0 mt-8 max-w-[260px] text-balance text-[22px] font-semibold leading-[28px] tracking-[-0.44px] text-ink">
             One community. Endless possibilities.
           </p>
         </div>

@@ -5,11 +5,10 @@
  */
 import type { CSSProperties } from 'react'
 import { CANVASES } from '../canvas'
-import { useCanvasSurface, type CanvasSurface } from '../surface'
+import { useCanvasSurface, WINDOW_MAX, type CanvasSurface } from '../surface'
 
 const ROW_Y = 37.1758 // dot top inside a 112px row (2280.1016 - 2242.9258)
 const SPEED = 40 // px/s, [PROPOSED DEFAULT]
-const WINDOW_MAX = 2560 // widest window the rows fill edge to edge (canvas bleed)
 
 type Dot = { node?: string; group?: string; x: number; fill: string }
 type Phrase = { node?: string; x: number; w: number; light: string; bold: string }

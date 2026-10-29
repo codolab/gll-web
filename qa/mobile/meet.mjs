@@ -206,6 +206,41 @@ export default async function (page, t) {
     tab.every((s, k) => s.dot === k) && Math.abs(nearEnd.x - nearEnd.max) < 1 && nearEnd.dot === tab[0].dots - 1,
     `stops ${xs.map((x) => x.toFixed(0)).join(', ')} (steps ${gaps.map((g) => g.toFixed(0)).join(', ')}, card pitch ${pitch}), ${tab[0].dots} dots, ` +
     `dots ${tab.map((s) => s.dot).join(',')}; stopped 26px short of the end: rests at ${nearEnd.x.toFixed(0)} (end ${nearEnd.max})`)
+
+  // Every card can be shown whole at every width: by stepping the arrows end to end,
+  // and by scrolling straight to it (snap must not pull it back off screen). Dots: one
+  // per stop, three only where the third card is already whole at the end stop.
+  const DOTS = { 320: 4, 390: 4, 560: 4, 600: 4, 640: 4, 667: 4, 768: 3, 1023: 3 }
+  const whole = () => page.$eval(`${sec} #meet-cards`, (r) => [...r.children].map((c) => {
+    const b = c.getBoundingClientRect()
+    return b.left >= -0.5 && b.right <= document.documentElement.clientWidth + 0.5
+  }))
+  for (const [w, dots] of Object.entries(DOTS).map(([w, d]) => [+w, d])) {
+    await page.setViewportSize({ width: w, height: 844 })
+    await page.$eval(sec, (el) => el.scrollIntoView({ block: 'start' }))
+    await home()
+    let s = await state(page, sec)
+    const xs = [s.x]
+    const byArrow = new Set()
+    const see = async () => (await whole()).forEach((v, k) => v && byArrow.add(k))
+    await see()
+    for (let i = 0; i < 5 && !s.nextOff; i++) {
+      await page.click(`${sec} [data-dir="next"]`, FORCE)
+      s = await settled(page, sec, t)
+      xs.push(s.x)
+      await see()
+    }
+    const byScroll = []
+    for (let k = 0; k < 4; k++) {
+      await page.$eval(`${sec} #meet-cards`, (r, k) => r.scrollTo({ left: r.children[k].offsetLeft - r.children[0].offsetLeft, behavior: 'instant' }), k)
+      await settled(page, sec, t)
+      byScroll.push((await whole())[k])
+    }
+    const steps = xs.slice(1).map((x, k) => (x - xs[k]).toFixed(0))
+    t.check(`whole ${w}`, byArrow.size === 4 && byScroll.every(Boolean) && s.dots === dots && xs.length === dots,
+      `arrows rest at ${xs.map((x) => x.toFixed(0)).join(', ')} (steps ${steps.join(', ')}) showing cards ${[...byArrow].sort().join(',')} whole; ` +
+      `scrolled to each card: whole ${byScroll.map((v, k) => `${k}:${v ? 'y' : 'n'}`).join(' ')}; ${s.dots} dots (want ${dots})`)
+  }
   await page.setViewportSize({ width: 390, height: 844 })
 
   const all = [s0, ...steps, ...back, two, snapped, drag, flick, pad, wheeled, kb1, ...tab]

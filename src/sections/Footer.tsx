@@ -179,10 +179,12 @@ export default function Footer() {
             ))}
           </nav>
 
-          <div data-node-id={id('94:365')} className="absolute" style={box(0, 390, g.width, 81)}>
-            {/* Its 1px top stroke, drawn as a fill so it can run to the window edges. */}
-            <div aria-hidden className="absolute top-0 h-px bg-white/14" style={BLEED} />
-            <Text id={id('94:368')} at={[64, 31, 341, 20]} size={13} weight={400} lh={20} nowrap>
+          <div data-node-id={id('94:365')} className="absolute border-t border-white/14" style={box(0, 390, g.width, 81)}>
+            {/* Its top stroke runs on into a wider window (zero wide at bleed 0, so the
+                frame width renders exactly as before, scaled or not). */}
+            <div aria-hidden className="absolute -top-px right-full h-px bg-white/14" style={{ width: 'var(--bleed, 0px)' }} />
+            <div aria-hidden className="absolute -top-px left-full h-px bg-white/14" style={{ width: 'var(--bleed, 0px)' }} />
+            <Text id={id('94:368')} at={[64, 30, 341, 20]} size={13} weight={400} lh={20} nowrap>
               Global Lithuanian Leaders © {new Date().getFullYear()} | All Rights Reserved
             </Text>
           </div>

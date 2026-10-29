@@ -267,3 +267,34 @@ section is gated against `design/figma/logos.composed.png`.
   0.8%. The photo-per-number, reduced-motion and outline checks now read each
   number's photo.
 
+
+## 2026-10-29: wide (173:310) and mobile variants
+
+- Figma check: page Home now has 173:310 "GLL (1)" at 1640x7993 (the wide
+  variant, last edited 2026-10-28). No mobile frame anywhere in the file, no
+  branches, no comments. Wide is a parity transcription; mobile is a flow
+  composition drawn from the desktop frame (`MOBILE_SPEC.md`, G-01).
+- `src/surface.ts`: mobile to 1023, desktop 1024-1539, wide from 1540 (G-11).
+  Both canvases render the same section components through
+  `useCanvasSurface()` and per-surface tables; motion code is shared. Wider than
+  its canvas, the canvas sits at 1x and bleeds: overhanging content and band
+  fills run to the window edge, up to a 2560 window. Bleeding, the root drops
+  its transform (Chromium clipped hit-testing of the margin otherwise) and clips
+  with clip-path.
+- Scripts take `SURFACE=desktop|wide` (`scripts/surface.mjs`). The wide hero
+  and talent are loose layers, so their references are composites of the
+  layers' own renders, placed on the absolute 2x grid (talent ae 2.17 -> 2.10
+  against the relative rounding), with `<slug>.parts.json` feeding a per-layer
+  snap model. Wide logos is gated against a white-backdrop composite, as desktop.
+- The harness now captures at exactly the frame width: any canvas painting past
+  its edge rasterises the hard-light LF marks a shade differently (logos ae
+  4.063 -> 4.223), so the canvas clips like the frame unless the window is wider.
+- Nine builders in parallel (five wide, four mobile), then an independent
+  review: 7 findings, all handled (margin hit-testing, desktop hero white
+  margins at 1440-1539, wide Next button cut by the frame -> G-14, merge with
+  the talent morph, a mobile meet card unreachable at 527-671, footer rule
+  anti-aliasing at scaled widths, bleed beyond 2560).
+- Results on the production build: desktop captures and full pages at 1024,
+  1200 and 1440 pixel-identical to main 3c4a869; wide 9/11 PASS, logos and
+  talent failing exactly as desktop does (raster floor; M-G1 outline by design).
+  Designer questions: G-12 stretched wide logo, G-13 stray meet card, G-14.

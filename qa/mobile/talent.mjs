@@ -44,7 +44,7 @@ export default async function (page, t) {
   // tagline sits in the same place whatever the scale is (unscaled, as before any script ran).
   await page.setViewportSize({ width: 390, height: 844 })
   const shift = await page.$eval(t.section, (sec) => {
-    const fig = sec.querySelector('[data-talent="figure"]'), box = sec.querySelector('[data-talent="box"]'), line = sec.querySelector('[data-talent="figure"] ~ p')
+    const fig = sec.querySelector('[data-talent="figure"]'), box = sec.querySelector('[data-talent="box"]'), line = sec.querySelector('[data-talent="tagline"]')
     const before = line.getBoundingClientRect().top, keep = box.style.transform
     box.style.transform = 'none'
     const unscaled = line.getBoundingClientRect().top
@@ -56,7 +56,7 @@ export default async function (page, t) {
 
   const a = await page.$eval(t.section, (sec) => ({
     h2: sec.querySelector('h2')?.textContent,
-    line: sec.querySelector('[data-talent="figure"] ~ p')?.textContent,
+    line: sec.querySelector('[data-talent="tagline"]')?.textContent,
     imgs: [...sec.querySelectorAll('img')].map((i) => ({ src: i.getAttribute('src'), alt: i.getAttribute('alt'), ok: i.complete && i.naturalWidth > 0, hidden: !!i.closest('[aria-hidden="true"]') })),
     digits: [...sec.querySelectorAll('[data-talent="box"] span')].map((s) => ({ d: s.textContent, hidden: !!s.closest('[aria-hidden="true"]') })),
     focusable: sec.querySelectorAll('a, button, input, [tabindex], [role="tab"]').length,
