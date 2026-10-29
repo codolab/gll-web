@@ -1,15 +1,16 @@
 // M-04..M-06: the four numbered shapes (94:266, 94:269, 94:268, 94:267) are tabs
 // with automatic activation (hover, focus, tap, arrow keys). The selected one is
 // drawn as the Figma loop (the "2" pill, turned to start at its circle) and the
-// rest as circles, morphing in 0.4s. The one Figma photo (94:265) never changes:
-// its outline gives every number the same notch, and the selected loop takes a
-// 32px white band off it, its corner with the next notch rounded, never a sliver.
+// rest as circles, morphing in 0.4s. Each number has its own photo (94:265 for 2),
+// fading in over the last in the same 0.4s inside one outline that gives every number
+// the same notch; the selected loop takes a 32px white band off it, its corner with
+// the next notch rounded as it arrives, never a sliver.
 // The tagline (94:274 stack) swaps one line at a time. All instant under reduced
 // motion. State 2 is the Figma frame, except the photo's outline near the 2 loop (M-G1).
 // One t.check per aspect.
 import { execFileSync } from 'node:child_process'
 
-const PHOTO = 'vilnius-photo.webp'
+const PHOTOS = ['jaqs-volleyball.webp', 'vilnius-photo.webp', 'yolk-volley-308.webp', 'yolk-volley-274.webp']
 const LINES = ['Global minds. Lithuanian roots.', 'One community. Endless possibilities.', 'Your next chapter starts here.', 'Go further, together.']
 const REST = 1
 const PILL_W = 135.065
@@ -19,6 +20,12 @@ const GAP = 32
 const NOTCH = [31.8, 31.8, 31.8, 34.3] // Figma's notches under 1 and beside 4; 2 and 3 copy 1's
 const SPREAD = 12 // measured 4.4 to 5.2 on the copies of notch 1, 9.2 on Figma's notch beside 4
 const SETTLE_MS = 650
+const JUMP = 0.5 // most of a corner that may change in one 1/60s step
+const STEP = 0.2 // most of a switch's change in the photo that may happen in one 1/60s step
+const POP = 0.03 // most a step may outdo both its neighbours by, as a share of the change
+// Px of a step that may be lighter than both photos: edge anti-aliasing shifts by up to a quarter
+// pixel while photos stack (11 to 64 px; 73 to 75 on the build before), white through a crossfade is tens of thousands.
+const WASH = 500
 const f2 = (n) => n.toFixed(2)
 // Other builders' edits can hot-reload the shared dev page mid-run, resetting it to state 2.
 const mark = (page) => page.evaluate(() => { window.__same = true })
@@ -50,7 +57,7 @@ const snap = (page) => page.evaluate(() => {
   }
 })
 const roving = (i) => [0, 1, 2, 3].map((k) => (k === i ? 0 : -1)).join(',')
-const is = (s, i) => s.selected === i + 1 && s.nSelected === 1 && s.tabindex === roving(i) && s.photo === PHOTO && s.line === LINES[i] &&
+const is = (s, i) => s.selected === i + 1 && s.nSelected === 1 && s.tabindex === roving(i) && s.photo === PHOTOS[i] && s.line === LINES[i] &&
   s.extended === String(i + 1) && s.circles === 3
 const all = (list) => list.every(([i, s]) => is(s, i))
 const trail = (list, key = 'selected') => list.map(([i, s]) => `${i + 1}->${s[key]}`).join(' ')
@@ -67,18 +74,17 @@ const away = async (page) => {
   await page.mouse.move(h.left + h.width / 2, h.top + h.height / 2)
 }
 
-/** Every frame for `ms`: each line's opacity, each shape's dash and width, each band's dash and its corner fill's opacity. */
+/** Every frame for `ms`: each line's opacity, each shape's dash and width. */
 const sampleFades = (page, ms) => page.evaluate((ms) => {
   const sec = document.querySelector('[data-section="talent"]')
   const lines = [...sec.querySelectorAll('p')]
   const shapes = [...sec.querySelectorAll('[role="tab"]')].map((b) => b.querySelectorAll('svg path')[2])
   const op = (el) => { const cs = getComputedStyle(el); return cs.visibility === 'visible' ? +cs.opacity : 0 }
   const form = (el) => { const cs = getComputedStyle(el); return [parseFloat(cs.strokeDasharray), parseFloat(cs.strokeWidth)] }
-  const groups = [...sec.querySelectorAll('[role="tabpanel"] svg g')]
   window.__fade = []
   const t0 = performance.now()
   const f = (now) => {
-    window.__fade.push([now, null, lines.map(op), shapes.map(form), groups.map((g) => parseFloat(getComputedStyle(g.firstElementChild).strokeDasharray)), groups.map((g) => op(g.lastElementChild))])
+    window.__fade.push([now, null, lines.map(op), shapes.map(form)])
     if (now - t0 < ms) requestAnimationFrame(f)
   }
   requestAnimationFrame(f)
@@ -145,9 +151,8 @@ async function band(page) {
     return { tab: b.dataset.nodeId, pts: out }
   }, GAP)
   const png = await page.screenshot()
-  const w = png.readUInt32BE(16)
-  const rgb = execFileSync('magick', ['png:-', '-alpha', 'off', '-depth', '8', 'rgb:-'], { input: png, maxBuffer: 1 << 28 })
-  const bad = pts.pts.filter(([x, y]) => { const i = (y * w + x) * 3; return Math.min(rgb[i], rgb[i + 1], rgb[i + 2]) < 250 })
+  const w = png.readUInt32BE(16), px = rgb(png)
+  const bad = pts.pts.filter(([x, y]) => { const i = (y * w + x) * 3; return Math.min(px[i], px[i + 1], px[i + 2]) < 250 })
   return { tab: pts.tab, n: pts.pts.length, bad: bad.length }
 }
 
@@ -158,7 +163,7 @@ async function band(page) {
  */
 const notches = (page) => page.evaluate((CIRCLE) => {
   const sec = document.querySelector('[data-section="talent"]')
-  const img = sec.querySelector('img'), box = img.getBoundingClientRect()
+  const img = sec.querySelector('[data-node-id="94:265"]'), box = img.getBoundingClientRect()
   const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), p = document.createElementNS(ns, 'path')
   p.setAttribute('d', getComputedStyle(img).clipPath.match(/path\("(.+)"\)/)[1])
   svg.append(p); document.body.append(svg)
@@ -179,18 +184,123 @@ const notches = (page) => page.evaluate((CIRCLE) => {
   })
 }, CIRCLE)
 
+const rgb = (png) => execFileSync('magick', ['png:-', '-alpha', 'off', '-depth', '8', 'rgb:-'], { input: png, maxBuffer: 1 << 28 })
+const HIDE = '[data-section="talent"] [role="tab"], [data-section="talent"] p { visibility: hidden !important }'
+const BLACK = `[data-section="talent"] img { filter: brightness(0) !important } ${HIDE}`
+const sliverPx = (png) => {
+  const area = (...op) => +execFileSync('magick', ['png:-', '-alpha', 'off', '-colorspace', 'gray', '-threshold', '50%', '-negate', ...op, '-format', '%[fx:mean*w*h]', 'info:'], { input: png }).toString()
+  return Math.round(area() - area('-morphology', 'Open', 'Disk:8'))
+}
 /**
  * Photo left as slivers: the visible photo (painted black, shapes and text hidden)
  * from a real screenshot, and the pixels an opening by an 8px disc removes from it.
  * Smooth edges and wide corners lose a few; a spike or a thin strip loses many.
  */
 async function slivers(page) {
-  const sec = '[data-section="talent"]'
-  const style = await page.addStyleTag({ content: `${sec} img { filter: brightness(0) !important } ${sec} [role="tab"], ${sec} p { visibility: hidden !important }` })
+  const style = await page.addStyleTag({ content: BLACK })
   const png = await page.locator('[data-node-id="94:264"]').screenshot()
   await style.evaluate((el) => el.remove())
-  const area = (...op) => +execFileSync('magick', ['png:-', '-alpha', 'off', '-colorspace', 'gray', '-threshold', '50%', '-negate', ...op, '-format', '%[fx:mean*w*h]', 'info:'], { input: png }).toString()
-  return Math.round(area() - area('-morphology', 'Open', 'Disk:8'))
+  return sliverPx(png)
+}
+
+/** The photo as a mask (0 where it shows) and how many separate pieces of 2 px or more it is in (a lone half-covered pixel is where two edges meet). */
+const mask = (png) => execFileSync('magick', ['png:-', '-alpha', 'off', '-colorspace', 'gray', '-threshold', '50%', 'gray:-'], { input: png, maxBuffer: 1 << 26 })
+const pieces = (png) => execFileSync('magick', ['png:-', '-alpha', 'off', '-colorspace', 'gray', '-threshold', '50%', '-define', 'connected-components:verbose=true', '-connected-components', '8', 'null:'], { input: png, maxBuffer: 1 << 26 })
+  .toString().split('\n').filter((l) => /gray\(0\)/.test(l) && +l.trim().split(/\s+/)[3] >= 2).length
+
+/** Sum of absolute byte differences, whether no byte differs by more than 3, and how many px are lighter than `top` in any channel. */
+const moved = (a, b) => { let n = 0; for (let j = 0; j < a.length; j++) n += Math.abs(a[j] - b[j]); return n }
+const near = (a, b) => { for (let j = 0; j < a.length; j++) if (Math.abs(a[j] - b[j]) > 3) return false; return true }
+const lighter = (c, top) => { let n = 0; for (let j = 0; j < c.length; j += 3) n += c[j] > top[j] + 6 || c[j + 1] > top[j + 1] + 6 || c[j + 2] > top[j + 2] + 6; return n }
+
+/**
+ * Switches from tab a to tab b frame by frame: each transition the switch starts is paused and
+ * stepped 1/60s at a time from when it started, to 50ms past the bands' end, with the page clock
+ * run on alongside (timers fire when they would), then the clock and the page 0.3s on. A third
+ * value switches on again that many ms in: back to a, or to a fourth value. Each step shoots the photo as slivers() does
+ * (black, shapes and text hidden) and in colour (shapes and text hidden). Returns per switch:
+ * when anything last changed by more than 3 levels, the most pieces the photo was in, the largest share of a corner
+ * (a's or the last selected tab's, the photo its fill takes at rest) changed in one step, the
+ * most sliver px over the 0.1s before the end, the most px of a step lighter than both tabs'
+ * settled photos (white showing through), the largest share of the change in one step, and the
+ * most a step outdoes both its neighbours by, as a share (a jump in an otherwise smooth change).
+ */
+async function settle(t, switches) {
+  const page = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
+  await page.clock.install()
+  await page.goto(t.url, { waitUntil: 'networkidle' })
+  await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  await page.addStyleTag({ content: `${HIDE} html:not(.qa-colour) [data-section="talent"] img { filter: brightness(0) !important }` })
+  const click = (i) => page.evaluate((i) => document.querySelectorAll('[data-section="talent"] [role="tab"]')[i].click(), i)
+  const shot = () => page.locator('[data-node-id="94:264"]').screenshot()
+  const colour = async () => {
+    await page.evaluate(() => document.documentElement.classList.add('qa-colour'))
+    const png = await shot()
+    await page.evaluate(() => document.documentElement.classList.remove('qa-colour'))
+    return png
+  }
+  // Adds the transitions just started, from `now`; returns when the bands stop, since anything
+  // else still changing after them is late.
+  const pause = (now) => page.evaluate((now) => {
+    const known = new Set(window.__run.map(([x]) => x))
+    window.__run = [...window.__run.filter(([x]) => x.playState !== 'idle'),
+      ...document.getAnimations().filter((x) => x.transitionProperty && !known.has(x)).map((x) => [x, now])]
+    window.__run.forEach(([x]) => x.pause())
+    return Math.max(0, ...window.__run.filter(([x]) => x.transitionProperty === 'stroke-dasharray').map(([x, off]) => off + x.effect.getComputedTiming().endTime))
+  }, now)
+  const corner = async () => {
+    const hide = await page.addStyleTag({ content: `${t.section} [role="tabpanel"] svg > g > g { display: none !important }` })
+    const bare = mask(await shot())
+    await hide.evaluate((el) => el.remove())
+    const full = mask(await shot())
+    return [...bare.keys()].filter((k) => !bare[k] && full[k])
+  }
+  const settled = []
+  for (const i of [0, 1, 2, 3]) {
+    await click(i)
+    await t.sleep(SETTLE_MS)
+    settled.push(rgb(await colour()))
+  }
+  const out = []
+  for (const [a, b, back, then = a] of switches) {
+    await click(a)
+    await t.sleep(SETTLE_MS)
+    const from = await corner()
+    const at = [-1], shots = [await shot()], colours = [await colour()]
+    await page.evaluate(() => { window.__run = [] })
+    await click(b)
+    let end = await pause(0), clock = 0, turned = !back
+    for (let k = 0, now = 0; now <= end + 50; now = ++k * 1000 / 60) {
+      if (!turned && now > back + 0.01) { await click(then); end = await pause(back); turned = true }
+      await page.evaluate((now) => window.__run.forEach(([x, off]) => { x.currentTime = now - off }), now)
+      if (Math.round(now) > clock) { await page.clock.runFor(Math.round(now) - clock); clock = Math.round(now) }
+      at.push(now)
+      shots.push(await shot())
+      colours.push(await colour())
+    }
+    await page.clock.runFor(300)
+    await t.sleep(300)
+    at.push(Infinity)
+    shots.push(await shot())
+    colours.push(await colour())
+    const to = await corner()
+    const masks = shots.map(mask), share = (px) => Math.max(...masks.slice(1).map((m, k) => px.filter((p) => !m[p] !== !masks[k][p]).length / px.length))
+    const px = colours.map(rgb), top = settled[a].map((v, j) => Math.max(v, settled[b][j], settled[then][j]))
+    const steps = px.slice(1).map((c, k) => moved(c, px[k]))
+    out.push({
+      run: `${a + 1}->${b + 1}${back ? `->${then + 1} at ${back}ms` : ''}`, end: at.find((x) => x >= end - 0.01),
+      still: at[px.findIndex((c, k) => px.slice(k).every((o) => near(o, c)))],
+      pieces: Math.max(...shots.map(pieces)),
+      jump: from.length && to.length ? Math.max(share(from), share(to)) : null,
+      tail: Math.max(...shots.filter((_, k) => at[k] >= end - 100 && at[k] < Infinity).map(sliverPx)),
+      wash: Math.max(...px.map((c) => lighter(c, top))),
+      step: Math.max(...steps) / steps.reduce((x, y) => x + y, 0),
+      pop: Math.max(...steps.map((v, k) => v - Math.max(steps[k - 1] ?? 0, steps[k + 1] ?? 0))) / steps.reduce((x, y) => x + y, 0),
+    })
+  }
+  await page.close()
+  return out
 }
 
 /** Worst distance between a circle's number and the circle's centre, over the unselected tabs. */
@@ -287,27 +397,23 @@ export default async function (page, t) {
     `2 shrinks ${f2(shrink[0])} -> ${f2(shrink.at(-1))} (falling ${falling}), width ${f2(w1[0])} -> ${f2(w1.at(-1))}; 3 and 4 stay circles ${held}; ` +
     `${steps.length} frames, longest ${worstFrame.toFixed(1)}ms`)
 
-  // The corner fill rounds the corner of a finished band: never before it, soon after, gone as it leaves.
-  // Once the band leaves (or starts) and the fill is hidden, the fill stays hidden until the band is out again.
-  const fillTiming = (rec, k) => {
-    const from = rec.findIndex((x) => x[4][k] < 0.999)
-    const hid = rec.findIndex((x, j) => j >= from && x[5][k] <= 0.01)
-    const done = rec.findIndex((x, j) => j > hid && x[4][k] >= 0.999)
-    const shown = rec.findIndex((x, j) => j >= done && x[5][k] >= 0.999)
-    const early = rec.filter((x, j) => j > hid && j < done && x[5][k] > 0.01).length
-    return { early, lag: from < 0 || hid < 0 || done < 0 || shown < 0 ? Infinity : rec[shown][0] - rec[done][0] }
-  }
-  const f1 = fillTiming(one, 0)
-  const gone2 = one.findIndex((x) => x[5][1] <= 0.01), fade2 = gone2 < 0 ? Infinity : one[gone2][0] - one[0][0]
-  await sampleFades(page, 1000)
-  await page.mouse.move(pts[0].x, pts[0].y)
-  await t.sleep(60)
-  await page.mouse.move(pts[1].x, pts[1].y)
-  await t.sleep(1100)
-  const back = fillTiming(await page.evaluate(() => window.__fade), 1)
-  t.check('M-05', f1.early === 0 && f1.lag <= 200 && fade2 <= 150 && back.early === 0 && back.lag <= 200,
-    `corner fill: 2->1, fill 1 drawn ${f1.lag.toFixed(0)}ms after band 1 is out (${f1.early} frames early), fill 2 gone within ${fade2.toFixed(0)}ms; ` +
-    `2->1->2 in 60ms, fill 2 back ${back.lag.toFixed(0)}ms after band 2 (${back.early} frames early)`)
+  // The corner rounds as the band arrives, inside the same transition, for every corner growing
+  // and shrinking, a switch sent back half way and one sent on. Frame by frame: the photo stays one piece (no
+  // fleck left behind), no step changes more than JUMP of a corner (no snap), nothing changes
+  // after the bands stop (no flick after), and the last 0.1s leaves no spike (16 px or more; 22
+  // to 55 without a fill).
+  const runs = await settle(t, [[3, 0], [0, 1], [1, 2], [2, 3], [1, 0, 200], [0, 1, 200, 2]])
+  t.check('M-05', runs.every((r) => r.still <= r.end && r.pieces === 1 && r.jump !== null && r.jump <= JUMP && r.tail < 16),
+    `corner rounds with its band, stepped 1/60s with the page clock: ${runs.map((r) => `${r.run} still from ` +
+      `${r.still === Infinity ? 'after the end' : `${r.still.toFixed(0)}`}/${r.end.toFixed(0)}ms, ${r.pieces} piece${r.pieces > 1 ? 's' : ''}, ` +
+      `${r.jump === null ? 'no corner fill' : `corner step ${(r.jump * 100).toFixed(0)}%`}, tail slivers ${r.tail}`).join('; ')} (step under ${JUMP * 100}%; a spike is 16 or more)`)
+  // The new number's photo comes in over the old one in the same steps: no step lighter than
+  // both photos (white through a crossfade), none taking more than STEP of the change (a swap),
+  // and none standing out from both its neighbours by more than POP (a jump, as when a layer drops).
+  t.check('M-05', runs.every((r) => r.wash <= WASH && r.step <= STEP && r.pop <= POP),
+    `photo changes with its number: ${runs.map((r) => `${r.run} ${r.wash} px lighter than both photos, ` +
+      `${(r.step * 100).toFixed(0)}% of the change in one step, a step ${(r.pop * 100).toFixed(1)}% over its neighbours`).join('; ')} ` +
+    `(at most ${WASH} px, under ${STEP * 100}% and ${POP * 100}%)`)
 
   t.check('M-04', offsets.every((d) => d <= 0.5),
     `numbers centred in their circles: worst ${offsets.map((d) => `${f2(d)}px`).join(', ')} across hover 1, 3, 4, 2`)
@@ -393,14 +499,18 @@ export default async function (page, t) {
   await touch.close()
   t.check('M-04', all(tapped) && !touchReset, `tap selects: ${trail(tapped)}${touchReset ? ' (page reloaded mid-check, rerun)' : ''}`)
 
-  // M-05: one photo, the Figma image fill, shown in every state and never swapped.
-  const photos = await page.$$eval(`${t.section} img`, (imgs) => Promise.all(imgs.map(async (i) => {
+  // M-05: a photo per number, each at 2x the box, all in the one clipped box (Figma's for 2).
+  const photos = await page.$eval('[data-section="talent"] [data-node-id="94:265"]', (box, srcs) => Promise.all(srcs.map(async (src) => {
+    const i = new Image()
+    i.src = `/assets/talent/${src}`
     const decoded = await i.decode().then(() => true, () => false)
-    const r = i.getBoundingClientRect()
-    return { src: i.src.split('/').pop(), w: i.naturalWidth, h: i.naturalHeight, at2x: decoded && Math.abs(i.naturalWidth - 2 * r.width) <= 1.5 && Math.abs(i.naturalHeight - 2 * r.height) <= 1.5, clip: getComputedStyle(i).clipPath.startsWith('path(') }
-  })))
-  t.check('M-05', photos.length === 1 && photos[0].src === PHOTO && photos[0].at2x && photos[0].clip && [rest, ...hovered.map(([, s]) => s), ...keyed.map(([, s]) => s)].every((s) => s.photo === PHOTO),
-    `one photo: ${photos.map((p) => `${p.src} ${p.w}x${p.h} decoded at 2x its box ${p.at2x}, clipped to a vector ${p.clip}`).join(', ')}; shown unchanged in all ${1 + hovered.length + keyed.length} states sampled`)
+    const r = box.getBoundingClientRect()
+    return { src, w: i.naturalWidth, h: i.naturalHeight, at2x: decoded && Math.abs(i.naturalWidth - 2 * r.width) <= 1.5 && Math.abs(i.naturalHeight - 2 * r.height) <= 1.5 }
+  })).then((list) => ({ list, clip: getComputedStyle(box).clipPath.startsWith('path('), inside: [...box.querySelectorAll('img')].every((i) => i.getBoundingClientRect().width === box.getBoundingClientRect().width) })), PHOTOS)
+  const states = [[REST, rest], ...hovered, ...keyed]
+  t.check('M-05', photos.list.every((p) => p.at2x) && photos.clip && photos.inside && states.every(([i, s]) => s.photo === PHOTOS[i]),
+    `photo per number: ${photos.list.map((p) => `${p.src} ${p.w}x${p.h} at 2x ${p.at2x}`).join(', ')}; box clipped to a vector ${photos.clip}, photos fill it ${photos.inside}; ` +
+    `each shown alone once settled in all ${states.length} states sampled (${[...new Set(states.map(([, s]) => s.photo))].length} photos)`)
 
   // M-06: the tagline.
   const lines = await fit(page)
@@ -440,11 +550,11 @@ export async function reduced(page, t) {
     keys.push([i, await snap(page), key])
   }
   const durs = await page.$$eval(`${t.section} img[src$=".webp"], ${t.section} p`, (els) => els.map((e) => parseFloat(getComputedStyle(e).transitionDuration) || 0))
-  const morph = await page.$$eval(`${t.section} svg path`, (els) => Math.max(...els.map((e) => parseFloat(getComputedStyle(e).transitionDuration) || 0)))
+  const morph = await page.$$eval(`${t.section} svg path, ${t.section} svg circle`, (els) => Math.max(...els.map((e) => parseFloat(getComputedStyle(e).transitionDuration) || 0)))
   t.check('M-04', is(rest, REST) && all(seen) && all(keys) && morph === 0,
     `reduced, still switches with no morph: hover ${trail(seen)}, keys ${keys.map(([, s, k]) => `${k}->${s.selected}`).join(' ')}, each within 2 frames; longest shape transition ${morph}s`)
-  t.check('M-05', [...seen, ...keys].every(([, s]) => s.photo === PHOTO) && Math.max(...durs) === 0,
-    `reduced, one photo and instant lines: ${[...new Set(seen.map(([, s]) => s.photo))].join(', ')}; longest transition ${Math.max(...durs)}s`)
+  t.check('M-05', [...seen, ...keys].every(([i, s]) => s.photo === PHOTOS[i]) && Math.max(...durs) === 0,
+    `reduced, instant photos and lines: ${seen.map(([i, s]) => `${i + 1} ${s.photo}`).join(', ')}; longest transition ${Math.max(...durs)}s`)
   t.check('M-06', [...seen, ...keys].every(([i, s]) => s.line === LINES[i]),
     `reduced, tagline instant: ${seen.map(([, s]) => `"${s.line}"`).join(', ')}`)
 }

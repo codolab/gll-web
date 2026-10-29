@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useReducedMotion } from '../motion'
 
 /** talent - Figma 94:935. Heading, blob photo with four numbered shapes, tagline. */
 
@@ -25,21 +26,34 @@ const place = (p: Pt, c: Pt, q: number): Pt => {
   return [c[0] + x, c[1] + y]
 }
 
-// The photo (94:265): Figma's image fill at 2x its box (scripts/assets.mjs fill),
-// clipped to a vector, so the edge stays sharp at any density. Figma's own outline is
-// cut round the 2 loop; this one gives every number the same notch and a petal
-// between each pair, so only the selected loop cuts in (scripts/talent-mask.mjs).
+// The photo (94:265), one per number, clipped to a vector so the edge stays sharp at any
+// density. Figma's own outline is cut round the 2 loop; this one gives every number the same
+// notch and a petal between each pair, so only the selected loop cuts in (scripts/talent-mask.mjs).
 const PHOTO = { x: 108.398, y: 103.4, w: 504.147, h: 529.354 }
+// 2 is Figma's image fill; 1, 3 and 4 are the hero photos 94:93, 94:95 and 94:101 (gaps.md G-06),
+// all baked at 2x this box by scripts/assets.mjs fill.
+const PHOTOS = [
+  { src: '/assets/talent/jaqs-volleyball.webp', alt: 'GLL members standing together for a group photo' },
+  { src: '/assets/talent/vilnius-photo.webp', alt: 'GLL community members gathered for a group portrait in Vilnius' },
+  { src: '/assets/talent/yolk-volley-308.webp', alt: 'GLL members taking a group selfie at an event' },
+  { src: '/assets/talent/yolk-volley-274.webp', alt: 'GLL members networking at a reception' },
+]
+// Fetched with the page, so a photo is there the first time its number is chosen.
+for (const p of PHOTOS) new Image().src = p.src
 const BLOB =
   'M68.152 22.516C100.651 -9.995 122.75 -2.492 146.149 33.77C200.746 108.796 298.242 105.045 358.039 30.019C386.638 -11.245 410.037 -6.244 441.235 22.516C455.101 36.688 468.967 50.859 482.833 65.031C510.132 91.29 507.59 118.221 487.376 132.931C412.35 187.528 416.101 285.024 491.127 344.821C508.174 358.408 511.238 406.123 481.276 444.382C467.571 462.64 453.866 480.899 440.161 499.157C406.438 539.348 392.579 530.828 368.861 498.236C314.264 423.21 216.768 426.961 156.971 501.987C133.572 530.747 95.451 536.443 69.452 512.685C54.286 498.097 39.12 483.508 23.954 468.92C-5.945 440.16 -8.544 416.402 20.054 385.141C82.451 315.117 86.351 227.587 29.154 158.813C-0.745 121.3 0.555 98.792 29.154 67.532C42.153 52.526 55.153 37.521 68.152 22.516Z'
-// Where each loop's band meets the next number's notch, a rounded white corner
-// instead of a spike of photo, as Figma draws it after 2 (scripts/talent-mask.mjs).
+// Where each loop's band meets the next number's notch, the corner is rounded to RHO, as Figma
+// draws it after 2, instead of left as a spike of photo: a white ring round CORNERS' centre,
+// clipped to FILLS, whose inner edge closes in from the third value (in RHO) to RHO with the
+// band, so the spike is trimmed from its tip as the band arrives (scripts/talent-mask.mjs).
 const FILLS = [
-  'M399.91 179.91A150 150 0 0 1 541.39 333.99L653.54 342.19L611.34 182.8L405.52 80.54Z',
-  'M500.64 502.13A150 150 0 0 1 383.61 547.44L371.4 659.4L550.14 593.12L572.11 571.41Z',
-  'M227.45 521.21A150 150 0 0 1 176.7 388.4L71.84 367.84L120.47 556L162.41 596.56Z',
-  'M172.15 332.16A150 150 0 0 1 340.83 190.67L360.4 79.4L175.24 116.91L72.73 327.31Z',
+  'M399.91 179.91L391.46 329.67L541.39 333.99L653.54 342.19L609 180.36L593.88 165L579.4 151.17L565.36 138.81L551.55 127.84L537.76 118.2L523.8 109.82L509.46 102.62L494.53 96.54L478.82 91.5L462.11 87.45L444.21 84.3L424.91 81.99L405.52 80.54Z',
+  'M500.64 502.13L392.94 397.73L383.61 547.44L371.4 659.4L619.5 511.9L610.56 525.76L600.33 539.53L588.75 553.42L575.73 567.64L572.11 571.41Z',
+  'M227.45 521.21L325.46 407.66L176.7 388.4L71.84 367.84L120.47 556L135.7 571.6L150.26 585.65L162.41 596.56Z',
+  'M172.15 332.16L321.97 339.48L340.83 190.67L360.4 79.4L175.24 116.91L159.64 132.14L145.59 146.7L133.01 160.8L121.84 174.63L112.01 188.41L103.44 202.33L96.06 216.6L89.82 231.43L84.63 247.01L80.43 263.55L77.16 281.26L74.73 300.34L73.08 321L72.73 327.31Z',
 ]
+const CORNERS = [[391.46, 329.67, 2.19], [392.94, 397.73, 5.52], [325.46, 407.66, 3.93], [321.97, 339.48, 4.87]]
+const RHO = 150
 // 2 is the Figma frame; the other lines are placeholders from frame 94:84 (gaps.md G-06).
 const LINES = ['Global minds. Lithuanian roots.', 'One community. Endless possibilities.', 'Your next chapter starts here.', 'Go further, together.']
 const REST = 1 // the Figma frame shows 2 extended
@@ -66,11 +80,8 @@ const LINE_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration
 const LINE_OFF = 'invisible opacity-0 motion-safe:transition-[opacity,visibility] motion-safe:duration-150'
 // The loop grows from the circle along its path while the previous one shrinks back [PROPOSED DEFAULT 0.4s].
 const MORPH = 'motion-safe:transition-[stroke-dasharray,stroke-width] motion-safe:duration-400 motion-safe:ease-in-out'
-// A loop's corner fill rounds the corner its finished band makes, so it shows once the
-// band has grown (at once without motion) and fades as the band starts to shrink.
-const FILL_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration-100'
-const FILL_WAIT = 'opacity-0 motion-reduce:opacity-100'
-const FILL_OFF = 'opacity-0 motion-safe:transition-opacity motion-safe:duration-100'
+// A new photo fades in over whatever shows, in the loop's time [PROPOSED DEFAULT]; --fade is in index.css.
+const FADE = 'opacity-(--fade) starting:[--fade:0] motion-safe:transition-[--fade] motion-safe:duration-400 motion-safe:ease-in-out'
 
 const TAB = 'absolute z-[1] cursor-pointer appearance-none overflow-visible outline-hidden [-webkit-tap-highlight-color:transparent]'
 const STEP: Record<string, (i: number) => number> = {
@@ -90,23 +101,26 @@ const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => (
 
 export default function Talent() {
   const uid = useId()
+  const clip = uid.replace(/\W/g, '')
   const [active, setActive] = useState(REST)
-  // The loop whose band has finished growing, set when its transition ends.
-  const [grown, setGrown] = useState<number | null>(REST)
+  // Photos in the order chosen, each over the last, so however fast the numbers change no white
+  // shows through and nothing pops; the ones under a photo go once it is in. Going back to a
+  // photo still in the stack fades the ones over it back out instead, as the bands reverse.
+  const [layers, setLayers] = useState<{ key: number; i: number; out?: boolean }[]>([{ key: 0, i: REST }])
+  const reduced = useReducedMotion()
+  const select = (i: number) => {
+    setActive(i)
+    setLayers((l) => {
+      const j = l.map((x) => x.i).lastIndexOf(i), key = l[l.length - 1].key + 1
+      if (reduced) return l[l.length - 1].i === i ? l : [{ key, i }]
+      if (j < 0) return [...l, { key, i }]
+      if (j === l.length - 1 && !l[j].out) return l
+      return l.map((x, k) => (k > j ? { ...x, out: true } : k === j ? { ...x, out: false } : x))
+    })
+  }
   // While a tab holds focus it keeps the tab stop, so a hover elsewhere cannot move it.
   const [focused, setFocused] = useState<number | null>(null)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
-
-  const select = (i: number) => {
-    if (i === active) return
-    setActive(i)
-    setGrown(null)
-  }
-  // A selection flipped back within one frame never transitions, so no end event comes.
-  useEffect(() => {
-    const t = setTimeout(() => setGrown(active), 450)
-    return () => clearTimeout(t)
-  }, [active])
 
   // Tabs with automatic activation: hover, focus, tap or arrow keys select.
   const tab = (i: number) => ({
@@ -196,16 +210,31 @@ export default function Talent() {
             </div>
 
             <div role="tabpanel" id={`${uid}panel`} aria-labelledby={`${uid}tab${active}`} className="absolute left-0 top-0">
-              <img
-                data-node-id="94:265"
-                src="/assets/talent/vilnius-photo.webp"
-                alt="GLL community members gathered for a group portrait in Vilnius"
-                draggable={false}
-                className="absolute max-w-none"
-                style={{ left: PHOTO.x, top: PHOTO.y, width: PHOTO.w, height: PHOTO.h, clipPath: `path('${BLOB}')` }}
-              />
+              {/* One clip for all the layers, so the edge never changes while they stack. */}
+              <div data-node-id="94:265" className="absolute" style={{ left: PHOTO.x, top: PHOTO.y, width: PHOTO.w, height: PHOTO.h, clipPath: `path('${BLOB}')` }}>
+                {layers.map((l, k, all) => (
+                  <img
+                    key={l.key}
+                    src={PHOTOS[l.i].src}
+                    alt={all.map((x) => !x.out).lastIndexOf(true) === k ? PHOTOS[l.i].alt : ''}
+                    draggable={false}
+                    className={`absolute left-0 top-0 size-full ${l.key ? FADE : ''} ${l.out ? '[--fade:0]' : ''}`}
+                    onTransitionEnd={() => setLayers((all) => {
+                      const k = all.findIndex((x) => x.key === l.key)
+                      return k < 0 ? all : all[k].out ? all.filter((_, m) => m !== k) : all.slice(k)
+                    })}
+                  />
+                ))}
+              </div>
               {/* The white band each loop takes off the photo: over the photo, under the tagline. */}
               <svg aria-hidden="true" className="pointer-events-none absolute left-0 top-0 overflow-visible" style={{ width: FRAME.w, height: FRAME.h }}>
+                <defs>
+                  {FILLS.map((d, i) => (
+                    <clipPath key={d} id={`${clip}fill${i}`}>
+                      <path d={d} />
+                    </clipPath>
+                  ))}
+                </defs>
                 {SHAPES.map((s, i) => (
                   <g key={s.id}>
                     <path
@@ -216,9 +245,20 @@ export default function Talent() {
                       strokeLinecap="round"
                       className={MORPH}
                       style={{ strokeDasharray: active === i ? '1 2' : '0 2', strokeWidth: active === i ? PILL_W + 2 * GAP : s.d }}
-                      onTransitionEnd={(e) => e.propertyName === 'stroke-dasharray' && active === i && setGrown(i)}
                     />
-                    <path d={FILLS[i]} fill="white" className={active !== i ? FILL_OFF : grown === i ? FILL_ON : FILL_WAIT} />
+                    {/* Stroke width, like the band, not a transform: Chrome runs transforms off the
+                        main thread, where the ring could get a frame ahead of the band. */}
+                    <g clipPath={`url(#${clip}fill${i})`}>
+                      <circle
+                        cx={CORNERS[i][0]}
+                        cy={CORNERS[i][1]}
+                        r={RHO * CORNERS[i][2]}
+                        fill="none"
+                        stroke="white"
+                        className={MORPH}
+                        style={{ strokeWidth: active === i ? 2 * RHO * (CORNERS[i][2] - 1) : 0 }}
+                      />
+                    </g>
                   </g>
                 ))}
               </svg>

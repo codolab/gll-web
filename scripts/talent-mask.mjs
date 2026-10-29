@@ -1,5 +1,5 @@
 // The talent photo's outline and the corner fills for its loops (motion-spec M-05).
-//   node scripts/talent-mask.mjs   prints BLOB, FILLS and REACH for src/sections/Talent.tsx
+//   node scripts/talent-mask.mjs   prints BLOB, FILLS and CORNERS for src/sections/Talent.tsx
 //
 // Figma's photo outline (94:265 fillGeometry, below) is drawn for "2 selected": its
 // right side is cut round the 2 loop. The resting outline has to be the same for
@@ -9,8 +9,9 @@
 // turned 180deg and stretched along its chord to span the wider gap there.
 //
 // A selected loop's white band crosses the petal ahead of it and leaves a spike of
-// photo where it meets the next number's notch. Each FILL rounds that corner with an
-// arc tangent to both (radius RHO, the one that best matches Figma's own corner there).
+// photo where it meets the next number's notch. That corner is rounded with an arc
+// tangent to both (radius RHO, the one that best matches Figma's own corner there),
+// drawn by a white ring clipped to the corner's FILL.
 import { readFileSync } from 'node:fs'
 
 const FIGMA = 'M68.152 22.5161C100.651 -9.99506 122.75 -2.49247 146.149 33.77C200.746 108.796 298.242 105.045 358.039 30.0187C386.638 -11.2455 410.037 -6.24377 441.235 22.5161L482.833 65.0308C510.132 91.2898 511.432 122.551 485.433 147.559C446.435 188.823 442.535 238.841 442.535 278.854C441.235 367.635 387.938 432.658 298.242 436.409C226.745 438.91 183.847 463.918 148.748 506.433C125.349 535.193 95.4508 536.443 69.452 512.685L23.954 468.92C-5.94461 440.16 -8.54449 416.402 20.0542 385.141C82.4514 315.117 86.3512 227.587 29.1538 158.813C-0.744841 121.3 0.555101 98.7924 29.1538 67.5317L68.152 22.5161Z'
@@ -68,12 +69,21 @@ const r3 = (x) => +x.toFixed(3)
 const blob = `M${sub(outline[0][0], PHOTO).map(r3).join(' ')}` +
   outline.map((c) => `C${c.slice(1).map((p) => sub(p, PHOTO).map(r3).join(' ')).join(' ')}`).join('') + 'Z'
 
-// Corner fills: a circle of radius RHO, RHO from the band of loop i and from notch i+1,
-// inside the outline; closed through white: the next circle's centre, the loop's end, its centreline.
+// Corner fills: a circle of radius RHO, RHO from the band of loop i and from notch i+1, inside
+// the outline. At rest a fill is the corner it rounds off, closed through white: the next
+// circle's centre, the loop's end, its centreline.
 const ring = outline.flatMap((c) => sample(c, 300))
-const inside = (q) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > q[1]) !== (yj > q[1]) && q[0] < ((xj - xi) * (q[1] - yi)) / (yj - yi) + xi) c = !c } return c }
+const within = (poly, q) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > q[1]) !== (yj > q[1]) && q[0] < ((xj - xi) * (q[1] - yi)) / (yj - yi) + xi) c = !c } return c }
+const inside = (q) => within(ring, q)
 const R = PILL_W / 2 + GAP
-let reach = 0, past = false
+// Each fill is drawn as a white ring round its corner circle, clipped to a shape whose sides all
+// run through white once the band has passed them: into the next notch, along the band's
+// centreline, and through the circle itself, where the ring never draws. The ring's radius is
+// s RHO and the band's own transition widens its stroke from 0 to 2 (s - 1) RHO, so at progress
+// p the band (dash p, width d + (W - d) p) and the ring's inner edge (s + (1 - s) p, in RHO) move
+// together. The ring may reach a side only once the band covers it, so it never strands photo or
+// shows a straight edge: s is the least that keeps that, over the centreline points to close on.
+const corners = []
 const fills = C.map(([cx, cy], i) => {
   const loop = sample(PILL.map((p) => (i === 1 ? p : add([cx, cy], turn(sub(p, PILL[0]), [-1, 0, 1, 2][i])))))
   const notch = sample(notches[(i + 1) % 4]), E = loop.at(-1)
@@ -96,16 +106,39 @@ const fills = C.map(([cx, cy], i) => {
   }
   let da = Math.atan2(...sub(T2, F).reverse()) - Math.atan2(...sub(T1, F).reverse())
   da = Math.atan2(Math.sin(da), Math.cos(da))
-  // How far from the loop the arc reaches, and whether it reaches past the loop's end.
-  for (let j = 0; j <= 60; j++) {
-    const a = Math.atan2(...sub(T1, F).reverse()) + (da * j) / 60, q = add(F, [RHO * Math.cos(a), RHO * Math.sin(a)])
-    const [d, , at] = nearest(loop, q)
-    reach = Math.max(reach, d); past ||= at === loop.length - 1
-  }
   const nc = C[(i + 1) % 4].slice(0, 2), f = (p) => p.map((x) => +x.toFixed(2)).join(' ')
-  return `M${f(T1)}A${RHO} ${RHO} 0 0 ${da > 0 ? 1 : 0} ${f(T2)}L${f(nc)}L${f(E)}L${f(pl)}Z`
+  const a1 = Math.atan2(...sub(T1, F).reverse())
+  const fill = [...Array.from({ length: 61 }, (_, j) => add(F, [RHO * Math.cos(a1 + (da * j) / 60), RHO * Math.sin(a1 + (da * j) / 60)])), nc, E, pl]
+  // When the band (or the outline) first covers a point, as progress 0 to 1.
+  const at = [0]
+  for (let j = 1; j < loop.length; j++) at.push(at[j - 1] + len(sub(loop[j], loop[j - 1])))
+  const L = at.at(-1), d0 = 2 * C[i][2], W = 2 * R
+  const cover = (q) => inside(q) ? Math.max(0, Math.min(...loop.map((c, j) => Math.max(at[j] / L, (2 * len(sub(q, c)) - d0) / (W - d0))))) : 0
+  // The photo each grid point shows at rest, with the fill above and with a candidate.
+  const xs = fill.map((p) => p[0]), ys = fill.map((p) => p[1]), grid = []
+  for (let x = Math.floor(Math.min(...xs)) - 4; x <= Math.max(...xs) + 4; x++) for (let y = Math.floor(Math.min(...ys)) - 4; y <= Math.max(...ys) + 4; y++) {
+    const q = [x, y]
+    if (inside(q) && len(sub(q, F)) > RHO + 1 && nearest(loop, q)[0] > R + 1) grid.push([q, within(fill, q)])
+  }
+  let pick
+  for (let jq = 0; jq < loop.length; jq += 15) {
+    const clip = [T1, F, T2, nc], dir = Math.sign(jl - jq)
+    for (let j = jq; (jl - j) * dir > 0; j += 100 * dir) clip.push(loop[j])
+    clip.push(loop[jl])
+    const edges = clip.flatMap((a, j) => { const b = clip[(j + 1) % clip.length], n = Math.ceil(len(sub(b, a))); return Array.from({ length: n }, (_, k) => lerp(a, b, k / n)) })
+    let s = 1
+    for (const q of edges) {
+      const D = len(sub(q, F)) / RHO, c = cover(q)
+      if (D > 1.003) s = Math.max(s, c >= 1 ? Infinity : (D - c) / (1 - c))
+    }
+    if (s < (pick?.s ?? Infinity) && grid.every(([q, was]) => was === within(clip, q))) pick = { s, clip }
+  }
+  if (!pick) throw new Error(`loop ${i + 1}: no clip both matches the fill at rest and runs through white`)
+  if (pick.clip.some((q) => len(sub(q, F)) >= 3 * RHO)) throw new Error(`loop ${i + 1}: clip reaches past the ring`)
+  corners.push([...F.map((v) => +v.toFixed(2)), Math.ceil(pick.s * 100) / 100])
+  return `M${pick.clip.map(f).join('L')}Z`
 })
 
 console.log(`const BLOB =\n  '${blob}'`)
 console.log(`const FILLS = [\n${fills.map((d) => `  '${d}',`).join('\n')}\n]`)
-console.log(`const REACH = ${Math.ceil(reach) + 2}${past ? ' // WARNING: an arc reaches past its loop end' : ''}`)
+console.log(`const CORNERS = ${JSON.stringify(corners).replace(/,/g, ', ')}`)
