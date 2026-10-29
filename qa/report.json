@@ -1,6 +1,6 @@
 {
- "url": "http://localhost:4205/",
- "at": "2026-10-28T22:58:35.009Z",
+ "url": "http://localhost:4197/",
+ "at": "2026-10-29T11:45:29.293Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -3583,35 +3583,38 @@
    },
    "raster": {
     "window": "1984x1734",
-    "ae": 2.009,
-    "structural": 0,
-    "structBlob": null,
-    "diffPx": 31641,
-    "thickPx": 24,
-    "thick": 0.0007,
-    "edgeOnly": 99.9,
+    "ae": 2.086,
+    "structural": 0.429,
+    "structBlob": {
+     "cells": 34,
+     "at": "72x152 at 900,1592"
+    },
+    "diffPx": 39159,
+    "thickPx": 9604,
+    "thick": 0.2792,
+    "edgeOnly": 75.5,
     "shift": {
      "dx": 0,
      "dy": 0,
      "atEdge": false,
      "gain": 0,
-     "expX": -0.11,
-     "expY": 0.23
+     "expX": -0.09,
+     "expY": 0.27
     },
     "ink": {
      "whole": {
-      "dx": -0.17,
-      "dy": 0.25
+      "dx": -0.16,
+      "dy": 0.28
      },
      "worst": {
-      "y": 1367.5,
+      "y": 1922,
       "h": 185,
-      "dx": -0.2,
-      "dy": 0.23,
-      "expX": -0.43,
-      "expY": -0.06,
-      "resX": 0.23,
-      "resY": 0.29
+      "dx": -0.26,
+      "dy": 0.04,
+      "expX": -0.08,
+      "expY": 0.28,
+      "resX": -0.18,
+      "resY": -0.24
      },
      "flagged": 0,
      "bands": [
@@ -3636,68 +3639,68 @@
        "y": 1367.5,
        "h": 185,
        "dx": -0.2,
-       "dy": 0.23,
+       "dy": 0.14,
        "method": {
         "x": "lsq",
         "y": "ncc"
        },
-       "expX": -0.43,
-       "expY": -0.06,
-       "spreadX": 0.59,
-       "spreadY": 0.59,
-       "resX": 0.23,
-       "resY": 0.29,
+       "expX": -0.08,
+       "expY": 0.28,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.12,
+       "resY": -0.14,
        "empty": false
       },
       {
        "y": 1552.5,
        "h": 185,
-       "dx": -0.17,
-       "dy": 0.03,
+       "dx": -0.24,
+       "dy": 0.45,
        "method": {
-        "x": "ncc",
+        "x": "lsq",
         "y": "lsq"
        },
-       "expX": -0.19,
-       "expY": 0.16,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": 0.02,
-       "resY": -0.13,
+       "expX": -0.11,
+       "expY": 0.26,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.13,
+       "resY": 0.19,
        "empty": false
       },
       {
        "y": 1737.5,
        "h": 184.5,
-       "dx": -0.2,
-       "dy": 0.08,
+       "dx": -0.16,
+       "dy": 0.17,
        "method": {
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.06,
-       "expY": 0.27,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": -0.14,
-       "resY": -0.19,
+       "expX": -0.11,
+       "expY": 0.26,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.05,
+       "resY": -0.09,
        "empty": false
       },
       {
        "y": 1922,
        "h": 185,
-       "dx": -0.25,
+       "dx": -0.26,
        "dy": 0.04,
        "method": {
         "x": "ncc",
         "y": "ncc"
        },
-       "expX": -0.01,
-       "expY": 0.32,
-       "spreadX": 0.78,
-       "spreadY": 0.74,
-       "resX": -0.24,
-       "resY": -0.28,
+       "expX": -0.08,
+       "expY": 0.28,
+       "spreadX": 0.39,
+       "spreadY": 0.39,
+       "resX": -0.18,
+       "resY": -0.24,
        "empty": false
       }
      ]
@@ -3933,7 +3936,7 @@
       "id": "94:265",
       "name": "Vilnius portrait — Custom photo shape",
       "type": "VECTOR",
-      "tag": "img",
+      "tag": "div",
       "dx": -0.01,
       "dy": -0.01,
       "dw": -0.01,
@@ -3965,12 +3968,12 @@
    },
    "broken": [],
    "errors": [],
-   "verdict": "PASS",
+   "verdict": "FAIL",
    "gates": {
     "geometry": true,
     "ae": true,
-    "structural": true,
-    "edgeOnly": true,
+    "structural": false,
+    "edgeOnly": false,
     "ink": true
    }
   },
