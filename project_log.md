@@ -298,3 +298,11 @@ section is gated against `design/figma/logos.composed.png`.
   1200 and 1440 pixel-identical to main 3c4a869; wide 9/11 PASS, logos and
   talent failing exactly as desktop does (raster floor; M-G1 outline by design).
   Designer questions: G-12 stretched wide logo, G-13 stray meet card, G-14.
+- Second private review of the fix commits: no functional breaks. Fixed: desktop
+  hero rows had clones for a 2560 window the desktop canvas never gets, which
+  re-rasterised the moving rows differently from main (now cloned for the 1540
+  switch: main's 10 tiles per row, identical with motion on at 1440); the solid
+  nav bar now stops with the composition at 2560. Accepted and noted in G-11:
+  motion-on raster differences at scaled widths (hero row 3, logo strip), a
+  21-40px last step on the mobile meet row at 652-671 (the price of every card
+  being reachable), one WebKit anti-aliasing row at scaled widths.
