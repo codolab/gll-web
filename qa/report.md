@@ -1,6 +1,6 @@
 # GLL parity report
 
-Build: http://localhost:4198/ · captured 2026-10-28T13:40:25.260Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Build: http://localhost:4205/ · captured 2026-10-28T22:58:35.008Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
 Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |
@@ -15,7 +15,7 @@ Verdicts: 10 PASS, 1 FAIL, 0 STUB, 0 ERROR.
 | meet | built | +0,+23 | 50/50 | 0.95 | 0/0 of 9 | 2.782 | 0 | 100 (14) | 0,0 / 0.08,0.27 | y5561+60.5 | -0.42,-0.41 | 0.06,-0.04 | -0.48,-0.37 | PASS |
 | talent | built | +3,+26 | 15/15 | 0.02 | 0/0 of 6 | 2.009 | 0 | 99.9 (24) | 0,0 / -0.11,0.23 | y1367.5+185 | -0.2,0.23 | -0.43,-0.06 | 0.23,0.29 | PASS |
 | community | built | 0,0 | 24/24 | 0.02 | 0/0 of 12 | 2.583 | 0 | 99.8 (184) | 0,0.5 / 0,0.43 | y6610.5+213 | 0.01,0.45 | 0,0.22 | 0.01,0.23 | PASS |
-| footer | built | 0,0 | 41/41 | 0.01 | 0/0 of 21 | 1.965 | 0 | 98.7 (650) | 0,0.5 / 0,0.45 | y7252+214 | 0.01,0.28 | 0,0.5 | 0.01,-0.22 | PASS |
+| footer | built | 0,0 | 41/41 | 0.01 | 0/0 of 21 | 1.966 | 0 | 98.7 (674) | 0,0.5 / 0,0.45 | y7252+214 | 0.01,0.28 | 0,0.5 | 0.01,-0.22 | PASS |
 
 Gates: geometry boxes/images/vectors max |dx,dy,dw,dh| <= 1px; text origin <= 1px and text size <= 1px, scored separately. ae <= 3% (4% fuzz). structural <= 0.1% of 8 CSS px cells (12% fuzz) and no contiguous cluster over 2 cells. edge-only: px surviving a 1px erosion of the 10% difference mask <= 0.02% of the window. ink: in every band, |measured - expected| < 0.5 CSS px on both axes.
 `ref origin` is where Figma put its (possibly trimmed) render relative to the node box, in device px, solved against Figma's own composite; non-zero means the render is trimmed, so the old assumed-origin diff was misregistered. `build shift` is the best whole-section registration of our capture onto that reference, shown against the snap expectation. Raster gates are measured at the true registration, never at the best one.

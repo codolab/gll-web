@@ -145,7 +145,7 @@ export default function Footer() {
 
         <div data-node-id="94:365" className="absolute border-t border-white/14" style={box(0, 390, 1440, 81)}>
           <Text id="94:368" at={[64, 30, 341, 20]} size={13} weight={400} lh={20} nowrap>
-            Global Lithuanian Leaders © 2024 | All Rights Reserved
+            Global Lithuanian Leaders © {new Date().getFullYear()} | All Rights Reserved
           </Text>
         </div>
       </div>
