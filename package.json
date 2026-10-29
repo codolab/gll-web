@@ -9,11 +9,14 @@
     "preview": "vite preview --port 4197 --strictPort",
     "qa": "node scripts/capture.mjs && node scripts/diff.mjs",
     "qa:dev": "URL=http://localhost:4196/ npm run qa",
+    "qa:wide": "SURFACE=wide npm run qa",
     "qa:one": "node scripts/check-one.mjs",
     "qa:validate": "node scripts/validate-harness.mjs",
     "capture": "node scripts/capture.mjs",
     "diff": "node scripts/diff.mjs",
-    "qa:motion": "node scripts/motion-check.mjs"
+    "qa:motion": "node scripts/motion-check.mjs",
+    "qa:motion:wide": "SURFACE=wide node scripts/motion-check.mjs",
+    "qa:mobile": "node scripts/mobile-check.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

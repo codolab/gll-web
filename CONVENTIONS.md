@@ -1,8 +1,10 @@
 # Build conventions: gll-web
 
-A literal, pixel-accurate transcription of Figma frame `94:84` ("GLL (1)") in
-file `Mhl8szCFRd3mDfVsTCGdnG`. The design is the specification. Do not improve
-it, re-space it, or "fix" its inconsistencies.
+A literal, pixel-accurate transcription of Figma frames `94:84` ("GLL (1)",
+1440) and `173:310` (its 1640 wide variant) in file `Mhl8szCFRd3mDfVsTCGdnG`.
+The design is the specification. Do not improve it, re-space it, or "fix" its
+inconsistencies. Below 1024px the page is a separate mobile composition with no
+Figma frame behind it: see `MOBILE_SPEC.md`.
 
 ## Stack
 
@@ -13,14 +15,43 @@ can and should match the render closely.
 
 ## Layout model
 
-`src/App.tsx` renders a fixed 1440 x 7895 canvas and absolutely positions each
-section at its Figma `absoluteBoundingBox` (registry: `design/sections.json`).
+`src/App.tsx` renders a fixed canvas, 1440 x 7895 or 1640 x 7993 (see Surfaces),
+and absolutely positions each section at its Figma `absoluteBoundingBox`
+(registry: `design/sections.json`, `design/wide/sections.json`).
 
 **Your component renders only the inside of your section.** The wrapper div,
 its `left/top/width/height` and `data-section` are provided by App. Your root
 is `<div className="relative size-full" data-node-id="<section node>">` and
 must not position itself. Content may overflow the wrapper; the canvas clips
 at 0..1440 exactly as the Figma frame does.
+
+## Surfaces
+
+`src/surface.ts` picks the composition by window width: **mobile** up to 1023
+(`src/mobile/`), **desktop** 1024-1539 (the 1440 canvas, scaled down below
+1440), **wide** from 1540 (the 1640 canvas, scaled down below 1640). `?surface=`
+pins one whatever the window (QA only; the harness and `qa:motion` always pin).
+
+- Both canvases render the same section components. A section reads
+  `useCanvasSurface()` (`'desktop' | 'wide'`) and picks its geometry, node ids
+  and assets by it. Share behaviour, not coordinates: keep one component and its
+  motion code, with a table per surface. The desktop render must not change by
+  one pixel (`npm run qa` identical to main).
+- Wide sources live under `design/wide/` (`sections.json`, `nodes/`, `figma/`)
+  and the scripts take `SURFACE=wide`: `SURFACE=wide node scripts/shot.mjs
+  <slug> <url>`, `npm run qa:wide`, `npm run qa:motion:wide`. Wide assets go in
+  `public/assets/<slug>/` too, named `wide-*` where they differ.
+- The wide hero and talent are loose layers in 173:310, not one node, so their
+  root is a synthetic `wide:hero` / `wide:talent` (box = Rectangle 15 for the
+  hero, the union of the group and its headline for talent).
+- **Bleed.** Wider than its canvas, the window shows the canvas at 1x, centred,
+  and `--bleed` on the canvas root is how far the window reaches past each
+  edge (canvas px; 0 otherwise). The canvas then stops clipping left and right,
+  so whatever overhangs the frame (photo tiles, marquee tracks, the gradient, the
+  meet cards) fills the margin. A full-width band (a fill that spans the whole
+  frame) extends by it: `left: calc(-1 * var(--bleed, 0px)); right: calc(-1 *
+  var(--bleed, 0px))` on the band's fill only, never on content. Marquee tracks
+  carry enough clones to cover a 2560 window (bleed 460 on wide).
 
 ## Sources (no Figma MCP: the quota is ~20 calls a month)
 
@@ -114,8 +145,9 @@ When `design/figma/<slug>.composed.png` exists the harness uses it instead of `<
 ## Rules
 
 - Strict TypeScript: `npx tsc -b` must pass.
-- Touch only `src/sections/<YourComponent>.tsx`, `public/assets/<your-slug>/` and `qa/motion/<your-slug>.mjs`.
-  Never edit App.tsx, canvas.ts, index.css, scripts, or another section.
+- Touch only `src/sections/<YourComponent>.tsx`, `public/assets/<your-slug>/` and `qa/motion/<your-slug>.mjs`
+  (mobile: `src/mobile/sections/<YourComponent>.tsx`, `public/assets/mobile/<your-slug>/`, `qa/mobile/<your-slug>.mjs`).
+  Never edit App.tsx, canvas.ts, surface.ts, index.css, scripts, or another section.
 - Copy is reproduced character for character from `characters`, including
   curly quotes, dashes and non-breaking spaces the design uses.
 - Keep `data-node-id="<figma id>"` on every element that maps to a node; the

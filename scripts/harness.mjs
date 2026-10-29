@@ -26,16 +26,24 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SURFACE, CONF } from './surface.mjs'
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 export const at = (...p) => join(ROOT, ...p)
 
-export const REGISTRY = JSON.parse(readFileSync(at('design/sections.json'), 'utf8'))
+// SURFACE selects the Figma frame (scripts/surface.mjs); every path below is per surface.
+export { SURFACE }
+export const DESIGN = (...p) => at(CONF.dir, ...p)
+export const QA = (...p) => at(CONF.qa, ...p)
+export const REGISTRY = JSON.parse(readFileSync(DESIGN('sections.json'), 'utf8'))
 export const SECTIONS = REGISTRY.sections
 export const CANVAS = REGISTRY.canvas
 export const DPR = 2
-// Wider than the canvas so a scrollbar can never pull it below scale 1.
-export const VIEWPORT = { width: 1600, height: 1000 }
+// Exactly the frame width: the window Figma draws. A wider window opens the
+// canvas's sides to bleed (App.tsx), which is not what the frame shows. Headless
+// Chromium has no scrollbar, and captureSection throws if the canvas is not at
+// scale 1. The capture pins `?surface=`, so the viewport never picks the canvas.
+export const VIEWPORT = CONF.viewport
 export const CANVAS_SEL = '[data-canvas="root"]'
 
 export const GATES = {
@@ -81,7 +89,7 @@ export function figmaIndex() {
       })
       for (const c of n.children ?? []) walk(c, h)
     }
-    walk(JSON.parse(readFileSync(at(`design/nodes/${s.slug}.json`), 'utf8')), false)
+    walk(JSON.parse(readFileSync(DESIGN(`nodes/${s.slug}.json`), 'utf8')), false)
   }
   return (figmaCache = idx)
 }
@@ -178,8 +186,8 @@ function blit(dst, src, ox, oy) {
  * such sections ship a reference composited onto the page backdrop instead.
  */
 export const refFileFor = (s) => {
-  const composed = at(`design/figma/${s.slug}.composed.png`)
-  return existsSync(composed) ? composed : at(`design/figma/${s.slug}.png`)
+  const composed = DESIGN(`figma/${s.slug}.composed.png`)
+  return existsSync(composed) ? composed : DESIGN(`figma/${s.slug}.png`)
 }
 
 export function placedRef(s, off = { x: 0, y: 0 }) {
@@ -203,7 +211,7 @@ let compCache
  * own, and the hero is partly covered by the gradient and nav in the composite.
  */
 export function solveRefOrigin(s, { range = 48, refFile } = {}) {
-  compCache ??= readPixels(at('design/figma/full-1x.png'), { flatten: '#ffffff' })
+  compCache ??= readPixels(DESIGN('figma/full-1x.png'), { flatten: '#ffffff' })
   const comp = compCache
   const ref = readPixels(refFile ?? refFileFor(s), { alpha: true })
   const n = nominalOrigin(s)
@@ -268,7 +276,7 @@ export function solveRefOrigin(s, { range = 48, refFile } = {}) {
 
 /** Offset (device px) of the top-left of the section's painted descendants, from REST render bounds. */
 export function renderTrim(s) {
-  const root = JSON.parse(readFileSync(at(`design/nodes/${s.slug}.json`), 'utf8'))
+  const root = JSON.parse(readFileSync(DESIGN(`nodes/${s.slug}.json`), 'utf8'))
   const paints = (n) => ['fills', 'strokes'].some((k) => (n[k] ?? []).some((f) => f.visible !== false)) || (n.effects ?? []).some((e) => e.visible !== false)
   let x0 = Infinity, y0 = Infinity
   const walk = (n) => {
@@ -295,6 +303,7 @@ export async function openIsolated(browser, base, slug) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text().split('\n')[0].slice(0, 160)}`) })
   const url = new URL(base)
   url.searchParams.set('isolate', slug)
+  url.searchParams.set('surface', SURFACE)
   await page.goto(url.href, { waitUntil: 'networkidle', timeout: 60_000 })
   await page.waitForSelector(`[data-section="${slug}"]`, { timeout: 15_000 })
   await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}' })
@@ -934,7 +943,7 @@ export function offenders(r, n = 8) {
 
 // ---------------------------------------------------------------- report
 
-export function writeReport(results, { url, out = at('qa') } = {}) {
+export function writeReport(results, { url, out = QA() } = {}) {
   const { head, rows } = tableRows(results)
   const esc = (v) => String(v).replace(/\|/g, '\\|')
   const L = []

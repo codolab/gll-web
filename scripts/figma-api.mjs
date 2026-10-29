@@ -3,9 +3,10 @@
 // costs nothing against the rate limit.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { CONF } from './surface.mjs'
 
 export const FILE_KEY = process.env.FIGMA_FILE_KEY ?? 'Mhl8szCFRd3mDfVsTCGdnG'
-export const FRAME = '94:84'
+export const FRAME = CONF.frame
 
 const raw = readFileSync('.env.local', 'utf8')
 const token = (raw.match(/^\s*(?:FIGMA_TOKEN|FIGMA_PAT)\s*=\s*(.+)$/m)?.[1] ?? raw)

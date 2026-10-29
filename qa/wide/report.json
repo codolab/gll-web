@@ -1,0 +1,1939 @@
+{
+ "url": "http://localhost:4210/",
+ "at": "2026-10-29T11:04:20.996Z",
+ "gates": {
+  "geomTol": 1,
+  "textOriginTol": 1,
+  "textSizeTol": 1,
+  "fuzz": 0.04,
+  "aeMax": 3,
+  "structK": 16,
+  "structFuzz": 0.12,
+  "structMax": 0.1,
+  "structBlobMax": 2,
+  "edgeThreshold": 0.1,
+  "thickMax": 0.02,
+  "inkTol": 0.5,
+  "inkMinCorr": 0.6,
+  "inkMinSharp": 0.001
+ },
+ "dpr": 2,
+ "results": [
+  {
+   "slug": "hero",
+   "node": "wide:hero",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 10.5,
+    "nominalResidual": 10.5,
+    "samples": 1570162,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3280x1918",
+    "box": "3280x1918"
+   },
+   "raster": {
+    "window": "3280x1918",
+    "ae": 57.207,
+    "structural": 32.26,
+    "structBlob": {
+     "cells": 1614,
+     "at": "848x320 at 328,320"
+    },
+    "diffPx": 2313425,
+    "thickPx": 1959357,
+    "thick": 31.1452,
+    "edgeOnly": 15.3,
+    "shift": {
+     "dx": -5,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 2.007,
+     "expX": -0.01,
+     "expY": 0
+    },
+    "ink": {
+     "whole": {
+      "dx": -8,
+      "dy": -0.01
+     },
+     "worst": {
+      "y": 0,
+      "h": 240,
+      "dx": null,
+      "dy": -0.19,
+      "expX": -0.02,
+      "expY": 0,
+      "resX": null,
+      "resY": -0.19
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 0,
+       "h": 240,
+       "dx": null,
+       "dy": -0.19,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": -0.02,
+       "expY": 0,
+       "spreadX": 0.81,
+       "spreadY": 0,
+       "resX": null,
+       "resY": -0.19,
+       "empty": false
+      },
+      {
+       "y": 240,
+       "h": 239.5,
+       "dx": null,
+       "dy": 0.07,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0.04,
+       "expY": 0.04,
+       "spreadX": 0.81,
+       "spreadY": 0.81,
+       "resX": null,
+       "resY": 0.03,
+       "empty": false
+      },
+      {
+       "y": 479.5,
+       "h": 240,
+       "dx": null,
+       "dy": -0.06,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0.02,
+       "expY": 0.11,
+       "spreadX": 0.81,
+       "spreadY": 0.92,
+       "resX": null,
+       "resY": -0.17,
+       "empty": false
+      },
+      {
+       "y": 719.5,
+       "h": 239.5,
+       "dx": null,
+       "dy": -0.07,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": -0.12,
+       "expY": -0.2,
+       "spreadX": 0.81,
+       "spreadY": 0.39,
+       "resX": null,
+       "resY": 0.13,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 24
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:85",
+      "94:86",
+      "94:87",
+      "94:88",
+      "94:89",
+      "94:90",
+      "94:91",
+      "94:92",
+      "94:93",
+      "94:94",
+      "94:95",
+      "94:96",
+      "94:97",
+      "94:98",
+      "94:99",
+      "94:100",
+      "94:101",
+      "94:102",
+      "94:103",
+      "94:104",
+      "94:105",
+      "94:106",
+      "94:107",
+      "94:108",
+      "94:109"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  },
+  {
+   "slug": "gradient",
+   "node": "173:336",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": false,
+    "samples": 1829,
+    "ref": "5176x405",
+    "box": "5175x404",
+    "note": "too few opaque reference pixels on the canvas (1829) to solve; nominal origin assumed"
+   },
+   "raster": {
+    "window": "3280x404",
+    "ae": 0,
+    "structural": 0,
+    "structBlob": null,
+    "diffPx": 0,
+    "thickPx": 0,
+    "thick": 0,
+    "edgeOnly": 100,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": -0.01,
+     "expY": 0
+    },
+    "ink": {
+     "whole": {
+      "dx": 4,
+      "dy": 0
+     },
+     "worst": {
+      "y": 0,
+      "h": 180.5,
+      "dx": null,
+      "dy": -0.04,
+      "expX": -0.01,
+      "expY": 0,
+      "resX": null,
+      "resY": -0.04
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 0,
+       "h": 180.5,
+       "dx": null,
+       "dy": -0.04,
+       "method": {
+        "x": null,
+        "y": "lsq"
+       },
+       "expX": -0.01,
+       "expY": 0,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": -0.04,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 1
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:110"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": true,
+    "structural": true,
+    "edgeOnly": true,
+    "ink": true
+   }
+  },
+  {
+   "slug": "logos",
+   "node": "173:337",
+   "stub": false,
+   "origin": {
+    "x": -1,
+    "y": 0,
+    "solved": true,
+    "residual": 15.85,
+    "nominalResidual": 17.16,
+    "samples": 5426,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3413x208",
+    "box": "3412x208"
+   },
+   "raster": {
+    "window": "3232x208",
+    "ae": 10.951,
+    "structural": 14.851,
+    "structBlob": {
+     "cells": 92,
+     "at": "168x56 at 1096,1024"
+    },
+    "diffPx": 64995,
+    "thickPx": 33769,
+    "thick": 5.0232,
+    "edgeOnly": 48,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0.47,
+     "expY": 0.1
+    },
+    "ink": {
+     "whole": {
+      "dx": -7.38,
+      "dy": 0.02
+     },
+     "worst": {
+      "y": 1013.5,
+      "h": 77,
+      "dx": null,
+      "dy": 0.02,
+      "expX": 0.49,
+      "expY": 0.11,
+      "resX": null,
+      "resY": -0.09
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 1013.5,
+       "h": 77,
+       "dx": null,
+       "dy": 0.02,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0.49,
+       "expY": 0.11,
+       "spreadX": 0.73,
+       "spreadY": 0.61,
+       "resX": null,
+       "resY": -0.09,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 10
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:111",
+      "94:112",
+      "94:113",
+      "94:114",
+      "94:115",
+      "94:116",
+      "94:117",
+      "94:118",
+      "94:119"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  },
+  {
+   "slug": "nav",
+   "node": "173:347",
+   "stub": false,
+   "origin": {
+    "x": -1,
+    "y": 0,
+    "solved": true,
+    "residual": 3.07,
+    "nominalResidual": 3.99,
+    "samples": 8085,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3171x191",
+    "box": "3171x190"
+   },
+   "raster": {
+    "window": "3170x190",
+    "ae": 2.319,
+    "structural": 1.843,
+    "structBlob": {
+     "cells": 44,
+     "at": "72x80 at 43.5,8"
+    },
+    "diffPx": 12440,
+    "thickPx": 4532,
+    "thick": 0.7524,
+    "edgeOnly": 63.6,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0.27,
+     "expY": 0.01
+    },
+    "ink": {
+     "whole": {
+      "dx": 0.17,
+      "dy": 0
+     },
+     "worst": {
+      "y": 10.5,
+      "h": 74,
+      "dx": 0.17,
+      "dy": 0,
+      "expX": 0.27,
+      "expY": 0.01,
+      "resX": -0.1,
+      "resY": -0.01
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 10.5,
+       "h": 74,
+       "dx": 0.17,
+       "dy": 0,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0.27,
+       "expY": 0.01,
+       "spreadX": 0.33,
+       "spreadY": 0.75,
+       "resX": -0.1,
+       "resY": -0.01,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 19
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:120",
+      "94:121",
+      "94:122",
+      "94:131",
+      "94:132",
+      "94:133",
+      "94:134",
+      "94:135",
+      "94:136",
+      "94:137",
+      "94:138"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": true,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  },
+  {
+   "slug": "ribbons",
+   "node": "173:366",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 0.48,
+    "nominalResidual": 0.48,
+    "samples": 58034,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "4620x480",
+    "box": "4418x480"
+   },
+   "raster": {
+    "window": "3280x480",
+    "ae": 2.968,
+    "structural": 2.504,
+    "structBlob": {
+     "cells": 45,
+     "at": "104x64 at 1352,2267"
+    },
+    "diffPx": 35658,
+    "thickPx": 22215,
+    "thick": 1.411,
+    "edgeOnly": 37.7,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0,
+     "expY": 0.01
+    },
+    "ink": {
+     "whole": {
+      "dx": 0.04,
+      "dy": 0.01
+     },
+     "worst": {
+      "y": 2266,
+      "h": 84,
+      "dx": 0.03,
+      "dy": 0.01,
+      "expX": 0,
+      "expY": 0.01,
+      "resX": 0.03,
+      "resY": 0
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 2266,
+       "h": 84,
+       "dx": 0.03,
+       "dy": 0.01,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0.66,
+       "spreadY": 0.36,
+       "resX": 0.03,
+       "resY": 0,
+       "empty": false
+      },
+      {
+       "y": 2394,
+       "h": 84,
+       "dx": 0.01,
+       "dy": 0.01,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0.64,
+       "spreadY": 0.36,
+       "resX": 0.01,
+       "resY": 0,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 19
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:139",
+      "94:140",
+      "94:141",
+      "94:142",
+      "94:143",
+      "94:144",
+      "94:145",
+      "94:146",
+      "94:147",
+      "94:148",
+      "94:149",
+      "94:150",
+      "94:151",
+      "94:152",
+      "94:153",
+      "94:154"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": true,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  },
+  {
+   "slug": "programs",
+   "node": "173:386",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 0.78,
+    "nominalResidual": 0.78,
+    "samples": 2392940,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3280x2922",
+    "box": "3280x2922"
+   },
+   "raster": {
+    "window": "3280x2922",
+    "ae": 23.148,
+    "structural": 19.08,
+    "structBlob": {
+     "cells": 4092,
+     "at": "936x672 at 336,2947"
+    },
+    "diffPx": 1248433,
+    "thickPx": 1027168,
+    "thick": 10.7174,
+    "edgeOnly": 17.7,
+    "shift": {
+     "dx": -8,
+     "dy": 0.5,
+     "atEdge": true,
+     "gain": 0.741,
+     "expX": 0,
+     "expY": 0.01
+    },
+    "ink": {
+     "whole": {
+      "dx": -8,
+      "dy": 0.91
+     },
+     "worst": {
+      "y": 3871.5,
+      "h": 208.5,
+      "dx": -7.4,
+      "dy": 0.92,
+      "expX": 0,
+      "expY": 0.01,
+      "resX": -7.4,
+      "resY": 0.91
+     },
+     "flagged": 7,
+     "bands": [
+      {
+       "y": 2619,
+       "h": 208.5,
+       "dx": null,
+       "dy": 0.91,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.9,
+       "empty": false
+      },
+      {
+       "y": 2827.5,
+       "h": 209,
+       "dx": null,
+       "dy": 0.92,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.91,
+       "empty": false
+      },
+      {
+       "y": 3036.5,
+       "h": 208.5,
+       "dx": null,
+       "dy": 0.92,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.91,
+       "empty": false
+      },
+      {
+       "y": 3245,
+       "h": 209,
+       "dx": null,
+       "dy": 0.92,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.91,
+       "empty": false
+      },
+      {
+       "y": 3454,
+       "h": 208.5,
+       "dx": null,
+       "dy": 0.91,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.9,
+       "empty": false
+      },
+      {
+       "y": 3662.5,
+       "h": 209,
+       "dx": null,
+       "dy": 0.91,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.9,
+       "empty": false
+      },
+      {
+       "y": 3871.5,
+       "h": 208.5,
+       "dx": -7.4,
+       "dy": 0.92,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": -7.4,
+       "resY": 0.91,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 25
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:156",
+      "94:157",
+      "94:158",
+      "94:159",
+      "94:160",
+      "94:161",
+      "94:162",
+      "94:163",
+      "94:164",
+      "94:165",
+      "94:166",
+      "94:167",
+      "94:168",
+      "94:169",
+      "94:170",
+      "94:171",
+      "94:172",
+      "94:173",
+      "94:174",
+      "94:175",
+      "94:176",
+      "94:177",
+      "94:178",
+      "94:179"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": false
+   }
+  },
+  {
+   "slug": "impact",
+   "node": "173:411",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 0.27,
+    "nominalResidual": 0.27,
+    "samples": 1083379,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3284x1324",
+    "box": "3284x1323"
+   },
+   "raster": {
+    "window": "3280x1323",
+    "ae": 5.191,
+    "structural": 6.694,
+    "structBlob": {
+     "cells": 121,
+     "at": "224x64 at 912,4184"
+    },
+    "diffPx": 196090,
+    "thickPx": 127851,
+    "thick": 2.9463,
+    "edgeOnly": 34.8,
+    "shift": {
+     "dx": -5,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 2.128,
+     "expX": 0,
+     "expY": 0.23
+    },
+    "ink": {
+     "whole": {
+      "dx": -5.03,
+      "dy": 0.24
+     },
+     "worst": {
+      "y": 4300.5,
+      "h": 220.5,
+      "dx": -5,
+      "dy": 0.24,
+      "expX": 0,
+      "expY": 0.23,
+      "resX": -5,
+      "resY": 0.01
+     },
+     "flagged": 1,
+     "bands": [
+      {
+       "y": 4080,
+       "h": 220.5,
+       "dx": null,
+       "dy": 0.22,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.21,
+       "spreadX": 0,
+       "spreadY": 0.23,
+       "resX": null,
+       "resY": 0.01,
+       "empty": false
+      },
+      {
+       "y": 4300.5,
+       "h": 220.5,
+       "dx": -5,
+       "dy": 0.24,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.23,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": -5,
+       "resY": 0.01,
+       "empty": false
+      },
+      {
+       "y": 4521,
+       "h": 220.5,
+       "dx": null,
+       "dy": 0.23,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.23,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 19
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:180",
+      "94:181",
+      "94:182",
+      "94:183",
+      "94:184",
+      "94:185",
+      "94:186",
+      "94:187",
+      "94:188",
+      "94:189",
+      "94:190",
+      "94:192",
+      "94:193",
+      "94:194",
+      "94:196",
+      "94:197",
+      "94:198",
+      "94:191",
+      "94:195"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": false
+   }
+  },
+  {
+   "slug": "meet",
+   "node": "173:430",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 23,
+    "solved": true,
+    "residual": 5.9,
+    "nominalResidual": 38.9,
+    "samples": 798364,
+    "trimX": 0,
+    "trimY": 22.55,
+    "ref": "3497x1466",
+    "box": "3496x1488"
+   },
+   "raster": {
+    "window": "3152x1488",
+    "ae": 19.036,
+    "structural": 12.947,
+    "structBlob": {
+     "cells": 903,
+     "at": "360x344 at 768,5013.5"
+    },
+    "diffPx": 590552,
+    "thickPx": 494822,
+    "thick": 10.5502,
+    "edgeOnly": 16.2,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0.08,
+     "expY": 0.27
+    },
+    "ink": {
+     "whole": {
+      "dx": 0.03,
+      "dy": 0.13
+     },
+     "worst": {
+      "y": 5561,
+      "h": 60.5,
+      "dx": null,
+      "dy": -0.34,
+      "expX": 0.06,
+      "expY": -0.04,
+      "resX": null,
+      "resY": -0.3
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 4889,
+       "h": 53,
+       "dx": null,
+       "dy": 0.28,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.27,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0.01,
+       "empty": false
+      },
+      {
+       "y": 5013.5,
+       "h": 172.5,
+       "dx": null,
+       "dy": 0.04,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0.1,
+       "expY": 0.27,
+       "spreadX": 0.7,
+       "spreadY": 0,
+       "resX": null,
+       "resY": -0.23,
+       "empty": false
+      },
+      {
+       "y": 5186,
+       "h": 172.5,
+       "dx": 0.2,
+       "dy": null,
+       "method": {
+        "x": "ncc",
+        "y": null
+       },
+       "expX": 0.09,
+       "expY": 0.27,
+       "spreadX": 0.93,
+       "spreadY": 0,
+       "resX": 0.11,
+       "resY": null,
+       "empty": false
+      },
+      {
+       "y": 5377.5,
+       "h": 32,
+       "dx": -0.12,
+       "dy": 0.1,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0.11,
+       "expY": 0.27,
+       "spreadX": 0.93,
+       "spreadY": 0,
+       "resX": -0.23,
+       "resY": -0.17,
+       "empty": false
+      },
+      {
+       "y": 5423.5,
+       "h": 31.5,
+       "dx": -0.1,
+       "dy": -0.01,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0.01,
+       "expY": 0.27,
+       "spreadX": 0.76,
+       "spreadY": 0,
+       "resX": -0.11,
+       "resY": -0.28,
+       "empty": false
+      },
+      {
+       "y": 5459.5,
+       "h": 56,
+       "dx": -0.11,
+       "dy": 0.04,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0.01,
+       "expY": 0.27,
+       "spreadX": 0.58,
+       "spreadY": 0,
+       "resX": -0.12,
+       "resY": -0.23,
+       "empty": false
+      },
+      {
+       "y": 5561,
+       "h": 60.5,
+       "dx": null,
+       "dy": -0.34,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0.06,
+       "expY": -0.04,
+       "spreadX": 0.7,
+       "spreadY": 0.55,
+       "resX": null,
+       "resY": -0.3,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 88
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:199",
+      "94:200",
+      "94:201",
+      "94:230",
+      "94:231",
+      "94:234",
+      "94:235",
+      "94:236",
+      "94:237",
+      "94:238",
+      "94:202",
+      "94:203",
+      "94:206",
+      "94:207",
+      "94:208",
+      "94:209",
+      "94:210",
+      "94:211",
+      "94:212",
+      "94:213",
+      "94:214",
+      "94:215",
+      "94:216",
+      "94:217",
+      "94:218",
+      "94:219",
+      "94:220",
+      "94:221",
+      "94:222",
+      "94:223",
+      "94:224",
+      "94:225",
+      "94:226",
+      "94:227",
+      "94:228",
+      "94:229",
+      "94:239",
+      "94:240",
+      "94:242",
+      "94:246",
+      "I94:246;11754:1418",
+      "94:247",
+      "I94:247;11754:1418",
+      "94:248",
+      "I94:248;11754:1418",
+      "94:252",
+      "94:257",
+      "94:258",
+      "94:253",
+      "94:254"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  },
+  {
+   "slug": "talent",
+   "node": "wide:talent",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": -1,
+    "solved": true,
+    "residual": 3.41,
+    "nominalResidual": 6.06,
+    "samples": 292463,
+    "trimX": 0,
+    "trimY": -1,
+    "ref": "1996x1734",
+    "box": "1996x1734"
+   },
+   "raster": {
+    "window": "1996x1734",
+    "ae": 3.211,
+    "structural": 2.239,
+    "structBlob": {
+     "cells": 278,
+     "at": "248x120 at 1184,1888"
+    },
+    "diffPx": 71827,
+    "thickPx": 32099,
+    "thick": 0.9274,
+    "edgeOnly": 55.3,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": -0.06,
+     "expY": -0.07
+    },
+    "ink": {
+     "whole": {
+      "dx": -0.08,
+      "dy": 0.24
+     },
+     "worst": {
+      "y": 1922,
+      "h": 184.5,
+      "dx": -5.58,
+      "dy": null,
+      "expX": 0.04,
+      "expY": 0.02,
+      "resX": -5.62,
+      "resY": null
+     },
+     "flagged": 1,
+     "bands": [
+      {
+       "y": 1253,
+       "h": 43.5,
+       "dx": -0.17,
+       "dy": 0.33,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": -0.17,
+       "resY": 0.32,
+       "empty": false
+      },
+      {
+       "y": 1367.5,
+       "h": 185,
+       "dx": -0.32,
+       "dy": 0.03,
+       "method": {
+        "x": "lsq",
+        "y": "ncc"
+       },
+       "expX": -0.38,
+       "expY": -0.36,
+       "spreadX": 0.59,
+       "spreadY": 0.59,
+       "resX": 0.06,
+       "resY": 0.39,
+       "empty": false
+      },
+      {
+       "y": 1552.5,
+       "h": 184.5,
+       "dx": -0.2,
+       "dy": 0.1,
+       "method": {
+        "x": "ncc",
+        "y": "lsq"
+       },
+       "expX": -0.13,
+       "expY": -0.14,
+       "spreadX": 0.78,
+       "spreadY": 0.73,
+       "resX": -0.07,
+       "resY": 0.24,
+       "empty": false
+      },
+      {
+       "y": 1737,
+       "h": 185,
+       "dx": 0.08,
+       "dy": null,
+       "method": {
+        "x": "ncc",
+        "y": null
+       },
+       "expX": -0.01,
+       "expY": -0.02,
+       "spreadX": 0.78,
+       "spreadY": 0.73,
+       "resX": 0.09,
+       "resY": null,
+       "empty": false
+      },
+      {
+       "y": 1922,
+       "h": 184.5,
+       "dx": -5.58,
+       "dy": null,
+       "method": {
+        "x": "ncc",
+        "y": null
+       },
+       "expX": 0.04,
+       "expY": 0.02,
+       "spreadX": 0.78,
+       "spreadY": 0.73,
+       "resX": -5.62,
+       "resY": null,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 16
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:935",
+      "94:261",
+      "94:262",
+      "94:263",
+      "94:264",
+      "94:266",
+      "94:270",
+      "94:269",
+      "94:271",
+      "94:268",
+      "94:272",
+      "94:267",
+      "94:273",
+      "94:265",
+      "94:274"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": false
+   }
+  },
+  {
+   "slug": "community",
+   "node": "173:1456",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 1.04,
+    "nominalResidual": 1.04,
+    "samples": 1906157,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3280x2330",
+    "box": "3280x2330"
+   },
+   "raster": {
+    "window": "3280x2330",
+    "ae": 38.544,
+    "structural": 37.671,
+    "structBlob": {
+     "cells": 8427,
+     "at": "1512x752 at 64,6085.5"
+    },
+    "diffPx": 2709358,
+    "thickPx": 2502247,
+    "thick": 32.7416,
+    "edgeOnly": 7.6,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0,
+     "expY": 0.43
+    },
+    "ink": {
+     "whole": {
+      "dx": -0.23,
+      "dy": -0.01
+     },
+     "worst": {
+      "y": 6689,
+      "h": 233,
+      "dx": null,
+      "dy": 3.56,
+      "expX": 0,
+      "expY": 0.31,
+      "resX": null,
+      "resY": 3.25
+     },
+     "flagged": 1,
+     "bands": [
+      {
+       "y": 5757.5,
+       "h": 233,
+       "dx": -0.04,
+       "dy": 0.18,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.5,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": -0.04,
+       "resY": -0.32,
+       "empty": false
+      },
+      {
+       "y": 5990.5,
+       "h": 233,
+       "dx": -0.14,
+       "dy": 0.14,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.48,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": -0.14,
+       "resY": -0.34,
+       "empty": false
+      },
+      {
+       "y": 6223.5,
+       "h": 232.5,
+       "dx": null,
+       "dy": null,
+       "method": {
+        "x": null,
+        "y": null
+       },
+       "expX": 0,
+       "expY": 0.48,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": null,
+       "resY": null,
+       "empty": false
+      },
+      {
+       "y": 6456,
+       "h": 233,
+       "dx": null,
+       "dy": null,
+       "method": {
+        "x": null,
+        "y": null
+       },
+       "expX": 0,
+       "expY": 0.23,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": null,
+       "resY": null,
+       "empty": false
+      },
+      {
+       "y": 6689,
+       "h": 233,
+       "dx": null,
+       "dy": 3.56,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.31,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": null,
+       "resY": 3.25,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 33
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:276",
+      "94:279",
+      "94:280",
+      "94:281",
+      "94:282",
+      "94:283",
+      "94:284",
+      "94:285",
+      "94:287",
+      "94:288",
+      "94:289",
+      "94:291",
+      "94:292",
+      "94:295",
+      "94:296",
+      "94:297",
+      "94:298",
+      "94:299",
+      "94:300",
+      "94:301",
+      "94:302",
+      "94:303",
+      "94:304",
+      "94:305"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": false
+   }
+  },
+  {
+   "slug": "footer",
+   "node": "173:524",
+   "stub": false,
+   "origin": {
+    "x": 0,
+    "y": 0,
+    "solved": true,
+    "residual": 0.64,
+    "nominalResidual": 0.64,
+    "samples": 1753730,
+    "trimX": 0,
+    "trimY": 0,
+    "ref": "3280x2142",
+    "box": "3280x2142"
+   },
+   "raster": {
+    "window": "3280x2142",
+    "ae": 22.51,
+    "structural": 12.039,
+    "structBlob": {
+     "cells": 1409,
+     "at": "336x520 at 1240,6986"
+    },
+    "diffPx": 991552,
+    "thickPx": 789744,
+    "thick": 11.2407,
+    "edgeOnly": 20.4,
+    "shift": {
+     "dx": 0,
+     "dy": 0,
+     "atEdge": false,
+     "gain": 0,
+     "expX": 0,
+     "expY": 0.06
+    },
+    "ink": {
+     "whole": {
+      "dx": -0.14,
+      "dy": 0.04
+     },
+     "worst": {
+      "y": 7350.5,
+      "h": 214,
+      "dx": null,
+      "dy": 0.2,
+      "expX": 0,
+      "expY": 0.01,
+      "resX": null,
+      "resY": 0.19
+     },
+     "flagged": 0,
+     "bands": [
+      {
+       "y": 6922,
+       "h": 214,
+       "dx": null,
+       "dy": -0.03,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.03,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": null,
+       "resY": -0.06,
+       "empty": false
+      },
+      {
+       "y": 7136,
+       "h": 214.5,
+       "dx": -0.01,
+       "dy": 0.13,
+       "method": {
+        "x": "ncc",
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.1,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": -0.01,
+       "resY": 0.03,
+       "empty": false
+      },
+      {
+       "y": 7350.5,
+       "h": 214,
+       "dx": null,
+       "dy": 0.2,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.01,
+       "spreadX": 0,
+       "spreadY": 0.5,
+       "resX": null,
+       "resY": 0.19,
+       "empty": false
+      },
+      {
+       "y": 7564.5,
+       "h": 214.5,
+       "dx": null,
+       "dy": 0,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0.06,
+       "spreadX": 0,
+       "spreadY": 0.31,
+       "resX": null,
+       "resY": -0.06,
+       "empty": false
+      },
+      {
+       "y": 7779,
+       "h": 214,
+       "dx": null,
+       "dy": 0,
+       "method": {
+        "x": null,
+        "y": "ncc"
+       },
+       "expX": 0,
+       "expY": 0,
+       "spreadX": 0,
+       "spreadY": 0,
+       "resX": null,
+       "resY": 0,
+       "empty": false
+      }
+     ]
+    },
+    "buildBlank": false
+   },
+   "geometry": {
+    "checked": 0,
+    "passed": 0,
+    "worst": null,
+    "text": {
+     "checked": 0,
+     "originFail": 0,
+     "sizeFail": 0
+    },
+    "coverage": {
+     "tagged": 0,
+     "figma": 63
+    },
+    "skipped": {
+     "noBox": [],
+     "notInFigma": [
+      "94:307",
+      "94:308",
+      "94:309",
+      "94:312",
+      "94:313",
+      "94:315",
+      "94:316",
+      "94:317",
+      "94:318",
+      "94:320",
+      "94:321",
+      "94:322",
+      "94:324",
+      "94:325",
+      "94:326",
+      "94:327",
+      "94:329",
+      "94:339",
+      "94:341",
+      "94:345",
+      "94:346",
+      "94:347",
+      "94:348",
+      "94:349",
+      "94:350",
+      "94:351",
+      "94:352",
+      "94:353",
+      "94:354",
+      "94:355",
+      "94:356",
+      "94:357",
+      "94:358",
+      "94:359",
+      "94:360",
+      "94:361",
+      "94:362",
+      "94:363",
+      "94:364",
+      "94:365",
+      "94:368"
+     ],
+     "otherSection": []
+    },
+    "failed": [],
+    "rows": []
+   },
+   "broken": [],
+   "errors": [],
+   "verdict": "FAIL",
+   "gates": {
+    "geometry": false,
+    "ae": false,
+    "structural": false,
+    "edgeOnly": false,
+    "ink": true
+   }
+  }
+ ]
+}

@@ -1,15 +1,14 @@
 /**
- * M-16: the nav (Figma 94:120) stays at the top of the viewport. It cannot
+ * M-16: the nav (Figma 94:120; wide 173:347) stays at the top of the viewport. It cannot
  * stick from inside the canvas, which is transformed and clipped, so it renders
  * in its own fixed layer with the canvas's scale and centring. At the top of
  * the page the layer is transparent and the nav sits exactly where the frame
  * has it; once the hero has scrolled out from under it, an ink bar fades in.
  */
 import { useEffect, useLayoutEffect, useState } from 'react'
-import { CANVAS_W, SECTIONS } from './canvas'
+import type { Canvas } from './canvas'
 import Nav from './sections/Nav'
 
-const NAV = SECTIONS.find((s) => s.slug === 'nav')!
 const HERO_RADIUS = 50 // the hero's rounded bottom corners uncover white before its edge arrives
 
 /**
@@ -41,7 +40,8 @@ function useHeroPassed(offset: number) {
   return { passed, live }
 }
 
-export default function StickyNav({ scale }: { scale: number }) {
+export default function StickyNav({ canvas, scale }: { canvas: Canvas; scale: number }) {
+  const NAV = canvas.sections.find((s) => s.slug === 'nav')!
   const height = (NAV.y + NAV.h) * scale
   const { passed: solid, live } = useHeroPassed(height + HERO_RADIUS * scale)
   useEffect(() => {
@@ -58,8 +58,8 @@ export default function StickyNav({ scale }: { scale: number }) {
         data-nav-bar={solid ? 'solid' : 'clear'}
         className={`absolute inset-0 bg-ink shadow-[0_8px_24px_rgb(11_23_34/0.18)] ${live ? 'transition-opacity duration-300 motion-reduce:transition-none' : ''} ${solid ? 'opacity-100' : 'opacity-0'}`}
       />
-      <div className="relative mx-auto h-full" style={{ width: CANVAS_W * scale }}>
-        <div className="absolute left-0 top-0 origin-top-left" style={{ width: CANVAS_W, transform: `scale(${scale})` }}>
+      <div className="relative mx-auto h-full" style={{ width: canvas.w * scale }}>
+        <div className="absolute left-0 top-0 origin-top-left" style={{ width: canvas.w, transform: `scale(${scale})` }}>
           <div
             id="nav"
             data-section="nav"
