@@ -56,3 +56,12 @@ body { font-feature-settings: "liga" 1, "calt" 1; }
     [data-motion="paused"] .marquee { animation-play-state: paused; }
   }
 }
+
+/* The talent photos' fade (M-05). A registered number, not opacity itself: Chrome runs an
+   opacity transition on the compositor, and lifting the photo into its own layer for it
+   re-rasterises the bands over it, so their edges jumped as the fade ended. */
+@property --fade {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
