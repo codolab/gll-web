@@ -7,6 +7,7 @@
  */
 import { useEffect, useLayoutEffect, useState } from 'react'
 import type { Canvas } from './canvas'
+import { WINDOW_MAX } from './surface'
 import { useCanvasSurface } from './surface'
 import Nav from './sections/Nav'
 
@@ -58,7 +59,8 @@ export default function StickyNav({ canvas, scale }: { canvas: Canvas; scale: nu
     <header className="fixed inset-x-0 top-0 z-40" style={{ height }}>
       <div
         data-nav-bar={solid ? 'solid' : 'clear'}
-        className={`absolute inset-0 bg-ink shadow-[0_8px_24px_rgb(11_23_34/0.18)] ${live ? 'transition-opacity duration-300 motion-reduce:transition-none' : ''} ${solid ? 'opacity-100' : 'opacity-0'}`}
+        style={{ maxWidth: WINDOW_MAX }}
+        className={`absolute inset-0 mx-auto bg-ink shadow-[0_8px_24px_rgb(11_23_34/0.18)] ${live ? 'transition-opacity duration-300 motion-reduce:transition-none' : ''} ${solid ? 'opacity-100' : 'opacity-0'}`}
       />
       <div className="relative mx-auto h-full" style={{ width: canvas.w * scale }}>
         <div className="absolute left-0 top-0 origin-top-left" style={{ width: canvas.w, transform: `scale(${scale})` }}>

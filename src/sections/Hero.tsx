@@ -5,7 +5,7 @@
  * rightward and row 2 leftward.
  */
 import type { CSSProperties } from 'react'
-import { useCanvasSurface, WINDOW_MAX, type CanvasSurface } from '../surface'
+import { useCanvasSurface, WIDE_MIN, WINDOW_MAX, type CanvasSurface } from '../surface'
 
 type Tile = { id: string; src?: string; color?: string }
 
@@ -28,6 +28,9 @@ const tiles = (ns: number, first: number, prefix: string): Tile[] => LOOKS.map((
 const LAYOUT = {
   desktop: {
     w: 1440,
+    // The widest window this canvas gets (wider is wide). More clones than that
+    // re-rasterise the moving rows differently from main's.
+    maxWindow: WIDE_MIN,
     root: '94:85', ink: '94:86', scrim: '94:103',
     grid: { id: '94:87', x: -115, y: -26, w: 1670.2200927734375, h: 984.9974365234375 },
     tileW: 299.7864990234375, tileH: 299.7864990234375,
@@ -41,6 +44,7 @@ const LAYOUT = {
   },
   wide: {
     w: 1640,
+    maxWindow: WINDOW_MAX,
     root: 'wide:hero', ink: '173:312', scrim: '173:329',
     grid: { id: undefined, x: -131, y: -26, w: 1902.2228393554688, h: 984.9974365234375 },
     tileW: 341.42352294921875, tileH: 299.7864990234375,
@@ -78,7 +82,7 @@ function HeroRow({ L, r, dir }: { L: Layout; r: number; dir: 1 | -1 }) {
   // whose origin and shift sit on the pixel grid draws its photos without
   // resampling at rest and after each full period.
   const period = Math.round(((L.cols[4] - L.cols[0]) / 4) * 5)
-  const reach = (WINDOW_MAX - L.w) / 2
+  const reach = (L.maxWindow - L.w) / 2
   const lo = -L.grid.x - reach - (dir > 0 ? period : 0)
   const hi = L.w - L.grid.x + reach + (dir < 0 ? period : 0)
   const at = (n: number) => L.cols[((n % 5) + 5) % 5] + Math.floor(n / 5) * period

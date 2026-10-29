@@ -1,6 +1,6 @@
 # GLL parity report
 
-Build: http://localhost:4210/ · captured 2026-10-29T12:20:27.888Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
+Build: http://localhost:4210/ · captured 2026-10-29T13:21:58.453Z · 2x, each section isolated (`?isolate=<slug>`) on its backdrop.
 Verdicts: 9 PASS, 2 FAIL, 0 STUB, 0 ERROR.
 
 | section | state | ref origin (dev px) | geometry pass | worst px | text origin/size fail | ae % | struct % (blob) | edge-only % (thick px) | build shift meas / exp | worst band | ink measured dx,dy | ink expected (snap) | ink residual | verdict |

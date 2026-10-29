@@ -3,7 +3,7 @@
 // on the hero); the page's pause button (M-G5) and reduced motion stop them.
 // Wide (t.surface) has no grid group: its tiles are loose layers under the synthetic root.
 // In a window wider than the frame (bleed) the hero's clip frame, fills and rows reach the
-// window edges, up to 2560 on either surface.
+// window edges: up to 1539 on desktop (wider is wide), up to 2560 on wide.
 import { execFileSync } from 'node:child_process'
 import { sample, speed, secs, settle, seek, coverage, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
 
@@ -14,9 +14,9 @@ const SURFACES = {
     hero: '[data-node-id="94:85"]', grid: '[data-node-id="94:87"]',
     cols: [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375], tile: 299.7864990234375,
     rows: [['94:88', '94:92'], ['94:93', '94:97'], ['94:98', '94:102']],
-    boxes: 25, tiles: 14,
+    boxes: 25, tiles: 10,
     // The ink fill and the scrim; the clip frame keeps its 50px bottom corners at the window edges.
-    bands: ['94:86', '94:103'], windows: [1500, 1539, 2560],
+    bands: ['94:86', '94:103'], windows: [1500, 1539],
   },
   wide: {
     hero: '[data-node-id="wide:hero"]', grid: '[data-node-id="wide:hero"] [data-hero-rows]',
