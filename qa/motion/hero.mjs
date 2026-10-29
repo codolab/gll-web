@@ -1,8 +1,10 @@
 // hero: M-01, the three photo rows slide as seamless loops at 20 px/s, rows 1 and 3
 // rightward and row 2 leftward. They keep moving under the pointer (it usually rests
 // on the hero); the page's pause button (M-G5) and reduced motion stop them.
-// Wide (t.surface) has no grid group: its tiles are loose layers under the synthetic
-// root, and its rows also fill the margins of a window up to 2560 (bleed).
+// Wide (t.surface) has no grid group: its tiles are loose layers under the synthetic root.
+// In a window wider than the frame (bleed) the hero's clip frame, fills and rows reach the
+// window edges, up to 2560 on either surface.
+import { execFileSync } from 'node:child_process'
 import { sample, speed, secs, settle, seek, coverage, boxes, open2x, motionOn, compare, fmt, fringeOnly } from './_marquee.mjs'
 
 // Tile x positions and width from the node JSON; boxes = tagged nodes in the section;
@@ -12,14 +14,16 @@ const SURFACES = {
     hero: '[data-node-id="94:85"]', grid: '[data-node-id="94:87"]',
     cols: [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375], tile: 299.7864990234375,
     rows: [['94:88', '94:92'], ['94:93', '94:97'], ['94:98', '94:102']],
-    boxes: 25, tiles: 10,
+    boxes: 25, tiles: 14,
+    // The ink fill and the scrim; the clip frame keeps its 50px bottom corners at the window edges.
+    bands: ['94:86', '94:103'], windows: [1500, 1539, 2560],
   },
   wide: {
-    hero: '[data-node-id="wide:hero"]', grid: '[data-node-id="wide:hero"] > [data-hero-rows]',
+    hero: '[data-node-id="wide:hero"]', grid: '[data-node-id="wide:hero"] [data-hero-rows]',
     cols: [-130.97216796875, 259.226318359375, 649.420166015625, 1039.60986328125, 1429.79931640625], tile: 341.42352294921875,
     rows: [['173:314', '173:318'], ['173:319', '173:323'], ['173:324', '173:328']],
     boxes: 24, tiles: 12,
-    bands: ['173:312', '173:329'], // Rectangle 15 and the Rectangle 14 scrim reach the window edges
+    bands: ['173:312', '173:329'], windows: [1920, 2560], // Rectangle 15 and the Rectangle 14 scrim
   },
 }
 // The first hero motion (a mouse pan above 1000 px/s) made viewers motion sick: a moving area this large stays slow.
@@ -68,18 +72,36 @@ const windowCoverage = (page, track, pxPerSec) => page.$eval(track, (el, v) => {
   return { ...worst, n: ds.length, live: run(spans(0), 0), vw: hi }
 }, pxPerSec)
 
-/** Wide only: at 1920 and 2560 the band fills and the moving rows cover the whole window, margins included. */
+/** White pixels (every channel above 247) in a PNG capture. */
+const whites = (png) => {
+  const px = execFileSync('magick', ['png:-', '-alpha', 'off', '-depth', '8', 'rgb:-'], { input: png })
+  let n = 0
+  for (let i = 0; i < px.length; i += 3) if (px[i] > 247 && px[i + 1] > 247 && px[i + 2] > 247) n++
+  return n
+}
+
+/**
+ * Windows wider than the frame: the hero's clip frame and band fills reach the window
+ * edges, the outermost pixel columns show no white down to where the bottom corners
+ * start rounding, and each moving row covers the whole window over one period.
+ */
 async function bleed(t, C) {
-  for (const width of [1920, 2560]) {
+  for (const width of C.windows) {
     const page = await t.browser.newPage({ viewport: { width, height: 1100 } })
     await page.goto(t.url, { waitUntil: 'networkidle' })
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete))
     await settle(page, C.TRACKS, 'running')
-    const bands = await page.$$eval(C.bands.map((id) => `[data-node-id="${id}"]`).join(), (els) => els.map((e) => {
-      const r = e.getBoundingClientRect()
-      return { id: e.dataset.nodeId, l: r.left, r: r.right }
-    }))
-    const full = bands.length === 2 && bands.every((b) => Math.abs(b.l) < 0.01 && Math.abs(b.r - width) < 0.01)
-    t.check('M-01', full, `${width}x1100: the hero band fills reach the window edges: ${bands.map((b) => `${b.id} ${b.l.toFixed(2)}..${b.r.toFixed(2)}`).join(', ')}`)
+    const sels = ['[data-hero-frame]', ...C.bands.map((id) => `[data-node-id="${id}"]`)]
+    const bands = await page.evaluate((sels) => sels.map((s) => {
+      const r = document.querySelector(s)?.getBoundingClientRect()
+      return { s, l: r ? r.left : NaN, r: r ? r.right : NaN }
+    }), sels)
+    const full = bands.every((b) => Math.abs(b.l) < 0.01 && Math.abs(b.r - width) < 0.01)
+    const h = await page.$eval(C.hero, (el) => Math.floor(el.getBoundingClientRect().bottom) - 51)
+    const edges = []
+    for (const x of [0, width - 1]) edges.push(whites(await page.screenshot({ clip: { x, y: 0, width: 1, height: h } })))
+    t.check('bleed', full && edges.every((n) => n === 0),
+      `${width}x1100: ${bands.map((b) => `${b.s} ${b.l.toFixed(2)}..${b.r.toFixed(2)}`).join(', ')}; white px in the outermost columns over y 0..${h}: left ${edges[0]}, right ${edges[1]}`)
     for (const r of C.ROWS) {
       const cov = await windowCoverage(page, r.track, r.speed)
       t.check('M-01', cov.vw === width && cov.run <= C.GAP + 0.5 && Math.abs(cov.live - cov.run) < 0.05,
@@ -182,7 +204,7 @@ export default async function (page, t) {
   }
   await p2.close()
 
-  if (C.bands) await bleed(t, C)
+  await bleed(t, C)
 }
 
 export async function reduced(page, t) {

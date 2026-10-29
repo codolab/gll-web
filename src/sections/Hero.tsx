@@ -33,8 +33,7 @@ const LAYOUT = {
     tileW: 299.7864990234375, tileH: 299.7864990234375,
     cols: [0, 342.61328125, 685.22265625, 1027.828125, 1370.43359375],
     rows: [0, 342.609375, 685.2109375],
-    // The rounded frame clips the rows at 0..1440, so they never reach past it.
-    reach: 0,
+    rounded: true, // the frame's 50px bottom corners
     tiles: tiles(94, 88, ''),
     copy: { id: '94:104', x: 214, y: 317, w: 1012.0790405273438, h: 431.83160400390625 },
     block: '94:105', title: { id: '94:106', x: 0, w: 1012.0790405273438 }, lede: { id: '94:107', x: 192.03955078125 },
@@ -47,8 +46,7 @@ const LAYOUT = {
     tileW: 341.42352294921875, tileH: 299.7864990234375,
     cols: [0.02783203125, 390.226318359375, 780.420166015625, 1170.60986328125, 1560.79931640625],
     rows: [0, 342.609375, 685.2109375],
-    // Square band: the rows fill the margin of a window up to 2560 (bleed 460).
-    reach: 460,
+    rounded: false, // Rectangle 15 is square
     tiles: tiles(173, 314, 'wide-'),
     copy: { id: '173:330', x: 243.7041015625, y: 317.04541015625, w: 1152.592041015625, h: 431.7417907714844 },
     block: '173:331', title: { id: '173:332', x: 36.2958984375, w: 1080 }, lede: { id: '173:333', x: 262.2958984375 },
@@ -60,6 +58,7 @@ type Layout = (typeof LAYOUT)[CanvasSurface]
 const RADIUS = 22.306095123291016
 const DIRS = [1, -1, 1] as const
 const SPEED = 20 // px/s, [PROPOSED DEFAULT]
+const WINDOW_MAX = 2560 // widest window the rows fill edge to edge (canvas bleed), as for the logos and ribbons
 
 function HeroTile({ tile, x, y, w, h, copy }: { tile: Tile; x: number; y: number; w: number; h: number; copy: boolean }) {
   const node = copy ? undefined : tile.id
@@ -80,8 +79,9 @@ function HeroRow({ L, r, dir }: { L: Layout; r: number; dir: 1 | -1 }) {
   // whose origin and shift sit on the pixel grid draws its photos without
   // resampling at rest and after each full period.
   const period = Math.round(((L.cols[4] - L.cols[0]) / 4) * 5)
-  const lo = -L.grid.x - L.reach - (dir > 0 ? period : 0)
-  const hi = L.w - L.grid.x + L.reach + (dir < 0 ? period : 0)
+  const reach = (WINDOW_MAX - L.w) / 2
+  const lo = -L.grid.x - reach - (dir > 0 ? period : 0)
+  const hi = L.w - L.grid.x + reach + (dir < 0 ? period : 0)
   const at = (n: number) => L.cols[((n % 5) + 5) % 5] + Math.floor(n / 5) * period
   const shown: number[] = []
   for (let n = Math.floor((lo - L.tileW) / period) * 5; at(n) < hi; n++) if (at(n) + L.tileW > lo) shown.push(n)
@@ -101,30 +101,31 @@ function HeroRow({ L, r, dir }: { L: Layout; r: number; dir: 1 | -1 }) {
   )
 }
 
-// A full-width band's fill reaches past the frame edges into a wider window (CONVENTIONS "Bleed").
+// A full-width band reaches past the frame edges into a wider window (CONVENTIONS "Bleed").
 const BAND = { left: 'calc(-1 * var(--bleed, 0px))', right: 'calc(-1 * var(--bleed, 0px))' }
 
 export default function Hero() {
-  const surface = useCanvasSurface()
-  const L = LAYOUT[surface]
-  const wide = surface === 'wide'
+  const L = LAYOUT[useCanvasSurface()]
   return (
-    // Desktop's hero is one frame with a rounded, clipping bottom; wide's layers are square and unclipped.
-    <div className={wide ? 'relative size-full' : 'relative size-full overflow-hidden rounded-b-[50px]'} data-node-id={L.root}>
-      <div className={wide ? 'absolute inset-y-0 bg-[#0b1722]' : 'absolute inset-0 bg-[#0b1722]'} style={wide ? BAND : undefined} data-node-id={L.ink} />
+    <div className="relative size-full" data-node-id={L.root}>
+      {/* The band clips the rows like the Figma frame, widened by the bleed: in a wider
+          window its fills, rows and (desktop) rounded bottom corners reach the window edges. */}
+      <div className={`absolute inset-y-0 overflow-hidden ${L.rounded ? 'rounded-b-[50px]' : ''}`} style={BAND} data-hero-frame="">
+        <div className="absolute inset-0 bg-[#0b1722]" data-node-id={L.ink} />
 
-      <div
-        className="absolute"
-        style={{ left: L.grid.x, top: L.grid.y, width: L.grid.w, height: L.grid.h }}
-        data-node-id={L.grid.id}
-        data-hero-rows=""
-      >
-        {L.rows.map((top, r) => (
-          <HeroRow key={top} L={L} r={r} dir={DIRS[r]} />
-        ))}
+        <div
+          className="absolute"
+          style={{ left: `calc(var(--bleed, 0px) + ${L.grid.x}px)`, top: L.grid.y, width: L.grid.w, height: L.grid.h }}
+          data-node-id={L.grid.id}
+          data-hero-rows=""
+        >
+          {L.rows.map((top, r) => (
+            <HeroRow key={top} L={L} r={r} dir={DIRS[r]} />
+          ))}
+        </div>
+
+        <div className="absolute inset-0 bg-[rgb(8_22_35/0.71)]" data-node-id={L.scrim} />
       </div>
-
-      <div className={wide ? 'absolute inset-y-0 bg-[rgb(8_22_35/0.71)]' : 'absolute inset-0 bg-[rgb(8_22_35/0.71)]'} style={wide ? BAND : undefined} data-node-id={L.scrim} />
 
       <div
         className="absolute"
