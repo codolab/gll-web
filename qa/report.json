@@ -1,6 +1,6 @@
 {
- "url": "http://localhost:4197/",
- "at": "2026-10-29T11:45:29.293Z",
+ "url": "http://localhost:4210/",
+ "at": "2026-10-29T13:21:58.454Z",
  "gates": {
   "geomTol": 1,
   "textOriginTol": 1,
@@ -587,7 +587,7 @@
     },
     "ink": {
      "whole": {
-      "dx": -7,
+      "dx": 5,
       "dy": 0.25
      },
      "worst": {
@@ -689,10 +689,10 @@
    },
    "raster": {
     "window": "2832x208",
-    "ae": 4.063,
+    "ae": 4.066,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 16254,
+    "diffPx": 16248,
     "thickPx": 679,
     "thick": 0.1153,
     "edgeOnly": 95.8,
@@ -707,17 +707,17 @@
     "ink": {
      "whole": {
       "dx": -0.15,
-      "dy": -0.01
+      "dy": -0.02
      },
      "worst": {
       "y": 1013.5,
       "h": 77,
       "dx": -0.15,
-      "dy": -0.01,
+      "dy": -0.02,
       "expX": -0.01,
       "expY": 0.12,
       "resX": -0.14,
-      "resY": -0.13
+      "resY": -0.14
      },
      "flagged": 0,
      "bands": [
@@ -725,7 +725,7 @@
        "y": 1013.5,
        "h": 77,
        "dx": -0.15,
-       "dy": -0.01,
+       "dy": -0.02,
        "method": {
         "x": "ncc",
         "y": "ncc"
@@ -735,7 +735,7 @@
        "spreadX": 0.73,
        "spreadY": 0.61,
        "resX": -0.14,
-       "resY": -0.13,
+       "resY": -0.14,
        "empty": false
       }
      ]
@@ -928,10 +928,10 @@
    },
    "raster": {
     "window": "2784x190",
-    "ae": 1.009,
+    "ae": 1.01,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 2350,
+    "diffPx": 2349,
     "thickPx": 0,
     "thick": 0,
     "edgeOnly": 100,
@@ -1209,10 +1209,10 @@
    },
    "raster": {
     "window": "2880x480",
-    "ae": 1.338,
+    "ae": 1.337,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 8052,
+    "diffPx": 8057,
     "thickPx": 0,
     "thick": 0,
     "edgeOnly": 100,
@@ -1583,7 +1583,7 @@
     "ae": 0.531,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 17004,
+    "diffPx": 17010,
     "thickPx": 0,
     "thick": 0,
     "edgeOnly": 100,
@@ -1666,7 +1666,7 @@
       {
        "y": 3245,
        "h": 209,
-       "dx": 0,
+       "dx": 0.01,
        "dy": 0,
        "method": {
         "x": "ncc",
@@ -1676,7 +1676,7 @@
        "expY": 0,
        "spreadX": 0,
        "spreadY": 0,
-       "resX": 0,
+       "resX": 0.01,
        "resY": 0,
        "empty": false
       },
@@ -2609,10 +2609,10 @@
    },
    "raster": {
     "window": "2792x1488",
-    "ae": 2.782,
+    "ae": 2.78,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 45397,
+    "diffPx": 45323,
     "thickPx": 14,
     "thick": 0.0003,
     "edgeOnly": 100,
@@ -2823,12 +2823,12 @@
       "tag": "div",
       "dx": 0,
       "dy": 0,
-      "dw": -0.02,
+      "dw": 0,
       "dh": 0,
       "against": "box",
       "origin": 0,
-      "size": 0.02,
-      "worst": 0.02,
+      "size": 0,
+      "worst": 0,
       "pass": true
      },
      {
@@ -3589,10 +3589,10 @@
      "cells": 34,
      "at": "72x152 at 900,1592"
     },
-    "diffPx": 39159,
-    "thickPx": 9604,
-    "thick": 0.2792,
-    "edgeOnly": 75.5,
+    "diffPx": 39104,
+    "thickPx": 9619,
+    "thick": 0.2796,
+    "edgeOnly": 75.4,
     "shift": {
      "dx": 0,
      "dy": 0,
@@ -3998,7 +3998,7 @@
     "ae": 2.583,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 74157,
+    "diffPx": 74167,
     "thickPx": 184,
     "thick": 0.003,
     "edgeOnly": 99.8,
@@ -4554,7 +4554,7 @@
     "ae": 1.966,
     "structural": 0,
     "structBlob": null,
-    "diffPx": 50122,
+    "diffPx": 50118,
     "thickPx": 674,
     "thick": 0.0109,
     "edgeOnly": 98.7,

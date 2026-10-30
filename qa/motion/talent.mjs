@@ -10,6 +10,12 @@
 // One t.check per aspect.
 import { execFileSync } from 'node:child_process'
 
+// Node ids per canvas (wide repeats 94:935 inside 173:509, same boxes and outlines): heading, photo, tagline, shapes frame.
+const NODES = {
+  desktop: { title: '94:261', photo: '94:265', line: '94:274', frame: '94:264' },
+  wide: { title: '173:510', photo: '173:514', line: '173:523', frame: '173:513' },
+}
+let N = NODES.desktop
 const PHOTOS = ['jaqs-volleyball.webp', 'vilnius-photo.webp', 'yolk-volley-308.webp', 'yolk-volley-274.webp']
 const LINES = ['Global minds. Lithuanian roots.', 'One community. Endless possibilities.', 'Your next chapter starts here.', 'Go further, together.']
 const REST = 1
@@ -70,7 +76,7 @@ const points = (page) => page.evaluate(() =>
   }))
 
 const away = async (page) => {
-  const h = await page.$eval('[data-node-id="94:261"]', (el) => el.getBoundingClientRect().toJSON())
+  const h = await page.$eval(`[data-node-id="${N.title}"]`, (el) => el.getBoundingClientRect().toJSON())
   await page.mouse.move(h.left + h.width / 2, h.top + h.height / 2)
 }
 
@@ -131,13 +137,13 @@ const hitArea = (page) => page.evaluate(() => {
  * on another shape or the tagline must be white. Returns the points that are not.
  */
 async function band(page) {
-  const pts = await page.evaluate((GAP) => {
+  const pts = await page.evaluate(([GAP, LINE]) => {
     const sec = document.querySelector('[data-section="talent"]')
     const tabs = [...sec.querySelectorAll('[role="tab"]')]
     const b = sec.querySelector('[role="tab"][aria-selected="true"]')
     const { dist, r, box } = window.__shape(b)
     const others = tabs.filter((o) => o !== b).map((o) => window.__shape(o))
-    const line = sec.querySelector('[data-node-id="94:274"]').parentElement.querySelector('p:not(.invisible)').getBoundingClientRect()
+    const line = sec.querySelector(`[data-node-id="${LINE}"]`).parentElement.querySelector('p:not(.invisible)').getBoundingClientRect()
     const out = []
     for (let y = Math.ceil(box[1] - GAP); y < box[3] + GAP; y += 3) {
       for (let x = Math.ceil(box[0] - GAP); x < box[2] + GAP; x += 3) {
@@ -149,7 +155,7 @@ async function band(page) {
       }
     }
     return { tab: b.dataset.nodeId, pts: out }
-  }, GAP)
+  }, [GAP, N.line])
   const png = await page.screenshot()
   const w = png.readUInt32BE(16), px = rgb(png)
   const bad = pts.pts.filter(([x, y]) => { const i = (y * w + x) * 3; return Math.min(px[i], px[i + 1], px[i + 2]) < 250 })
@@ -161,9 +167,9 @@ async function band(page) {
  * the nearest and the farthest outline point within 40deg of the line to the photo's
  * centre, so a notch that is off-centre or turned away shows as a wide spread.
  */
-const notches = (page) => page.evaluate((CIRCLE) => {
+const notches = (page) => page.evaluate(([CIRCLE, PHOTO]) => {
   const sec = document.querySelector('[data-section="talent"]')
-  const img = sec.querySelector('[data-node-id="94:265"]'), box = img.getBoundingClientRect()
+  const img = sec.querySelector(`[data-node-id="${PHOTO}"]`), box = img.getBoundingClientRect()
   const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), p = document.createElementNS(ns, 'path')
   p.setAttribute('d', getComputedStyle(img).clipPath.match(/path\("(.+)"\)/)[1])
   svg.append(p); document.body.append(svg)
@@ -182,7 +188,7 @@ const notches = (page) => page.evaluate((CIRCLE) => {
     }
     return [Math.min(...near), Math.max(...near)]
   })
-}, CIRCLE)
+}, [CIRCLE, N.photo])
 
 const rgb = (png) => execFileSync('magick', ['png:-', '-alpha', 'off', '-depth', '8', 'rgb:-'], { input: png, maxBuffer: 1 << 28 })
 const HIDE = '[data-section="talent"] [role="tab"], [data-section="talent"] p { visibility: hidden !important }'
@@ -198,7 +204,7 @@ const sliverPx = (png) => {
  */
 async function slivers(page) {
   const style = await page.addStyleTag({ content: BLACK })
-  const png = await page.locator('[data-node-id="94:264"]').screenshot()
+  const png = await page.locator(`[data-node-id="${N.frame}"]`).screenshot()
   await style.evaluate((el) => el.remove())
   return sliverPx(png)
 }
@@ -226,14 +232,14 @@ const lighter = (c, top) => { let n = 0; for (let j = 0; j < c.length; j += 3) n
  * most a step outdoes both its neighbours by, as a share (a jump in an otherwise smooth change).
  */
 async function settle(t, switches) {
-  const page = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
+  const page = await t.browser.newPage({ viewport: { width: t.width ?? 1440, height: 900 }, reducedMotion: 'no-preference' })
   await page.clock.install()
   await page.goto(t.url, { waitUntil: 'networkidle' })
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await page.clock.pauseAt(new Date(Date.now() + 1000))
   await page.addStyleTag({ content: `${HIDE} html:not(.qa-colour) [data-section="talent"] img { filter: brightness(0) !important }` })
   const click = (i) => page.evaluate((i) => document.querySelectorAll('[data-section="talent"] [role="tab"]')[i].click(), i)
-  const shot = () => page.locator('[data-node-id="94:264"]').screenshot()
+  const shot = () => page.locator(`[data-node-id="${N.frame}"]`).screenshot()
   const colour = async () => {
     await page.evaluate(() => document.documentElement.classList.add('qa-colour'))
     const png = await shot()
@@ -329,6 +335,7 @@ const focusBefore = (page) => page.evaluate(() => {
 })
 
 export default async function (page, t) {
+  N = NODES[t.surface]
   await mark(page)
   await installShape(page)
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
@@ -338,7 +345,7 @@ export default async function (page, t) {
   // Tabs semantics at rest.
   const rest = await snap(page)
   const aria = await page.locator(t.section).ariaSnapshot()
-  const wiring = await page.evaluate(() => {
+  const wiring = await page.evaluate((N) => {
     const sec = document.querySelector('[data-section="talent"]')
     const panel = sec.querySelector('[role="tabpanel"]')
     const tabs = [...sec.querySelectorAll('[role="tablist"] [role="tab"]')]
@@ -347,14 +354,14 @@ export default async function (page, t) {
       tabs: tabs.length,
       controls: tabs.every((b) => b.getAttribute('aria-controls') === panel.id),
       labelled: panel.getAttribute('aria-labelledby') === active.id,
-      holds: panel.contains(sec.querySelector('[data-node-id="94:265"]')) && panel.contains(sec.querySelector('[data-node-id="94:274"]')),
+      holds: panel.contains(sec.querySelector(`[data-node-id="${N.photo}"]`)) && panel.contains(sec.querySelector(`[data-node-id="${N.line}"]`)),
     }
-  })
+  }, N)
   t.check('M-04', is(rest, REST) && wiring.tabs === 4 && wiring.controls && wiring.labelled && wiring.holds &&
       aria.includes('tablist "A world of Lithuanian talent"') && aria.includes('tab "2: One community. Endless possibilities." [selected]') &&
       aria.includes('tabpanel "2: One community. Endless possibilities."'),
     `tabs semantics: tablist named by the h2, ${wiring.tabs} tabs, aria-controls -> panel ${wiring.controls}, panel labelled by the selected tab ${wiring.labelled}, ` +
-    `panel holds 94:265 + 94:274 ${wiring.holds}; rest selected ${rest.selected} (extended ${rest.extended}, ${rest.circles} circles), tabindex ${rest.tabindex}`)
+    `panel holds ${N.photo} + ${N.line} ${wiring.holds}; rest selected ${rest.selected} (extended ${rest.extended}, ${rest.circles} circles), tabindex ${rest.tabindex}`)
 
   const hits = await hitArea(page)
   t.check('M-04', hits.every((h) => h.n > 0 && h.ok === h.n),
@@ -462,7 +469,7 @@ export default async function (page, t) {
 
   // A hover while a tab holds keyboard focus must not move the tab stop: Tab still leaves the group.
   // Focus moves scroll the page: centre the composition (focus stays put) and measure again.
-  await page.$eval('[data-node-id="94:264"]', (el) => el.scrollIntoView({ block: 'center' }))
+  await page.$eval(`[data-node-id="${N.frame}"]`, (el) => el.scrollIntoView({ block: 'center' }))
   const now = await points(page)
   await page.mouse.move(now[2].x, now[2].y)
   await t.sleep(SETTLE_MS)
@@ -483,7 +490,7 @@ export default async function (page, t) {
   t.check('M-04', rings.every((r) => r === true) && clicked.focus === 4 && clicked.ring === false,
     `focus ring: keyboard focus ${rings.filter(Boolean).length}/${rings.length} drawn (shape stroke), mouse click focus ${clicked.ring ? 'drawn' : 'none'}`)
 
-  const touch = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, hasTouch: true, reducedMotion: 'no-preference' })
+  const touch = await t.browser.newPage({ viewport: { width: t.width ?? 1440, height: 900 }, hasTouch: true, reducedMotion: 'no-preference' })
   await touch.goto(t.url, { waitUntil: 'networkidle' })
   await touch.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await t.sleep(200)
@@ -500,7 +507,7 @@ export default async function (page, t) {
   t.check('M-04', all(tapped) && !touchReset, `tap selects: ${trail(tapped)}${touchReset ? ' (page reloaded mid-check, rerun)' : ''}`)
 
   // M-05: a photo per number, each at 2x the box, all in the one clipped box (Figma's for 2).
-  const photos = await page.$eval('[data-section="talent"] [data-node-id="94:265"]', (box, srcs) => Promise.all(srcs.map(async (src) => {
+  const photos = await page.$eval(`[data-section="talent"] [data-node-id="${N.photo}"]`, (box, srcs) => Promise.all(srcs.map(async (src) => {
     const i = new Image()
     i.src = `/assets/talent/${src}`
     const decoded = await i.decode().then(() => true, () => false)
@@ -515,7 +522,7 @@ export default async function (page, t) {
   // M-06: the tagline.
   const lines = await fit(page)
   t.check('M-06', rest.line === LINES[REST] && [...hovered, ...keyed].every(([i, s]) => s.line === LINES[i]),
-    `tagline per state: rest "${rest.line}" (94:274); hover ${hovered.map(([, s]) => `"${s.line}"`).join(', ')}`)
+    `tagline per state: rest "${rest.line}" (${N.line}); hover ${hovered.map(([, s]) => `"${s.line}"`).join(', ')}`)
   t.check('M-06', lines.every((l) => l.lines <= 3 && l.bottom <= lines[REST].bottom && l.w <= 254),
     `fits 254x108: ${lines.map((l, i) => `${i + 1} ${l.lines} lines ${l.w}px, text bottom ${l.bottom}px`).join('; ')} (state 2 sets the limit)`)
   // One line at a time: 2 fades out, then 1 fades in, never both drawn.
@@ -531,6 +538,7 @@ export default async function (page, t) {
 }
 
 export async function reduced(page, t) {
+  N = NODES[t.surface]
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await away(page)
   await t.sleep(200)

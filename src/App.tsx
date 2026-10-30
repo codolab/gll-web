@@ -1,5 +1,7 @@
-import { useEffect, useState, type ComponentType } from 'react'
-import { SECTIONS, CANVAS_W, CANVAS_H } from './canvas'
+import { useLayoutEffect, useState, type ComponentType, type CSSProperties } from 'react'
+import { CANVASES } from './canvas'
+import { CanvasSurfaceContext, useSurface, WINDOW_MAX, type CanvasSurface } from './surface'
+import MobileApp from './mobile/MobileApp'
 import { useReducedMotion } from './motion'
 import Hero from './sections/Hero'
 import Gradient from './sections/Gradient'
@@ -27,19 +29,25 @@ const REGISTRY: Record<string, ComponentType> = {
 }
 
 /**
- * The design exists only as a 1440-wide frame, so narrower viewports get the
- * whole canvas scaled down rather than a re-flowed layout we would have had to
- * invent. See gaps.md G-01: a responsive pass needs mobile frames.
+ * Fit the canvas to the window: scaled down when the window is narrower, at 1x
+ * and centred when it is wider. `bleed` is how far the window reaches past each
+ * canvas edge, in canvas px, up to a WINDOW_MAX window; full-width bands extend
+ * by it (var(--bleed)), so a wide window shows no white margins. Measured before
+ * paint, after layout, so a classic scrollbar is already accounted for.
  */
-function useCanvasScale() {
-  const [scale, setScale] = useState(1)
-  useEffect(() => {
-    const measure = () => setScale(Math.min(1, document.documentElement.clientWidth / CANVAS_W))
+function useCanvasFit(width: number) {
+  const [fit, setFit] = useState({ scale: 1, bleed: 0 })
+  useLayoutEffect(() => {
+    const measure = () => {
+      const cw = document.documentElement.clientWidth
+      const scale = Math.min(1, cw / width)
+      setFit({ scale, bleed: Math.min(Math.max(0, (cw / scale - width) / 2), (WINDOW_MAX - width) / 2) })
+    }
     measure()
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
-  }, [])
-  return scale
+  }, [width])
+  return fit
 }
 
 /**
@@ -51,13 +59,11 @@ function useCanvasScale() {
 const isolated = new URLSearchParams(window.location.search).get('isolate')
 
 export default function App() {
-  const scale = useCanvasScale()
+  const surface = useSurface()
   const reduced = useReducedMotion()
   const [paused, setPaused] = useState(false)
-  const shown = isolated ? SECTIONS.filter((s) => s.slug === isolated) : SECTIONS
-  const backdrop = isolated ? shown[0]?.backdrop : undefined
   return (
-    <main className="w-full overflow-x-hidden" data-motion={paused ? 'paused' : undefined}>
+    <main className="w-full overflow-x-clip" data-motion={paused ? 'paused' : undefined} data-surface={surface}>
       {/* WCAG 2.2.2: the marquees run past 5s, so the first tab stop pauses them.
           Visible only on focus, so the design is untouched (motion-spec M-G5). */}
       {!reduced && (
@@ -70,12 +76,35 @@ export default function App() {
           Pause moving content
         </button>
       )}
-      {(!isolated || isolated === 'nav') && <StickyNav scale={scale} />}
-      <div className="relative mx-auto" style={{ width: CANVAS_W * scale, height: CANVAS_H * scale }}>
+      {surface === 'mobile' ? <MobileApp /> : <CanvasPage surface={surface} />}
+    </main>
+  )
+}
+
+function CanvasPage({ surface }: { surface: CanvasSurface }) {
+  const canvas = CANVASES[surface]
+  const { scale, bleed } = useCanvasFit(canvas.w)
+  const shown = isolated ? canvas.sections.filter((s) => s.slug === isolated) : canvas.sections
+  const backdrop = isolated ? shown[0]?.backdrop : undefined
+  return (
+    <CanvasSurfaceContext.Provider value={surface}>
+      {(!isolated || isolated === 'nav') && <StickyNav canvas={canvas} scale={scale} />}
+      <div className="relative mx-auto" style={{ width: canvas.w * scale, height: canvas.h * scale }}>
+        {/* Clipped like the Figma frame. When the window is wider, the clip widens
+            by the bleed, so what overhangs the frame fills the margin. Only then: a
+            canvas painting past its edge rasterises the hard-light logo marks a
+            shade differently (gaps.md G-11). Bleeding, the scale is 1 and the root
+            drops its transform: Chromium clips hit-testing of a transformed box
+            with a one-axis overflow clip to the box, so nothing in the margin
+            could be clicked. */}
         <div
           data-canvas="root"
-          className="absolute left-0 top-0 origin-top-left overflow-hidden bg-white"
-          style={{ width: CANVAS_W, height: CANVAS_H, transform: `scale(${scale})`, background: backdrop }}
+          className={`absolute left-0 top-0 origin-top-left overflow-y-clip ${bleed > 0 ? 'overflow-x-visible' : 'overflow-x-clip'} bg-white`}
+          style={{
+            width: canvas.w, height: canvas.h, background: backdrop, '--bleed': `${bleed}px`,
+            clipPath: bleed > 0 ? `inset(0 ${-bleed}px)` : undefined,
+            transform: bleed > 0 ? undefined : `scale(${scale})`,
+          } as CSSProperties}
         >
           {/* The nav renders in StickyNav, outside the canvas, so it can stay on screen. */}
           {shown.filter((s) => s.slug !== 'nav').map((s) => {
@@ -95,6 +124,6 @@ export default function App() {
           })}
         </div>
       </div>
-    </main>
+    </CanvasSurfaceContext.Provider>
   )
 }

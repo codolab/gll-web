@@ -1,9 +1,11 @@
 /**
- * ribbons - Figma 94:139. Two clipped type rows ("Connect globally",
- * "Grow together"), each phrase light + semibold, split by coloured dots.
- * M-07: each row's content slides inside its clip box as a seamless loop.
+ * ribbons - Figma 94:139 (wide 173:366). Two clipped type rows ("Connect
+ * globally", "Grow together"), each phrase light + semibold, split by coloured
+ * dots. M-07: each row's content slides inside its clip box as a seamless loop.
  */
 import type { CSSProperties } from 'react'
+import { CANVASES } from '../canvas'
+import { useCanvasSurface, WINDOW_MAX, type CanvasSurface } from '../surface'
 
 const ROW_Y = 37.1758 // dot top inside a 112px row (2280.1016 - 2242.9258)
 const SPEED = 40 // px/s, [PROPOSED DEFAULT]
@@ -44,49 +46,122 @@ const renderItem = (it: Item, key: string) =>
 
 const at = (it: Item, dx: number): Item => ({ ...it, x: it.x + dx })
 const clone = (it: Item): Item => ({ ...it, node: undefined, group: undefined })
+const width = (it: Item) => ('w' in it ? it.w : 37.649)
 
-/** Originals at their Figma x plus one period of clones on the side the row
-    enters from, so the visible span stays covered at every shift. */
-function Marquee({ items, period: raw, dir }: { items: Item[]; period: number; dir: -1 | 1 }) {
+type Row = { node: string; w: number; items: Item[]; period: number; dir: -1 | 1 }
+
+/**
+ * Originals at their Figma x plus every whole repeat, one period apart, that
+ * enters the widest window at some shift, so the visible span stays covered all
+ * through the loop. `span` is that window in row px. Whole repeats: a trimmed
+ * one leaving a phrase as the track's first box made the dots' edges rasterise
+ * a shade differently one period on.
+ */
+function Marquee({ row, span: [lo, hi] }: { row: Row; span: [number, number] }) {
+  const { items, dir } = row
   // On Blink's 1/64 px layout grid, every clone lands exactly one period away.
-  const period = Math.round(raw * 64) / 64
+  const period = Math.round(row.period * 64) / 64
+  const unit = items.filter((it) => it.x < period)
+  const clones: Item[] = []
+  for (let k = -3; k <= 3; k++) {
+    const seen = unit.some((it) => {
+      const x = it.x + k * period, w = width(it)
+      return dir < 0 ? x + w > lo && x < hi + period : x + w + period > lo && x < hi
+    })
+    if (!seen) continue
+    for (const it of unit) {
+      const x = it.x + k * period
+      if (!items.some((o) => Math.abs(o.x - x) < 0.01)) clones.push(at(clone(it), k * period))
+    }
+  }
   // Blink truncates a fractional left toward zero, which puts a negative one
-  // 1/64 px off: keep every left >= 0 and move the track left instead.
-  const base = dir > 0 ? period : 0
+  // 1/64 px off: keep every left >= 0 and move the track left instead, by whole
+  // px so every left keeps its fraction (and how Blink rounds it).
+  const base = Math.ceil(Math.max(0, ...clones.map((c) => -c.x)))
   const style = { left: -base, '--marquee-shift': `${dir * period}px`, '--marquee-duration': `${period / SPEED}s` } as CSSProperties
   return (
     <div className="marquee absolute inset-y-0 w-full group-hover:[animation-play-state:paused]" style={style}>
       {items.map((it, i) => renderItem(at(it, base), `o${i}`))}
-      {items.filter((it) => it.x < period).map((it, i) => renderItem(at(clone(it), base - dir * period), `c${i}`))}
+      {clones.map((it, i) => renderItem(at(it, base), `c${i}`))}
     </div>
   )
 }
 
-// The dot colours alternate (green/amber, pink/green), so a seamless repeat is
-// two phrase units, not one: 2 x 780.649 and 2 x 688.649.
-const CONNECT: Item[] = [
-  { group: '94:141', node: '94:142', x: 0, fill: 'bg-green' },
-  { node: '94:143', x: 69.649, w: 679, light: 'Connect ', bold: 'globally' },
-  { group: '94:144', node: '94:145', x: 780.649, fill: 'bg-amber' },
-  { node: '94:146', x: 850.298, w: 679, light: 'Connect ', bold: 'globally' },
-]
-const GROW: Item[] = [
-  { node: '94:148', x: 0, w: 587, light: 'Grow ', bold: 'together' },
-  { group: '94:149', node: '94:150', x: 619, fill: 'bg-pink' },
-  { node: '94:151', x: 688.649, w: 587, light: 'Grow ', bold: 'together' },
-  { group: '94:152', node: '94:153', x: 1307.649, fill: 'bg-green' },
-  { node: '94:154', x: 1377.298, w: 587, light: 'Grow ', bold: 'together' },
-]
+const connect = (node: string | undefined, x: number): Phrase => ({ node, x, w: 679, light: 'Connect ', bold: 'globally' })
+const grow = (node: string | undefined, x: number): Phrase => ({ node, x, w: 587, light: 'Grow ', bold: 'together' })
+
+// A seamless repeat spans the dot colour cycle: two phrase units (dot, phrase
+// and gaps: 780.649 and 688.649) on desktop (green/amber, pink/green), three on
+// wide's first row (green/pink/amber).
+const ROWS: Record<CanvasSurface, { root: string; rows: [Row, Row] }> = {
+  desktop: {
+    root: '94:139',
+    rows: [
+      {
+        node: '94:140', w: 1529.298, period: 2 * 780.649, dir: -1,
+        items: [
+          { group: '94:141', node: '94:142', x: 0, fill: 'bg-green' },
+          connect('94:143', 69.649),
+          { group: '94:144', node: '94:145', x: 780.649, fill: 'bg-amber' },
+          connect('94:146', 850.298),
+        ],
+      },
+      {
+        node: '94:147', w: 2209, period: 2 * 688.649, dir: 1,
+        items: [
+          grow('94:148', 0),
+          { group: '94:149', node: '94:150', x: 619, fill: 'bg-pink' },
+          grow('94:151', 688.649),
+          { group: '94:152', node: '94:153', x: 1307.649, fill: 'bg-green' },
+          grow('94:154', 1377.298),
+        ],
+      },
+    ],
+  },
+  wide: {
+    root: '173:366',
+    rows: [
+      {
+        node: '173:367', w: 2309.947, period: 3 * 780.649, dir: -1,
+        items: [
+          { group: '173:368', node: '173:369', x: 0, fill: 'bg-green' },
+          connect('173:370', 69.649),
+          { group: '173:371', node: '173:372', x: 780.649, fill: 'bg-pink' },
+          connect('173:373', 850.298),
+          { group: '173:374', node: '173:375', x: 1561.298, fill: 'bg-amber' },
+          connect('173:376', 1630.947),
+        ],
+      },
+      {
+        node: '173:377', w: 2209, period: 2 * 688.649, dir: 1,
+        items: [
+          grow('173:378', 0),
+          { group: '173:379', node: '173:380', x: 619, fill: 'bg-pink' },
+          grow('173:381', 688.649),
+          { group: '173:382', node: '173:383', x: 1307.649, fill: 'bg-green' },
+          grow('173:384', 1377.298),
+        ],
+      },
+    ],
+  },
+}
 
 export default function Ribbons() {
+  const surface = useCanvasSurface()
+  const { root, rows } = ROWS[surface]
+  const canvas = CANVASES[surface]
+  const bleed = (WINDOW_MAX - canvas.w) / 2
+  const sx = canvas.sections.find((s) => s.slug === 'ribbons')?.x ?? 0
+  const span: [number, number] = [-bleed - sx, canvas.w + bleed - sx]
+  // Figma clips each row to its box, which reaches past both canvas edges: the
+  // canvas (or, when wider, the window) clips it sideways, so a bleed fills.
   return (
-    <div className="group relative size-full" data-node-id="94:139">
-      <div data-node-id="94:140" className="absolute left-0 top-0 h-[112px] overflow-hidden" style={{ width: 1529.298 }}>
-        <Marquee items={CONNECT} period={2 * 780.649} dir={-1} />
-      </div>
-      <div data-node-id="94:147" className="absolute left-0 top-[128px] h-[112px] w-[2209px] overflow-hidden">
-        <Marquee items={GROW} period={2 * 688.649} dir={1} />
-      </div>
+    <div className="group relative size-full" data-node-id={root}>
+      {rows.map((row, i) => (
+        <div key={row.node} data-node-id={row.node} className="absolute left-0 h-[112px] overflow-x-visible overflow-y-clip" style={{ top: i * 128, width: row.w }}>
+          <Marquee row={row} span={span} />
+        </div>
+      ))}
     </div>
   )
 }

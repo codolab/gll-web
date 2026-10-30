@@ -1,7 +1,8 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useReducedMotion } from '../motion'
+import { useCanvasSurface, type CanvasSurface } from '../surface'
 
-/** talent - Figma 94:935. Heading, blob photo with four numbered shapes, tagline. */
+/** talent - Figma 94:935 (wide: loose layers 173:509 + 173:523). Heading, blob photo with four numbered shapes, tagline. */
 
 type Pt = readonly [number, number]
 type Box = { x: number; y: number; w: number; h: number }
@@ -75,6 +76,26 @@ const SHAPES = [
 })
 const FRAME = { w: 653.499, h: 738.575 } // 94:264
 
+// Per canvas. Wide repeats 94:935's inner boxes and outlines inside group 173:509 (ids keyed
+// by the desktop id), but its group 173:511 stops at the shapes, the tagline is a loose layer
+// beside the group, and Figma colours digits 1 and 2 ink there.
+type Geo = { ids: Record<string, string>; group?: { id: string; w: number; h: number }; groupW: number; line: { left: number; top: number }; ink: string[] }
+const GEO: Record<CanvasSurface, Geo> = {
+  desktop: { ids: {}, groupW: 978, line: { left: 724, top: 514.074 }, ink: [] },
+  wide: {
+    ids: {
+      '94:935': 'wide:talent', '94:261': '173:510', '94:262': '173:511', '94:263': '173:512', '94:264': '173:513', '94:265': '173:514',
+      '94:266': '173:515', '94:267': '173:516', '94:268': '173:517', '94:269': '173:518',
+      '94:270': '173:519', '94:271': '173:520', '94:272': '173:521', '94:273': '173:522', '94:274': '173:523',
+    },
+    group: { id: '173:509', w: 744, h: 867 }, groupW: 717, line: { left: 730, top: 531.1 }, ink: ['94:270', '94:271'],
+  },
+}
+const useGeo = () => {
+  const geo = GEO[useCanvasSurface()]
+  return { ...geo, id: (node: string) => geo.ids[node] ?? node }
+}
+
 // One line at a time: the old one fades out, then the new one fades in.
 const LINE_ON = 'opacity-100 motion-safe:transition-opacity motion-safe:duration-150 motion-safe:delay-150'
 const LINE_OFF = 'invisible opacity-0 motion-safe:transition-[opacity,visibility] motion-safe:duration-150'
@@ -89,18 +110,22 @@ const STEP: Record<string, (i: number) => number> = {
 }
 
 // The Figma "2" sits 6.8px below its loop's start; as a circle it centres like the others.
-const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => (
-  <span
-    data-node-id={n.id}
-    className="absolute h-12 whitespace-nowrap text-left text-[56px] font-semibold leading-[48px] tracking-[-2px] text-white motion-safe:transition-transform motion-safe:duration-400 motion-safe:ease-in-out"
-    style={{ left: n.x, top: n.y, width: n.w, transform: dy ? `translateY(${dy}px)` : undefined }}
-  >
-    {n.text}
-  </span>
-)
+const Digit = ({ n, dy = 0 }: { n: Num; dy?: number }) => {
+  const geo = useGeo()
+  return (
+    <span
+      data-node-id={geo.id(n.id)}
+      className={`absolute h-12 whitespace-nowrap text-left text-[56px] font-semibold leading-[48px] tracking-[-2px] ${geo.ink.includes(n.id) ? 'text-ink' : 'text-white'} motion-safe:transition-transform motion-safe:duration-400 motion-safe:ease-in-out`}
+      style={{ left: n.x, top: n.y, width: n.w, transform: dy ? `translateY(${dy}px)` : undefined }}
+    >
+      {n.text}
+    </span>
+  )
+}
 
 export default function Talent() {
   const uid = useId()
+  const geo = useGeo()
   const clip = uid.replace(/\W/g, '')
   const [active, setActive] = useState(REST)
   // Photos in the order chosen, each over the last, so however fast the numbers change no white
@@ -169,7 +194,7 @@ export default function Talent() {
       <button
         key={s.id}
         {...tab(i)}
-        data-node-id={s.id}
+        data-node-id={geo.id(s.id)}
         className={`${TAB} group pointer-events-none`}
         style={{ left: s.box.x, top: s.box.y, width: s.box.w, height: s.box.h }}
       >
@@ -190,20 +215,22 @@ export default function Talent() {
   }
 
   return (
-    <div className="relative size-full" data-node-id="94:935">
+    <div className="relative size-full" data-node-id={geo.id('94:935')}>
+      {/* Wide only: the group around heading and shapes has a box but paints nothing. */}
+      {geo.group && <div data-node-id={geo.group.id} className="pointer-events-none absolute left-0 top-0" style={{ width: geo.group.w, height: geo.group.h }} />}
       <h2
         id={`${uid}title`}
-        data-node-id="94:261"
+        data-node-id={geo.id('94:261')}
         className="absolute left-0 top-0 m-0 h-[72px] w-[744px] whitespace-nowrap text-center text-[56px] font-semibold leading-[72px] tracking-normal text-ink"
       >
         A world of Lithuanian talent
       </h2>
 
-      <div data-node-id="94:262" className="absolute" style={{ left: 14, top: 128, width: 978, height: 739 }}>
-        <div data-node-id="94:263" className="absolute left-0 top-0" style={{ width: 717, height: 739 }}>
+      <div data-node-id={geo.id('94:262')} className="absolute" style={{ left: 14, top: 128, width: geo.groupW, height: 739 }}>
+        <div data-node-id={geo.id('94:263')} className="absolute left-0 top-0" style={{ width: 717, height: 739 }}>
           {/* 94:262, 94:263 and 94:264 share one origin, so the tagline can sit in the
               tab panel here. isolate: the tabs' z-[1] lifts them over the panel only. */}
-          <div data-node-id="94:264" className="absolute left-0 top-0 isolate" style={{ width: 653.499, height: 738.575 }}>
+          <div data-node-id={geo.id('94:264')} className="absolute left-0 top-0 isolate" style={{ width: 653.499, height: 738.575 }}>
             {/* Zero-size wrappers: roles without a box, so nothing moves or paints. */}
             <div role="tablist" aria-labelledby={`${uid}title`} onKeyDown={onKeyDown} className="absolute left-0 top-0">
               {SHAPES.map(shape)}
@@ -211,7 +238,7 @@ export default function Talent() {
 
             <div role="tabpanel" id={`${uid}panel`} aria-labelledby={`${uid}tab${active}`} className="absolute left-0 top-0">
               {/* One clip for all the layers, so the edge never changes while they stack. */}
-              <div data-node-id="94:265" className="absolute" style={{ left: PHOTO.x, top: PHOTO.y, width: PHOTO.w, height: PHOTO.h, clipPath: `path('${BLOB}')` }}>
+              <div data-node-id={geo.id('94:265')} className="absolute" style={{ left: PHOTO.x, top: PHOTO.y, width: PHOTO.w, height: PHOTO.h, clipPath: `path('${BLOB}')` }}>
                 {layers.map((l, k, all) => (
                   <img
                     key={l.key}
@@ -267,9 +294,9 @@ export default function Talent() {
               {LINES.map((line, i) => (
                 <p
                   key={line}
-                  data-node-id={i === REST ? '94:274' : undefined}
+                  data-node-id={i === REST ? geo.id('94:274') : undefined}
                   className={`absolute m-0 pt-px text-[32px] font-semibold leading-[36px] tracking-[-0.64px] text-ink ${i === active ? LINE_ON : LINE_OFF}`}
-                  style={{ left: 724, top: 514.074, width: 254, height: 108 }}
+                  style={{ ...geo.line, width: 254, height: 108 }}
                 >
                   {line}
                 </p>

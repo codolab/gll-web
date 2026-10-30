@@ -26,14 +26,15 @@ export const seek = (page, sel, ms) => page.$eval(sel, (el, ms) => {
 }, ms)
 
 /**
- * Widest empty run inside the visible span (canvas and `clip`) over one full
- * period. The track moves rigidly, so the run is piecewise linear in the shift
- * and peaks where a box edge crosses a span edge: checking those shifts is
- * exact. The worst one is then seeked for real and re-measured.
+ * Widest empty run inside the visible span (canvas and `clip`, or with `clip`
+ * null the whole window, for a canvas that bleeds) over one full period. The
+ * track moves rigidly, so the run is piecewise linear in the shift and peaks
+ * where a box edge crosses a span edge: checking those shifts is exact. The
+ * worst one is then seeked for real and re-measured.
  */
 export const coverage = (page, track, clip, pxPerSec) => page.$eval(track, (el, [clip, v]) => {
-  const c = document.querySelector('[data-canvas="root"]').getBoundingClientRect(), k = document.querySelector(clip).getBoundingClientRect()
-  const lo = Math.max(c.left, k.left), hi = Math.min(c.right, k.right)
+  const c = document.querySelector('[data-canvas="root"]').getBoundingClientRect(), k = clip && document.querySelector(clip).getBoundingClientRect()
+  const [lo, hi] = k ? [Math.max(c.left, k.left), Math.min(c.right, k.right)] : [0, document.documentElement.clientWidth]
   const spans = (dx) => [...el.children].map((n) => n.getBoundingClientRect()).map((r) => [r.left - dx, r.right - dx]).sort((p, q) => p[0] - q[0])
   const run = (sp, d) => {
     let edge = lo, max = 0
@@ -67,7 +68,7 @@ export const boxes = (page, sel) => page.$$eval(`${sel} [data-node-id]`, (els) =
  * motion (the rest frame). `motionOn` then starts the marquees on the same page.
  */
 export async function open2x(t) {
-  const page = await t.browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, reducedMotion: 'reduce' })
+  const page = await t.browser.newPage({ viewport: { width: t.width ?? 1440, height: 900 }, deviceScaleFactor: 2, reducedMotion: 'reduce' })
   const url = new URL(t.url)
   url.searchParams.set('isolate', t.slug)
   await page.goto(url.href, { waitUntil: 'load' })
@@ -78,6 +79,21 @@ export async function open2x(t) {
   await page.$eval(t.section, (el) => scrollTo(0, Math.round(el.getBoundingClientRect().top + scrollY - 300)))
   return page
 }
+/**
+ * The page at a window wider than the canvas, so the canvas bleeds; motion on.
+ * Returns the bleed (canvas px past each edge) the app computed.
+ */
+export async function openWide(t, width) {
+  const page = await t.browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'no-preference' })
+  await page.goto(t.url, { waitUntil: 'networkidle' })
+  await page.evaluate(() => document.fonts.ready)
+  // Vertical only: scrollIntoView would also scroll <main> sideways (overflow-x: hidden scrolls
+  // programmatically), which moves the window off the centred canvas.
+  await page.$eval(t.section, (el) => scrollTo(0, Math.round(el.getBoundingClientRect().top + scrollY - 300)))
+  const bleed = await page.$eval('[data-canvas="root"]', (el) => parseFloat(el.style.getPropertyValue('--bleed')))
+  return { page, bleed }
+}
+
 export async function motionOn(page, sel) {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await settle(page, sel, 'running')

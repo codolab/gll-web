@@ -1,14 +1,15 @@
 // One section, straight off a running server, with exactly the maths of
 // `npm run qa` (both call scripts/harness.mjs; never fork the comparison).
 //   node scripts/check-one.mjs <slug> [url]        default url: dev server :4196
-// Writes qa/one/<slug>.{ref,build,diff,side}.png and qa/one/<slug>.json.
+// Writes qa/one/<slug>.{ref,build,diff,side}.png and qa/one/<slug>.json
+// (qa/wide/one/ under SURFACE=wide).
 import { writeFileSync } from 'node:fs'
-import { at, section, launch, captureSection, evaluateSection, printConsole, offenders, bandFlagged, GATES } from './harness.mjs'
+import { QA, section, launch, captureSection, evaluateSection, printConsole, offenders, bandFlagged, GATES } from './harness.mjs'
 
 const [slug, base = process.env.URL ?? 'http://localhost:4196/'] = process.argv.slice(2)
 if (!slug) { console.error('usage: node scripts/check-one.mjs <slug> [url]'); process.exit(2) }
 const s = section(slug)
-const out = at('qa/one')
+const out = QA('one')
 
 const browser = await launch()
 const cap = await captureSection(browser, base, s, out)
@@ -30,4 +31,4 @@ for (const b of x.ink.bands) {
 }
 const off = offenders(r, 15)
 if (off.length) { console.log(`geometry offenders (${r.geometry.failed.length}):`); for (const l of off) console.log(`  ${l}`) }
-console.log(`images: qa/one/${slug}.side.png (Figma | build | diff; red = mismatch, magenta = survives 1px erosion)`)
+console.log(`images: ${out}/${slug}.side.png (Figma | build | diff; red = mismatch, magenta = survives 1px erosion)`)

@@ -1,17 +1,38 @@
-// M-10 photo zoom on card hover/focus, M-11 looping arrows, M-12 touch and pen swipe (meet, 94:199).
-const CARDS = ['94:230', '94:202', '94:212', '94:221']
-const PHOTO = { '94:230': '94:231', '94:202': '94:203', '94:212': '94:213', '94:221': '94:222' }
-const CTA = { '94:230': '94:237', '94:202': '94:210', '94:212': '94:219', '94:221': '94:228' }
-const TITLE = { '94:230': '94:236', '94:202': '94:209', '94:212': '94:218', '94:221': '94:227' }
-const BAKED = ['94:230', '94:202'] // photo renders with the curve baked in; a copy of the curve shows while zoomed
-const PREV = '94:257'
-const NEXT = '94:253'
-const HEADING = '94:200'
-const PITCH = 352.043
+// M-10 photo zoom on card hover/focus, M-11 looping arrows, M-12 touch and pen swipe (meet, 94:199 / 173:430).
+// One table per canvas (t.surface); every check reads its ids and slots from it.
+const SURFACES = {
+  desktop: {
+    CARDS: ['94:230', '94:202', '94:212', '94:221'],
+    PHOTO: { '94:230': '94:231', '94:202': '94:203', '94:212': '94:213', '94:221': '94:222' },
+    CTA: { '94:230': '94:237', '94:202': '94:210', '94:212': '94:219', '94:221': '94:228' },
+    TITLE: { '94:230': '94:236', '94:202': '94:209', '94:212': '94:218', '94:221': '94:227' },
+    BAKED: ['94:230', '94:202'], // photo renders with the curve baked in; a copy of the curve shows while zoomed
+    TALL: '94:230', // the one photo frame 381 high (the others 356)
+    PREV: '94:257', NEXT: '94:253', HEADING: '94:200', GROUP: '94:201', GROUP_W: 1396.172,
+    SLOTS: [0, 352.043, 704.086, 1056.129], PITCH: 352.043,
+  },
+  // Five slots for four events: Grow Your Impact twice (173:442, 173:451). The fifth overhangs the
+  // frame, so its link leaves the Tab order while cut off; 173:460 lies under the row, inert.
+  wide: {
+    CARDS: ['173:478', '173:432', '173:442', '173:469', '173:451'],
+    PHOTO: { '173:478': '173:479', '173:432': '173:433', '173:442': '173:443', '173:469': '173:470', '173:451': '173:452' },
+    CTA: { '173:478': '173:485', '173:432': '173:440', '173:442': '173:449', '173:469': '173:476', '173:451': '173:458' },
+    TITLE: { '173:478': '173:484', '173:432': '173:439', '173:442': '173:448', '173:469': '173:475', '173:451': '173:457' },
+    BAKED: ['173:478', '173:432'],
+    TALL: '173:478',
+    PREV: '173:505', NEXT: '173:501', HEADING: '173:431', GROUP: '173:1359', GROUP_W: 1748.043,
+    SLOTS: [0, 352, 704.1, 1056, 1408], PITCH: 352, PEEK: true, UNDER: '173:460',
+  },
+}
+let CARDS, PHOTO, CTA, TITLE, BAKED, TALL, PREV, NEXT, HEADING, GROUP, GROUP_W, SLOTS, PITCH, PEEK, UNDER, N
+const use = (surface) => {
+  ;({ CARDS, PHOTO, CTA, TITLE, BAKED, TALL, PREV, NEXT, HEADING, GROUP, GROUP_W, SLOTS, PITCH, PEEK, UNDER } = SURFACES[surface])
+  N = CARDS.length
+}
 const sel = (id) => `[data-node-id="${id}"]`
 const curveSel = (card) => `${sel(card)} > img[src$="curve.svg"]`
 const imgSel = (card) => `${sel(PHOTO[card])} > img`
-const VIEWPORT = `${sel('94:201')} > div:first-child` // the clipping, swipe-handling box around the track
+const viewportSel = () => `${sel(GROUP)} > div:first-child` // the clipping, swipe-handling box around the track
 const fmt = (n, d = 2) => (Math.round(n * 10 ** d) / 10 ** d).toFixed(d)
 const WAIT = { timeout: 5000 }
 /** waitForFunction that says what it was waiting for when it times out. */
@@ -30,27 +51,27 @@ const away = async (page) => {
 }
 const frames = (page, n = 2) => page.evaluate((n) => new Promise((r) => { const f = () => (--n ? requestAnimationFrame(f) : r()); requestAnimationFrame(f) }), n)
 
-/** Real cards by x within 94:201, in canvas px; the first is the one in the first slot. */
-const order = (page) => page.evaluate(([ids, s]) => {
+/** Real cards by x within the group, in canvas px; the first is the one in the first slot. */
+const order = (page) => page.evaluate(([ids, s, w]) => {
   const track = document.querySelector(s).getBoundingClientRect()
-  const k = track.width / 1396.172
+  const k = track.width / w
   return ids.map((id) => ({ id, x: (document.querySelector(`[data-node-id="${id}"]`).getBoundingClientRect().left - track.left) / k }))
     .sort((a, b) => a.x - b.x)
-}, [CARDS, sel('94:201')])
+}, [CARDS, sel(GROUP), GROUP_W])
 const showOrder = (o) => o.map((c) => `${c.id}@${fmt(c.x, 1)}`).join(' ')
 // 0.02: Chromium lays boxes out in 1/64 px units.
 const atSlots = (o, first) => {
   const i = CARDS.indexOf(first)
-  return o.every((c, s) => c.id === CARDS[(i + s) % 4] && Math.abs(c.x - s * PITCH) < 0.02)
+  return o.every((c, s) => c.id === CARDS[(i + s) % N] && Math.abs(c.x - SLOTS[s]) < 0.02)
 }
-const firstAfter = (first, steps) => CARDS[(((CARDS.indexOf(first) + steps) % 4) + 4) % 4]
+const firstAfter = (first, steps) => CARDS[(((CARDS.indexOf(first) + steps) % N) + N) % N]
 /** The element that moves the cards (parent of the real cards). */
-const trackTransform = (page) => page.$eval(sel('94:230'), (el) => getComputedStyle(el.parentElement).transform)
+const trackTransform = (page) => page.$eval(sel(CARDS[0]), (el) => getComputedStyle(el.parentElement).transform)
 /** Resolves once the track has no running slide and no transform. */
 const settled = (page) => until(page, 'the track to settle', (s) => {
   const track = document.querySelector(s).parentElement
   return track.getAnimations().length === 0 && getComputedStyle(track).transform === 'none'
-}, sel('94:230'))
+}, sel(CARDS[0]))
 const clickTimes = async (page, id, n, gap = 0) => {
   for (let i = 0; i < n; i++) {
     await page.click(sel(id))
@@ -101,6 +122,19 @@ const pixelsHeld = (page, a, b, curveX, photoH) => page.evaluate(async ([a, b, c
   return { held, heldChanged, heldNoise, heldMax, photoChangedPct: (100 * photoChanged) / photo }
 }, [a, b, curveX, photoH])
 
+/** The part of a card the window shows (the wide fifth slot runs off the frame). */
+const shown = async (page, r) => {
+  const vw = page.viewportSize().width
+  return { ...r, right: Math.min(r.right, vw), width: Math.min(r.right, vw) - r.left }
+}
+/** Screenshot of a card; one the window cuts off is shot up to the window edge. */
+const cardShot = async (page, card) => {
+  const r = await rect(page, sel(card))
+  if (r.right <= page.viewportSize().width) return (await page.locator(sel(card)).screenshot()).toString('base64')
+  const s = await shown(page, r)
+  return (await page.screenshot({ clip: { x: s.left, y: s.top, width: s.width, height: s.height } })).toString('base64')
+}
+
 /**
  * Main-frame navigations after load: none of these checks may navigate. A reload of the page
  * itself is the shared dev server's full reload (another section's edit), not this section.
@@ -111,25 +145,28 @@ const watchNavigation = (page) => {
   return seen
 }
 
-/** CTA links in the order Tab visits them, with their x: start just before the carousel. */
-const tabOrder = async (page) => {
-  await page.$eval(sel('94:201'), (box) => {
+/** The first n stops Tab visits from just before the carousel, with their x and the page's sideways scroll. */
+const tabOrder = async (page, n) => {
+  await page.$eval(sel(GROUP), (box) => {
     const all = [...document.querySelectorAll('a[href], button, input')].filter((e) => !e.closest('[inert]'))
     all[all.findIndex((e) => box.contains(e)) - 1].focus()
   })
   const seen = []
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < n; i++) {
     await page.keyboard.press('Tab')
     seen.push(await page.evaluate(() => ({ id: document.activeElement.dataset.nodeId, x: document.activeElement.getBoundingClientRect().left })))
   }
+  const scrolled = await page.evaluate(() => scrollX + document.querySelector('main').scrollLeft)
   await page.evaluate(() => document.activeElement.blur())
-  return seen
+  return Object.assign(seen, { scrolled })
 }
 
 export default async function (page, t) {
+  use(t.surface)
   const navs = watchNavigation(page)
   try {
     await motionChecks(page, t)
+    if (PEEK) await bleedChecks(t)
   } finally {
     if (navs.length) t.check('navigation', false, `desktop page navigated to ${navs.join(', ')}`)
   }
@@ -139,11 +176,20 @@ async function motionChecks(page, t) {
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   const labels = await page.evaluate(([p, n]) => [p, n].map((id) => document.querySelector(`[data-node-id="${id}"]`).getAttribute('aria-label')), [PREV, NEXT])
   const o0 = await order(page)
-  t.check('M-11', atSlots(o0, '94:230') && (await trackTransform(page)) === 'none' && labels.join() === 'Previous events,Next events',
-    `rest: ${showOrder(o0)}, track transform ${await trackTransform(page)}; 94:257 "${labels[0]}", 94:253 "${labels[1]}"`)
-  const clones = await page.$$eval(`${sel('94:201')} article:not([data-node-id])`, (els) =>
+  t.check('M-11', atSlots(o0, CARDS[0]) && (await trackTransform(page)) === 'none' && labels.join() === 'Previous events,Next events',
+    `rest: ${showOrder(o0)}, track transform ${await trackTransform(page)}; ${PREV} "${labels[0]}", ${NEXT} "${labels[1]}"`)
+  const clones = await page.$$eval(`${sel(GROUP)} article:not([data-node-id])`, (els) =>
     els.map((a) => a.getAttribute('aria-hidden') === 'true' && a.inert && !a.querySelector('[data-node-id]')))
-  t.check('M-11', clones.length === 8 && clones.every(Boolean), `${clones.length} clone cards, all aria-hidden + inert + no data-node-id: ${clones.every(Boolean)}`)
+  t.check('M-11', clones.length === 2 * N && clones.every(Boolean), `${clones.length} clone cards, all aria-hidden + inert + no data-node-id: ${clones.every(Boolean)}`)
+  if (UNDER) {
+    // The card Figma leaves under the row: drawn, never reachable, and it does not move with the track.
+    const under = await page.$eval(sel(UNDER), (a, g) => ({
+      inert: a.inert, hidden: a.getAttribute('aria-hidden'), outside: !document.querySelector(g).contains(a),
+      behind: !!(a.compareDocumentPosition(document.querySelector(g)) & Node.DOCUMENT_POSITION_FOLLOWING),
+    }), sel(GROUP))
+    t.check('M-11', under.inert && under.hidden === 'true' && under.outside && under.behind,
+      `${UNDER} (under the row): inert ${under.inert}, aria-hidden ${under.hidden}, outside the track group ${under.outside}, painted before it ${under.behind}`)
+  }
 
   // M-10, card by card.
   for (const card of CARDS) {
@@ -155,14 +201,15 @@ async function motionChecks(page, t) {
     const rest = { img: await rect(page, img), card: await rect(page, sel(card)), curve: await rect(page, curveSel(card)), title: await rect(page, sel(TITLE[card])) }
     const restStyle = await style(page, img)
     const restCurve = await style(page, curveSel(card))
-    const shotRest = (await page.locator(sel(card)).screenshot()).toString('base64')
+    const shotRest = await cardShot(page, card)
     const sampling = sample(page, img, 'width', rest.img.width * 1.06)
-    await page.mouse.move(rest.card.left + rest.card.width / 2, rest.card.top + 120)
+    const vis = await shown(page, rest.card)
+    await page.mouse.move(vis.left + vis.width / 2, rest.card.top + 120)
     const samples = await sampling
     await frames(page)
     const hov = { img: await rect(page, img), card: await rect(page, sel(card)), curve: await rect(page, curveSel(card)), title: await rect(page, sel(TITLE[card])) }
     const hovCurve = await style(page, curveSel(card))
-    const shotHov = (await page.locator(sel(card)).screenshot()).toString('base64')
+    const shotHov = await cardShot(page, card)
     const ratio = hov.img.width / rest.img.width
     const tStart = samples.find(([, w]) => w > rest.img.width + 0.01)?.[0] ?? NaN
     const tEnd = samples.find(([, w]) => Math.abs(w - rest.img.width * 1.06) < 0.05)?.[0] ?? NaN
@@ -171,7 +218,7 @@ async function motionChecks(page, t) {
     const centre = (r) => [r.left + r.width / 2, r.top + r.height / 2]
     const dc = Math.hypot(centre(hov.img)[0] - centre(rest.img)[0], centre(hov.img)[1] - centre(rest.img)[1])
     const same = (a, b) => ['left', 'top', 'width', 'height'].every((k) => Math.abs(a[k] - b[k]) < 0.01)
-    const px = await pixelsHeld(page, shotRest, shotHov, rest.curve.left - rest.card.left, PHOTO[card] === '94:231' ? 381 : 356)
+    const px = await pixelsHeld(page, shotRest, shotHov, rest.curve.left - rest.card.left, card === TALL ? 381 : 356)
     const curveShown = baked ? restCurve.visibility === 'hidden' && hovCurve.visibility === 'visible' : hovCurve.visibility === 'visible'
     await away(page)
     // The curve copy hides only once the zoom-out is over, so wait for both.
@@ -200,39 +247,39 @@ async function motionChecks(page, t) {
       `${card}: focus on link ${CTA[card]} scales photo ${fmt(focused.width / rest.img.width, 4)}x, blur -> scale none`)
   }
 
-  // M-11: next steps one pitch with a 0.5s slide, and four steps come back round.
+  // M-11: next steps one pitch with a 0.5s slide, and N steps come back round.
   await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
   await away(page)
   const seen = []
   let slide = null
-  for (let i = 1; i <= 4; i++) {
-    const sampling = i === 1 ? sample(page, sel('94:230'), 'm41') : null
+  for (let i = 1; i <= N; i++) {
+    const sampling = i === 1 ? sample(page, sel(CARDS[0]), 'm41') : null
     await page.click(sel(NEXT))
     if (sampling) slide = await sampling
     await settled(page)
     seen.push({ o: await order(page), tf: await trackTransform(page) })
   }
-  const want = ['94:202', '94:212', '94:221', '94:230']
+  const want = CARDS.map((_, i) => CARDS[(i + 1) % N])
   const moving = slide.filter(([, x]) => x !== 0)
   const slideDur = moving.length ? (moving.at(-1)[0] - moving[0][0]) / 1000 : 0
   const startX = moving[0]?.[1] ?? 0
   t.check('M-11', seen.every((s, i) => atSlots(s.o, want[i]) && s.tf === 'none') && slideDur > 0.3 && slideDur < 1 && startX > 0.8 * PITCH && startX <= PITCH + 0.5,
-    `next x4: first card ${seen.map((s) => s.o[0].id).join(' -> ')} (wraps to 94:230), each settled at its slot pitch ${PITCH}, track transform ${[...new Set(seen.map((s) => s.tf))]} after each; ` +
+    `next x${N}: first card ${seen.map((s) => s.o[0].id).join(' -> ')} (wraps to ${CARDS[0]}), each settled at its slot pitch ${PITCH}, track transform ${[...new Set(seen.map((s) => s.tf))]} after each; ` +
     `first slide ran ~${fmt(slideDur)}s from translateX ${fmt(startX)} (one pitch) to none; after step 1: ${showOrder(seen[0].o)}`)
 
   const back = []
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= N; i++) {
     await page.click(sel(PREV))
     await settled(page)
     back.push(await order(page))
   }
-  const wantBack = ['94:221', '94:212', '94:202', '94:230']
+  const wantBack = CARDS.map((_, i) => CARDS[(N - 1 - i + N) % N])
   t.check('M-11', back.every((o, i) => atSlots(o, wantBack[i])),
-    `prev x4: first card ${back.map((o) => o[0].id).join(' -> ')}; after step 1: ${showOrder(back[0])}`)
+    `prev x${N}: first card ${back.map((o) => o[0].id).join(' -> ')}; after step 1: ${showOrder(back[0])}`)
 
   // No click is ever lost, however fast they come.
   const bursts = []
-  let first = '94:230'
+  let first = CARDS[0]
   for (const [label, id, n, gap, dir] of [
     ['2 quick nexts', NEXT, 2, 0, 1], ['2 quick prevs', PREV, 2, 0, -1], ['5 quick nexts', NEXT, 5, 0, 1], ['9 quick nexts', NEXT, 9, 0, 1],
     ['9 nexts at 3/s for 3s', NEXT, 9, 333, 1], ['7 quick prevs', PREV, 7, 0, -1],
@@ -253,50 +300,126 @@ async function motionChecks(page, t) {
   bursts.push({ label: '11 clicks in one task', ok: atSlots(oSync, expSync), got: oSync[0].id, expect: expSync, ms: 0, sync })
   first = oSync[0].id
   t.check('M-11', bursts.every((b) => b.ok),
-    `bursts from 94:230: ${bursts.map((b) => `${b.label}${b.ms ? ` (${b.ms}ms)` : ''} -> ${b.got} (want ${b.expect})`).join('; ')}`)
-  await clickTimes(page, PREV, (CARDS.indexOf(first) + 4) % 4)
+    `bursts from ${CARDS[0]}: ${bursts.map((b) => `${b.label}${b.ms ? ` (${b.ms}ms)` : ''} -> ${b.got} (want ${b.expect})`).join('; ')}`)
+  await clickTimes(page, PREV, (CARDS.indexOf(first) + N) % N)
   await settled(page)
 
-  // WCAG 2.4.3: Tab and reading order follow the cards left to right after stepping.
+  // WCAG 2.4.3: Tab and reading order follow the cards left to right after stepping. On wide the
+  // fifth slot is cut off at the frame width, so its link is skipped and Tab goes on to the arrows.
   const tabs = []
+  const shownLinks = PEEK ? N - 1 : N
   for (const steps of [1, 2]) {
     await clickTimes(page, NEXT, steps)
     await settled(page)
     const o = await order(page)
-    const seq = await tabOrder(page)
-    const ok = seq.every((s, i) => s.id === CTA[o[i].id] && (i === 0 || s.x > seq[i - 1].x))
+    const seq = await tabOrder(page, PEEK ? shownLinks + 1 : shownLinks)
+    const ok = seq.slice(0, shownLinks).every((s, i) => s.id === CTA[o[i].id] && (i === 0 || s.x > seq[i - 1].x)) &&
+      (!PEEK || (seq[shownLinks].id === PREV && seq.scrolled === 0))
     tabs.push({ after: steps === 1 ? 1 : 3, ok, seq, o })
   }
-  await clickTimes(page, NEXT, 1)
+  await clickTimes(page, NEXT, N - 3)
   await settled(page)
-  t.check('M-11', tabs.every((x) => x.ok) && atSlots(await order(page), '94:230'),
-    tabs.map((x) => `after ${x.after} next: Tab visits ${x.seq.map((s) => `${s.id}@${fmt(s.x, 0)}`).join(' ')} (cards ${x.o.map((c) => c.id).join(' ')})`).join('; '))
+  t.check('M-11', tabs.every((x) => x.ok) && atSlots(await order(page), CARDS[0]),
+    tabs.map((x) => `after ${x.after} next: Tab visits ${x.seq.map((s) => `${s.id}@${fmt(s.x, 0)}`).join(' ')} (cards ${x.o.map((c) => c.id).join(' ')})` +
+      (PEEK ? `, page scrolled sideways ${x.seq.scrolled}px` : '')).join('; '))
 
   // Mouse: a drag does not step (swipe is touch and pen), and a CTA click goes through.
-  const r = await rect(page, sel('94:212'))
+  const r = await rect(page, sel(CARDS[2]))
   await page.mouse.move(r.left + 200, r.top + 100)
   await page.mouse.down()
   await page.mouse.move(r.left + 60, r.top + 100, { steps: 8 })
   await page.mouse.up()
   await frames(page, 3)
   const afterDrag = await order(page)
-  const animating = await page.$eval(sel('94:230'), (el) => el.parentElement.getAnimations().length)
+  const animating = await page.$eval(sel(CARDS[0]), (el) => el.parentElement.getAnimations().length)
   await page.evaluate(() => {
     window.__clicks = []
     window.addEventListener('click', (e) => { window.__clicks.push({ id: e.target.closest('a')?.dataset.nodeId, prevented: e.defaultPrevented }); e.preventDefault() })
   })
-  await page.click(sel(CTA['94:212']))
+  await page.click(sel(CTA[CARDS[2]]))
   const clicks = await page.evaluate(() => window.__clicks)
-  t.check('M-12', atSlots(afterDrag, '94:230') && !animating && clicks.length === 1 && clicks[0].id === CTA['94:212'] && !clicks[0].prevented,
-    `mouse drag 140px left: first card stays ${afterDrag[0].id}, no slide; mouse click on CTA ${CTA['94:212']} delivered ${JSON.stringify(clicks)}`)
+  t.check('M-12', atSlots(afterDrag, CARDS[0]) && !animating && clicks.length === 1 && clicks[0].id === CTA[CARDS[2]] && !clicks[0].prevented,
+    `mouse drag 140px left: first card stays ${afterDrag[0].id}, no slide; mouse click on CTA ${CTA[CARDS[2]]} delivered ${JSON.stringify(clicks)}`)
 
   // M-G4: zoom follows keyboard focus only, so the clicked card unzooms once the pointer leaves.
   await away(page)
-  const unzoomed = await until(page, '94:212 zoom-out after a mouse click', (s) => getComputedStyle(document.querySelector(s)).scale === 'none', imgSel('94:212')).then(() => true, () => false)
-  const stillFocused = await page.$eval(sel(CTA['94:212']), (el) => document.activeElement === el && !el.matches(':focus-visible'))
-  t.check('M-10', unzoomed && stillFocused, `mouse click then leave: 94:212 photo scale ${(await style(page, imgSel('94:212'))).scale}, link still focused (not focus-visible) ${stillFocused}`)
+  const unzoomed = await until(page, `${CARDS[2]} zoom-out after a mouse click`, (s) => getComputedStyle(document.querySelector(s)).scale === 'none', imgSel(CARDS[2])).then(() => true, () => false)
+  const stillFocused = await page.$eval(sel(CTA[CARDS[2]]), (el) => document.activeElement === el && !el.matches(':focus-visible'))
+  t.check('M-10', unzoomed && stillFocused, `mouse click then leave: ${CARDS[2]} photo scale ${(await style(page, imgSel(CARDS[2]))).scale}, link still focused (not focus-visible) ${stillFocused}`)
 
   await touchChecks(t, false)
+}
+
+/**
+ * Wide only, on a 2560 window (the canvas at 1x, centred, --bleed 460): the row runs on into the
+ * right margin with the next cards of the loop and nothing shows left of the first card; the
+ * fifth slot's link is reachable once the window shows it; a burst never uncovers the margin.
+ */
+async function bleedChecks(t) {
+  const page = await t.browser.newPage({ viewport: { width: 2560, height: 900 } })
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e.message).split('\n')[0]))
+  await page.goto(t.url, { waitUntil: 'networkidle' })
+  const navs = watchNavigation(page)
+  try {
+    await page.$eval(t.section, (el) => el.scrollIntoView({ block: 'center' }))
+    await frames(page)
+    // Cards (real and clone) by the title they show, left to right, as far as the window reaches.
+    const margin = () => page.evaluate(([g, v]) => {
+      const group = document.querySelector(g).getBoundingClientRect()
+      const clip = document.querySelector(v)
+      const box = clip.getBoundingClientRect()
+      const cards = [...clip.querySelectorAll('article')].map((a) => ({ r: a.getBoundingClientRect(), title: a.querySelector('h3').textContent.replace(/\s+/g, ' ').trim() }))
+        .filter((c) => c.r.right > box.left && c.r.left < Math.min(box.right, innerWidth)).sort((a, b) => a.r.left - b.r.left)
+      // Gaps wider than the 12px between cards, from the first card to the window edge.
+      let edge = cards[0].r.left, hole = 0
+      for (const c of cards) { hole = Math.max(hole, c.r.left - edge); edge = Math.max(edge, c.r.right) }
+      const root = document.querySelector('[data-canvas="root"]')
+      return {
+        bleed: getComputedStyle(root).getPropertyValue('--bleed').trim(), canvasRight: root.getBoundingClientRect().right,
+        clipLeft: box.left - group.left, clipRight: box.right, overflow: getComputedStyle(clip).overflowX,
+        titles: cards.map((c) => c.title), lastRight: edge, hole, firstLeft: cards[0].r.left - group.left, vw: innerWidth,
+      }
+    }, [sel(GROUP), viewportSel()])
+    const titleOf = (id) => page.$eval(sel(TITLE[id]), (el) => el.textContent.replace(/\s+/g, ' ').trim())
+    const loopTitles = await Promise.all(CARDS.map(titleOf))
+    const expectTitles = (first, n) => Array.from({ length: n }, (_, i) => loopTitles[(first + i) % N])
+    const m0 = await margin()
+    const m0ok = m0.clipLeft === 0 && m0.firstLeft === 0 && m0.overflow === 'clip' && m0.clipRight >= m0.vw - 0.5 && m0.lastRight >= m0.vw &&
+      m0.hole <= 12.5 && m0.titles.join('|') === expectTitles(0, m0.titles.length).join('|') && m0.titles.length > N
+    await page.click(sel(NEXT))
+    await settled(page)
+    const m1 = await margin()
+    const m1ok = m1.lastRight >= m1.vw && m1.hole <= 12.5 && m1.titles.join('|') === expectTitles(1, m1.titles.length).join('|')
+    t.check('M-11', m0ok && m1ok,
+      `2560 window (--bleed ${m0.bleed}, canvas ends at ${fmt(m0.canvasRight, 0)}): the clip starts at the first card (+${m0.clipLeft}px, overflow ${m0.overflow}) and reaches ${fmt(m0.clipRight, 0)} of ${m0.vw}; ` +
+      `cards run to ${fmt(m0.lastRight, 0)} with no gap over 12px (${fmt(m0.hole, 1)}): ${m0.titles.join(' | ')}; after one next: ${m1.titles.join(' | ')}`)
+    await page.click(sel(PREV))
+    await settled(page)
+
+    const seq = await tabOrder(page, N + 1)
+    const o = await order(page)
+    const tabOk = seq.slice(0, N).every((s, i) => s.id === CTA[o[i].id]) && seq[N].id === PREV && seq.scrolled === 0
+    t.check('M-11', tabOk, `2560 window: the fifth slot's link is shown, so Tab visits ${seq.map((s) => s.id).join(' ')}; page scrolled sideways ${seq.scrolled}px`)
+
+    // Five quick prevs in one task: the first frame of the slide must still cover the window.
+    const burst = await page.evaluate(([p, v]) => {
+      const btn = document.querySelector(p)
+      for (let i = 0; i < 5; i++) btn.click()
+      const box = document.querySelector(v).getBoundingClientRect()
+      const right = Math.max(...[...document.querySelectorAll(`${v} article`)].map((a) => a.getBoundingClientRect().right))
+      const left = Math.min(...[...document.querySelectorAll(`${v} article`)].map((a) => a.getBoundingClientRect().left))
+      return { right, left, clipLeft: box.left, vw: innerWidth }
+    }, [sel(PREV), viewportSel()])
+    await settled(page)
+    const after = await order(page)
+    t.check('M-11', burst.right >= burst.vw && burst.left <= burst.clipLeft && atSlots(after, firstAfter(CARDS[0], -5)),
+      `2560 window, 5 prevs in one task: first slide frame spans cards ${fmt(burst.left, 0)}..${fmt(burst.right, 0)} over the clip ${fmt(burst.clipLeft, 0)}..${burst.vw}; settles on ${after[0].id}`)
+  } finally {
+    if (navs.length) t.check('navigation', false, `2560 page navigated to ${navs.join(', ')}`)
+    for (const e of errors) t.check('pageerror', false, `2560 page: ${e}`)
+    await page.close()
+  }
 }
 
 /** Touch (CDP touch events on a 390px phone), pen (CDP mouse events, pointerType pen) and pinch-zoom. */
@@ -318,7 +441,8 @@ async function touchChecks(t, reduce) {
 
 async function phoneChecks(t, page, ctx, reduce) {
   const cdp = await ctx.newCDPSession(page)
-  await page.$eval(sel('94:201'), (el) => el.scrollIntoView({ block: 'center' }))
+  const [C0, C1, C2] = CARDS
+  await page.$eval(sel(GROUP), (el) => el.scrollIntoView({ block: 'center' }))
   await page.evaluate(() => {
     window.__clicks = { arrived: [], delivered: [] }
     document.addEventListener('click', (e) => window.__clicks.arrived.push(e.target.closest('a')?.dataset.nodeId ?? e.target.tagName), true)
@@ -350,72 +474,72 @@ async function phoneChecks(t, page, ctx, reduce) {
   }
   const centreOf = async (id) => { const r = await rect(page, sel(id)); return toInput([r.left + r.width / 2, r.top + r.height / 2]) }
   const settledOrder = async () => { await settled(page); return order(page) }
-  const k = (await rect(page, sel('94:201'))).width / 1396.172
-  const mode = reduce ? 'reduced motion: ' : ''
+  const k = (await rect(page, sel(GROUP))).width / GROUP_W
+  const mode = `${reduce ? 'reduced motion: ' : ''}${t.surface} canvas, `
 
-  const p202 = await centreOf(PHOTO['94:202'])
-  await drag(p202, -80, 4)
+  const p1 = await centreOf(PHOTO[C1])
+  await drag(p1, -80, 4)
   const left = await settledOrder()
-  await drag(p202, 80, -4)
+  await drag(p1, 80, -4)
   const right = await settledOrder()
-  await drag(p202, -25, 0)
+  await drag(p1, -25, 0)
   const short = await settledOrder()
-  t.check('M-12', atSlots(left, '94:202') && atSlots(right, '94:230') && atSlots(short, '94:230'),
+  t.check('M-12', atSlots(left, C1) && atSlots(right, C0) && atSlots(short, C0),
     `${mode}phone 390px (canvas x${fmt(k, 3)}): touch swipe 80px left -> first card ${left[0].id}, 80px right -> ${right[0].id}, 25px -> ${short[0].id} (no step)`)
 
   const sy0 = await page.evaluate(() => scrollY)
-  await drag(p202, 6, -220)
+  await drag(p1, 6, -220)
   await until(page, 'the page scroll to stop', () => new Promise((r) => { const y = scrollY; requestAnimationFrame(() => requestAnimationFrame(() => r(scrollY === y))) }))
   const sy1 = await page.evaluate(() => scrollY)
   const vert = await settledOrder()
-  t.check('M-12', sy1 - sy0 > 50 && atSlots(vert, '94:230'),
+  t.check('M-12', sy1 - sy0 > 50 && atSlots(vert, C0),
     `${mode}vertical touch drag 220px up over the cards: page scrolled ${fmt(sy1 - sy0, 0)}px, first card stays ${vert[0].id}`)
 
   await clicks()
-  await tap(await centreOf(CTA['94:202']))
+  await tap(await centreOf(CTA[C1]))
   await delivered()
   const tapped = await clicks()
-  await drag(await centreOf(CTA['94:202']), -80, 0)
+  await drag(await centreOf(CTA[C1]), -80, 0)
   await grace()
   const fromLink = await clicks()
   const afterLinkSwipe = await settledOrder()
-  await tap(await centreOf(CTA['94:212']))
+  await tap(await centreOf(CTA[C2]))
   await delivered()
   const tap2 = await clicks()
   const ok = (c, id) => c.delivered.length === 1 && c.delivered[0].id === id && !c.delivered[0].prevented
-  t.check('M-12', ok(tapped, CTA['94:202']) && fromLink.delivered.length === 0 && atSlots(afterLinkSwipe, '94:202') && ok(tap2, CTA['94:212']),
-    `${mode}tap on CTA ${CTA['94:202']}: ${JSON.stringify(tapped.delivered)}; swipe starting on it: steps to ${afterLinkSwipe[0].id}, clicks arrived ${JSON.stringify(fromLink.arrived)} delivered ${fromLink.delivered.length}; ` +
-    `next tap on ${CTA['94:212']}: ${JSON.stringify(tap2.delivered)}`)
+  t.check('M-12', ok(tapped, CTA[C1]) && fromLink.delivered.length === 0 && atSlots(afterLinkSwipe, C1) && ok(tap2, CTA[C2]),
+    `${mode}tap on CTA ${CTA[C1]}: ${JSON.stringify(tapped.delivered)}; swipe starting on it: steps to ${afterLinkSwipe[0].id}, clicks arrived ${JSON.stringify(fromLink.arrived)} delivered ${fromLink.delivered.length}; ` +
+    `next tap on ${CTA[C2]}: ${JSON.stringify(tap2.delivered)}`)
 
-  await pen(await centreOf(PHOTO['94:212']), -80)
+  await pen(await centreOf(PHOTO[C2]), -80)
   await grace()
   const penLeft = await settledOrder()
   const penClick = await clicks()
-  t.check('M-12', atSlots(penLeft, '94:212') && penClick.delivered.length === 0,
+  t.check('M-12', atSlots(penLeft, C2) && penClick.delivered.length === 0,
     `${mode}pen drag 80px left: first card ${afterLinkSwipe[0].id} -> ${penLeft[0].id}; click after the drag arrived ${JSON.stringify(penClick.arrived)}, delivered ${penClick.delivered.length} (swallowed)`)
 
   // Pinch-zoomed: a horizontal drag over the cards pans the zoomed page and does not swipe.
-  const ta1 = (await style(page, VIEWPORT)).touchAction
-  await page.$eval(sel('94:201'), (el) => el.scrollIntoView({ block: 'center' }))
+  const ta1 = (await style(page, viewportSel())).touchAction
+  await page.$eval(sel(GROUP), (el) => el.scrollIntoView({ block: 'center' }))
   await frames(page)
   // Zoom in on the first card's photo, so the zoomed page has room to pan right.
   const zoomedFirst = (await order(page))[0].id
   const [zx, zy] = await centreOf(PHOTO[zoomedFirst])
   await cdp.send('Input.synthesizePinchGesture', { x: zx, y: zy, scaleFactor: 3, relativeSpeed: 1200, gestureSourceType: 'touch' })
   // A missed wait is reported by the check below, not thrown.
-  await until(page, 'zoom', (s) => visualViewport.scale > 2.9 && getComputedStyle(document.querySelector(s)).touchAction === 'auto', VIEWPORT).catch(() => {})
-  const taZoomed = (await style(page, VIEWPORT)).touchAction
+  await until(page, 'zoom', (s) => visualViewport.scale > 2.9 && getComputedStyle(document.querySelector(s)).touchAction === 'auto', viewportSel()).catch(() => {})
+  const taZoomed = (await style(page, viewportSel())).touchAction
   const z0 = await vv()
   const [, py] = await centreOf(PHOTO[zoomedFirst])
   await drag([z0.w * 0.85, py], -100, 0)
   await grace()
   const z1 = await vv()
   const zoomedAfter = await order(page)
-  const zoomedAnim = await page.$eval(sel('94:230'), (el) => el.parentElement.getAnimations().length)
+  const zoomedAnim = await page.$eval(sel(CARDS[0]), (el) => el.parentElement.getAnimations().length)
   const z2 = await vv()
   await cdp.send('Input.synthesizePinchGesture', { x: z2.w / 2, y: z2.h / 2, scaleFactor: 1 / z2.scale, relativeSpeed: 1200, gestureSourceType: 'touch' })
-  await until(page, 'unzoom', (s) => visualViewport.scale < 1.01 && getComputedStyle(document.querySelector(s)).touchAction !== 'auto', VIEWPORT).catch(() => {})
-  const ta2 = (await style(page, VIEWPORT)).touchAction
+  await until(page, 'unzoom', (s) => visualViewport.scale < 1.01 && getComputedStyle(document.querySelector(s)).touchAction !== 'auto', viewportSel()).catch(() => {})
+  const ta2 = (await style(page, viewportSel())).touchAction
   await drag(await centreOf(PHOTO[zoomedFirst]), -80, 0)
   const unzoomed = await settledOrder()
   t.check('M-12',
@@ -427,6 +551,7 @@ async function phoneChecks(t, page, ctx, reduce) {
 }
 
 export async function reduced(page, t) {
+  use(t.surface)
   const navs = watchNavigation(page)
   try {
     await reducedChecks(page, t)
@@ -442,7 +567,7 @@ async function reducedChecks(page, t) {
     const img = imgSel(card)
     await away(page)
     const r0 = await rect(page, img)
-    const c = await rect(page, sel(card))
+    const c = await shown(page, await rect(page, sel(card)))
     await page.mouse.move(c.left + c.width / 2, c.top + 120)
     await page.waitForTimeout(600)
     const s = await style(page, img)
@@ -455,12 +580,12 @@ async function reducedChecks(page, t) {
 
   await away(page)
   const steps = []
-  let want = '94:230'
+  let want = CARDS[0]
   for (const [id, n] of [[NEXT, 1], [NEXT, 1], [PREV, 1], [PREV, 1], [NEXT, 9], [PREV, 5], [NEXT, 3], [PREV, 3]]) {
     want = firstAfter(want, id === NEXT ? n : -n)
     await clickTimes(page, id, n)
     const tf = await trackTransform(page)
-    const anim = await page.$eval(sel('94:230'), (el) => el.parentElement.getAnimations().length)
+    const anim = await page.$eval(sel(CARDS[0]), (el) => el.parentElement.getAnimations().length)
     const o = await order(page)
     steps.push({ ok: atSlots(o, want) && tf === 'none' && !anim, label: `${n}x ${id === NEXT ? 'next' : 'prev'}`, first: o[0].id, tf })
   }

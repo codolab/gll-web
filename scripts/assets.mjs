@@ -16,6 +16,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs'
 import { figma, download, FILE_KEY } from './figma-api.mjs'
+import { CONF } from './surface.mjs'
 
 const [mode, slug, ...rest] = process.argv.slice(2)
 const flags = Object.fromEntries(rest.filter((a) => a.startsWith('--')).map((a) => a.slice(2).split('=')))
@@ -27,7 +28,7 @@ const dir = `public/assets/${slug}`
 mkdirSync(dir, { recursive: true })
 
 const index = new Map()
-for (const f of mode === 'fill' ? readdirSync('design/nodes').map((f) => 'design/nodes/' + f) : ['design/nodes/' + slug + '.json']) {
+for (const f of mode === 'fill' ? readdirSync(`${CONF.dir}/nodes`).map((f) => `${CONF.dir}/nodes/${f}`) : [`${CONF.dir}/nodes/${slug}.json`]) {
   const walk = (n) => { index.set(n.id, n); (n.children ?? []).forEach(walk) }
   walk(JSON.parse(readFileSync(f, 'utf8')))
 }
@@ -56,7 +57,7 @@ if (mode === 'render') {
 if (mode === 'fill') {
   for (const [id, name] of pairs) {
     const n = index.get(id)
-    if (!n) throw new Error(`${id} is not in design/nodes/`)
+    if (!n) throw new Error(`${id} is not in ${CONF.dir}/nodes/`)
     const fill = (n.fills ?? []).find((f) => f.type === 'IMAGE' && f.visible !== false)
     if (!fill) throw new Error(`${id} has no visible IMAGE fill`)
     const src = `design/fills/${fill.imageRef}`

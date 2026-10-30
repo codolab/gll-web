@@ -9,6 +9,11 @@ dist
 qa/out/
 qa/cmp/
 qa/one/
+qa/wide/out/
+qa/wide/cmp/
+qa/wide/one/
 design/cache/
 design/fills/
 qa/skeptic/work/
+design/wide/figma/parts/
+qa/mobile/out/
